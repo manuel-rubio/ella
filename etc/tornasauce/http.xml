@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tornasauce version="1.0">
+    <domain name="bosqueviejo.net">
+        <directory>/var/www/bosqueviejo</directory>
+        <index>index.php,index.html</index>
+    </domain>
+</tornasauce>
