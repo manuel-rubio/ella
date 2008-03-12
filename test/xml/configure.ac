@@ -1,0 +1,17 @@
+AC_INIT(tree1, 0.1)
+AM_INIT_AUTOMAKE
+
+AC_PROG_CC
+AC_PROG_CC_STDC
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS([stdlib.h stdio.h])
+
+PKG_PROG_PKG_CONFIG
+PKG_CHECK_MODULES(dependencias, [libxml-2.0])
+AC_SUBST(dependencias_CFLAGS)
+AC_SUBST(dependencias_LIBS)
+
+AC_CONFIG_FILES([Makefile])
+
+AC_OUTPUT
