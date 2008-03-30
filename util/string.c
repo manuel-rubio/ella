@@ -1,5 +1,29 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
+int compare( char *s1, char *s2 )
+{
+    int i;
+    for (i=0; s1[i]!='\0' && s2[i]!='\0'; i++) {
+        if (s1[i] > s2[i])
+            return -1;
+        if (s1[i] < s2[i])
+            return 1;
+    }
+    if (s1[i]!='\0')
+        return -1;
+    if (s2[i]!='\0')
+        return 1;
+    return 0;
+}
+
+void copy( char *src, char *dst )
+{
+    int i;
+    for (i=0; src[i]!='\0'; i++)
+        dst[i] = src[i];
+    dst[i] = '\0';
+}
+
 char *chomp( char *s )
 {
     int c;
@@ -7,6 +31,7 @@ char *chomp( char *s )
         ;
     while (s[c-1] == '\r' || s[c-1] == '\n')
         s[--c] = '\0';
+    return s;
 }
 
 int length( char *s )
