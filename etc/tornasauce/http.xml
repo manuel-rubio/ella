@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tornasauce version="1.0">
+    <bind ip="0.0.0.0/0" />
     <modules load="http10" />
     <domain name="bosqueviejo.net" alias="www.bosqueviejo.net,tornasauce.bosqueviejo.net">
-        <bind ip="0.0.0.0/0" />
         <location url="/" path="/var/www/bosqueviejo">
             <index auto="off" order="index.php,index.html" />
             <grants>

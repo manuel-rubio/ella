@@ -3,96 +3,123 @@
 #include "config.h"
 #include "../util/string.h"
 
-configFuncs get_initial_conf()
-{
+configFuncs tor_get_initial_conf() {
     configFuncs cf;
 #if defined __CONFIG_STATIC
     cf.name = "INI";
-    cf.read = ini_read;
+    cf.read = tor_ini_read;
 #else
     // TODO
 #endif
     return cf;
 }
 
-configBlock* new_block( char *name, char *lastname ) {
+configBlock* tor_new_block( char *name, char *lastname ) {
     configBlock* cb = (configBlock *)malloc(sizeof(configBlock));
     cb->details = NULL;
-    copy(name, cb->name);
-    copy(lastname, cb->lastname);
+    tor_copy(name, cb->name);
+    tor_copy(lastname, cb->lastname);
     cb->next = NULL;
     return cb;
 }
 
-configDetail* new_detail( char *key, char *value, int index ) {
+configDetail* tor_new_detail( char *key, char *value, int index ) {
     configDetail* cd = (configDetail *)malloc(sizeof(configDetail));
-    copy(key, cd->key);
-    copy(value, cd->value);
+    tor_copy(key, cd->key);
+    tor_copy(value, cd->value);
     cd->index = index;
     cd->next = NULL;
     return cd;
 }
 
-void free_blocks( configBlock *cb ) {
+void tor_free_blocks( configBlock *cb ) {
     if (cb == NULL) {
         return;
     }
     if (cb->details != NULL) {
-        free_details(cb->details);
+        tor_free_details(cb->details);
     }
     if (cb->next != NULL) {
-        free_blocks(cb->next);
+        tor_free_blocks(cb->next);
     }
     free(cb);
 }
 
-void free_details( configDetail *cd ) {
+void tor_free_details( configDetail *cd ) {
     if (cd == NULL) {
         return;
     }
     if (cd->next != NULL) {
-        free_details(cd->next);
+        tor_free_details(cd->next);
     }
     free(cd);
 }
 
-configBlock* get_block( configBlock *cb, char *name, char *lastname ) {
+configBlock* tor_get_block( configBlock *cb, char *name, char *lastname ) {
     for (;cb != NULL; cb = cb->next) {
         if (lastname) {
-            if (compare(cb->name, name) == 0 && compare(cb->lastname, lastname) == 0)
+            if (tor_compare(cb->name, name) == 0 && tor_compare(cb->lastname, lastname) == 0)
                 return cb;
         } else {
-            if (compare(cb->name, name) == 0)
+            if (tor_compare(cb->name, name) == 0)
                 return cb;
         }
     }
     return NULL;
 }
 
-char* get_detail_value( configBlock *cb, char *key, int index ) {
+char* tor_get_detail_value( configBlock *cb, char *key, int index ) {
     configDetail *cd;
     if (cb == NULL || cb->details == NULL)
         return NULL;
     for (cd=cb->details; cd != NULL; cd = cd->next)
-        if (compare(cd->key, key) == 0 && cd->index == index)
+        if (tor_compare(cd->key, key) == 0 && cd->index == index)
             return cd->value;
     return NULL;
 }
 
-int get_detail_indexes( configBlock *cb, char *key ) {
+int tor_get_detail_indexes( configBlock *cb, char *key ) {
     configDetail *cd;
     int indexes = 0;
     if (cb == NULL || cb->details == NULL)
         return 0;
     for (cd=cb->details; cd != NULL; cd = cd->next)
-        if (compare(cd->key, key) == 0)
+        if (tor_compare(cd->key, key) == 0)
             indexes++;
     return indexes;
 }
 
+void tor_get_bindhost( configBlock *cb, char *key, int index, char *s ) {
+    char *host = tor_get_detail_value(cb, key, index);
+    int i, capture;
+
+    if (host == NULL)
+        return;
+    for (i=0; host[i]!='\0' && host[i]!=':'; i++)
+        s[i] = host[i];
+    s[i] = '\0';
+}
+
+int tor_get_bindport( configBlock *cb, char *key, int index ) {
+    char *host = tor_get_detail_value(cb, key, index);
+    char s[10];
+    int i, j, capture;
+
+    if (host == NULL)
+        return;
+    for (i=0, j=0, capture=0; host[i]!='\0'; i++) {
+        if (capture)
+            s[j++] = host[i];
+        else if (host[i] == ':')
+            capture = 1;
+    }
+    s[j] = '\0';
+    return atoi(s);
+}
+
 /* INI Method */
 
-configBlock* ini_read() {
+configBlock* tor_ini_read() {
     FILE *f;
     char buffer[1024], clave[512], valor[512];
     int bs = 0, i, j, index;
@@ -106,8 +133,8 @@ configBlock* ini_read() {
         do {
             fgets(buffer, sizeof(buffer), f);
             if (!feof(f)) {
-                chomp(buffer);
-                trim(buffer);
+                tor_chomp(buffer);
+                tor_trim(buffer);
                 if (buffer[0] == '[') {
                     // seccion
                     if (pcb == NULL) {
@@ -157,8 +184,8 @@ configBlock* ini_read() {
                             if (buffer[i] == '=') {
                                 name_flag = 1;
                                 pcd->key[j] = '\0';
-                                trim(pcd->key);
-                                copy(pcd->key, key);
+                                tor_trim(pcd->key);
+                                tor_copy(pcd->key, key);
                                 j = -1;
                                 continue;
                             }
@@ -167,11 +194,11 @@ configBlock* ini_read() {
                             if (buffer[i] == ',') {
                                 index = pcd->index;
                                 pcd->value[j] = '\0';
-                                trim(pcd->value);
+                                tor_trim(pcd->value);
                                 j = -1;
                                 pcd->next = (configDetail *)malloc(sizeof(configDetail));
                                 pcd = pcd->next;
-                                copy(key, pcd->key);
+                                tor_copy(key, pcd->key);
                                 pcd->index = ++index;
                                 continue;
                             }
@@ -179,7 +206,7 @@ configBlock* ini_read() {
                         }
                     }
                     pcd->value[j] = '\0';
-                    trim(pcd->value);
+                    tor_trim(pcd->value);
                 }
             }
         } while(!feof(f));

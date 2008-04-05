@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-int compare( char *s1, char *s2 )
+int tor_compare( char *s1, char *s2 )
 {
     int i;
     for (i=0; s1[i]!='\0' && s2[i]!='\0'; i++) {
@@ -16,7 +16,23 @@ int compare( char *s1, char *s2 )
     return 0;
 }
 
-void copy( char *src, char *dst )
+int tor_ncompare( char *s1, char *s2, int n )
+{
+    int i;
+    for (i=0; s1[i]!='\0' && s2[i]!='\0' && i<n; i++) {
+        if (s1[i] > s2[i])
+            return -1;
+        if (s1[i] < s2[i])
+            return 1;
+    }
+    if (s1[i]!='\0')
+        return -1;
+    if (s2[i]!='\0')
+        return 1;
+    return 0;
+}
+
+void tor_copy( char *src, char *dst )
 {
     int i;
     for (i=0; src[i]!='\0'; i++)
@@ -24,7 +40,7 @@ void copy( char *src, char *dst )
     dst[i] = '\0';
 }
 
-char *chomp( char *s )
+char* tor_chomp( char *s )
 {
     int c;
     for (c=0; s[c]!='\0'; c++)
@@ -34,7 +50,7 @@ char *chomp( char *s )
     return s;
 }
 
-int length( char *s )
+int tor_length( char *s )
 {
     int c;
     for (c=0; s[c]!='\0'; c++)
@@ -42,10 +58,10 @@ int length( char *s )
     return c;
 }
 
-char *rtrim( char *s )
+char* tor_rtrim( char *s )
 {
     int c, i;
-    c = length(s);
+    c = tor_length(s);
     for (i=c-1; i>=0 && s[i]==32; i--)
         ;
     if (i > 0 && i < (c - 1))
@@ -53,7 +69,7 @@ char *rtrim( char *s )
     return s;
 }
 
-char *ltrim( char *s )
+char* tor_ltrim( char *s )
 {
     int i, j, k=0;
     for (j=0; s[j]!='\0' && s[j]==32; j++)
@@ -66,9 +82,9 @@ char *ltrim( char *s )
     return s;
 }
 
-char *trim( char *s )
+char* tor_trim( char *s )
 {
-    ltrim(s);
-    rtrim(s);
+    tor_ltrim(s);
+    tor_rtrim(s);
     return s;
 }

@@ -34,19 +34,22 @@ struct Config_Funcs {
 
 typedef struct Config_Funcs configFuncs;
 
-configFuncs get_initial_conf();
+configFuncs tor_get_initial_conf();
 
-configBlock* new_block( char *name, char *lastname );
-configDetail* new_detail( char *key, char *value, int index );
+configBlock* tor_new_block( char *name, char *lastname );
+configDetail* tor_new_detail( char *key, char *value, int index );
 
-void free_blocks( configBlock *cb );
-void free_details( configDetail *cd );
+void tor_free_blocks( configBlock *cb );
+void tor_free_details( configDetail *cd );
 
-configBlock* get_block( configBlock *cb, char *name, char *lastname );
-char* get_detail_value( configBlock *cb, char *key, int index );
-int get_detail_indexes( configBlock *cb, char *key );
+configBlock* tor_get_block( configBlock *cb, char *name, char *lastname );
+char* tor_get_detail_value( configBlock *cb, char *key, int index );
+int tor_get_detail_indexes( configBlock *cb, char *key );
+
+void tor_get_bindhost( configBlock *cb, char *key, int index, char *s );
+int tor_get_bindport( configBlock *cb, char *key, int index );
 
 /* INI method */
-configBlock* ini_read();
+configBlock* tor_ini_read();
 
 #endif
