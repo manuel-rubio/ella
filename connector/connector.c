@@ -1,4 +1,6 @@
-#include "connector.h"
+/* -*- mode:C; coding:utf-8 -*- */
+
+#include "../include/connector/connector.h"
 
 int tor_server_start( struct sockaddr_in *server, int port ) {
     int fd;

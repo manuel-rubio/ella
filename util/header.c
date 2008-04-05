@@ -1,4 +1,6 @@
-#include "header.h"
+/* -*- mode:C; coding:utf-8 -*- */
+
+#include "../include/util/header.h"
 
 requestHTTP* tor_new_request( char *request, char *uri, char *version ) {
     requestHTTP *rh = (requestHTTP *)malloc(sizeof(requestHTTP));

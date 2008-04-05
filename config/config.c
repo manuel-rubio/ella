@@ -1,7 +1,7 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "config.h"
-#include "../util/string.h"
+#include "../include/config/config.h"
+#include "../include/util/string.h"
 
 configFuncs tor_get_initial_conf() {
     configFuncs cf;

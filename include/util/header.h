@@ -1,3 +1,5 @@
+/* -*- mode:C; coding:utf-8 -*- */
+
 #if !defined __HEADER_H
 #define __HEADER_H
 

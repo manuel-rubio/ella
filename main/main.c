@@ -1,9 +1,10 @@
-#include "../config/config.h"
-#include "../connector/connector.h"
-#include "../util/string.h"
-#include "../util/header.h"
+/* -*- mode:C; coding:utf-8 -*- */
 
-#define PORT         8080
+#include "../include/config/config.h"
+#include "../include/connector/connector.h"
+#include "../include/util/string.h"
+#include "../include/util/header.h"
+
 #define MAX_BUFFER   8192
 
 void prepare_page( char *s ) {

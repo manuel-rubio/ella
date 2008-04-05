@@ -1,3 +1,5 @@
+/* -*- mode:C; coding:utf-8 -*- */
+
 #if !defined __CONNECTOR_H
 #define __CONNECTOR_H
 

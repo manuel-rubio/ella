@@ -1,5 +1,7 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
+#include "../include/util/header.h"
+
 int tor_compare( char *s1, char *s2 )
 {
     int i;

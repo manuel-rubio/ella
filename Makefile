@@ -2,22 +2,22 @@ all: tornasauce
 
 GCC=gcc -g
 
-tornasauce: util/string.o util/header.o connector/connector.o config/config.o main/main.o config.h
+tornasauce: util/string.o util/header.o connector/connector.o config/config.o main/main.o include/config.h
 	$(GCC) -o tornasauce util/string.o connector/connector.o config/config.o main/main.o util/header.o
 
-util/string.o: util/string.h util/string.c config.h
+util/string.o: include/util/string.h util/string.c include/config.h
 	$(GCC) -c -o util/string.o util/string.c
 
-util/header.o: util/header.h util/header.c config.h
+util/header.o: include/util/header.h util/header.c include/config.h
 	$(GCC) -c -o util/header.o util/header.c
 
-connector/connector.o: util/string.h connector/connector.h connector/connector.c config.h
+connector/connector.o: include/util/string.h include/connector/connector.h connector/connector.c include/config.h
 	$(GCC) -c -o connector/connector.o connector/connector.c
 
-config/config.o: util/string.h config/config.h config/config.c config.h
+config/config.o: include/util/string.h include/config/config.h config/config.c include/config.h
 	$(GCC) -c -o config/config.o config/config.c
 
-main/main.o: main/main.c util/string.h connector/connector.h util/header.h
+main/main.o: main/main.c include/util/string.h include/connector/connector.h include/util/header.h
 	$(GCC) -c -o main/main.o main/main.c
 
 clean:
