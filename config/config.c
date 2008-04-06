@@ -78,6 +78,32 @@ char* tor_get_detail_value( configBlock *cb, char *key, int index ) {
     return NULL;
 }
 
+char* tor_get_detail_key( configBlock *cb, char *value, int index ) {
+    configDetail *cd;
+    int count = 0;
+    if (cb == NULL || cb->details == NULL)
+        return NULL;
+    for (cd=cb->details; cd != NULL; cd = cd->next) {
+        if (tor_compare(cd->value, value) == 0) {
+            if (count == index)
+                return cd->key;
+            count++;
+        }
+    }
+    return NULL;
+}
+
+int tor_get_detail_values( configBlock *cb, char *value ) {
+    configDetail *cd;
+    int indexes = 0;
+    if (cb == NULL || cb->details == NULL)
+        return 0;
+    for (cd=cb->details; cd != NULL; cd = cd->next)
+        if (tor_compare(cd->value, value) == 0)
+            indexes++;
+    return indexes;
+}
+
 int tor_get_detail_indexes( configBlock *cb, char *key ) {
     configDetail *cd;
     int indexes = 0;

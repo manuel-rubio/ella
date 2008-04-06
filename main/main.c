@@ -46,8 +46,13 @@ int main() {
     char request[MAX_BUFFER] = { 0 };
     int fd_client, fd_server, i, count;
     int port;
+    bindConnect *bc;
 
     cb = cf.read();
+    bc = tor_connector_parse_bind(cb);
+    tor_free_blocks(cb);
+    tor_connector_bind_free(bc);
+/*
     pcb = tor_get_block(cb, "tornasauce", NULL);
     port = tor_get_bindport(pcb, "bind", 0);
     prepare_page(buffer);
@@ -80,4 +85,5 @@ int main() {
         shutdown(fd_client, SHUT_RD);
         close(fd_client);
     }
+*/
 }

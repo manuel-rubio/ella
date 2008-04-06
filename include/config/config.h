@@ -44,6 +44,7 @@ void tor_free_details( configDetail *cd );
 
 configBlock* tor_get_block( configBlock *cb, char *name, char *lastname );
 char* tor_get_detail_value( configBlock *cb, char *key, int index );
+int tor_get_detail_values( configBlock *cb, char *value );
 int tor_get_detail_indexes( configBlock *cb, char *key );
 
 void tor_get_bindhost( configBlock *cb, char *key, int index, char *s );
