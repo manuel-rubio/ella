@@ -46,7 +46,9 @@ struct Bind_Connect {
 
 typedef struct Bind_Connect bindConnect;
 
-int tor_server_start( struct sockaddr_in *server, int port );
+void tor_connector_launch( void* ptr_bc );
+
+int tor_server_start( struct sockaddr_in *server, char *host, int port );
 int tor_server_accept( struct sockaddr_in* server, int sfd );
 
 bindConnect* tor_connector_parse_bind( configBlock *cb );

@@ -4,6 +4,7 @@
 #include "../include/connector/connector.h"
 #include "../include/util/string.h"
 #include "../include/util/header.h"
+#include "../include/modules/modules.h"
 
 #define MAX_BUFFER   8192
 
@@ -38,7 +39,8 @@ Content-Type: text/html\n\
 
 int main() {
     configFuncs cf = tor_get_initial_conf();
-    configBlock *cb, *pcb;
+    configBlock *cb, *pcb, *cb_modules;
+    moduleTAD *modules;
     requestHTTP *rh;
     struct sockaddr_in server;
     char buffer[MAX_BUFFER] = { 0 };
@@ -46,10 +48,17 @@ int main() {
     char request[MAX_BUFFER] = { 0 };
     int fd_client, fd_server, i, count;
     int port;
-    bindConnect *bc;
+    bindConnect *bc, *pbc;
 
     cb = cf.read();
     bc = tor_connector_parse_bind(cb);
+    cb_modules = tor_get_block(cb, "modules", NULL);
+    modules = tor_modules_load(cb_modules);
+
+    for (pbc = bc; pbc != NULL; pbc = pbc->next) {
+        tor_connector_launch((void *)pbc);
+    }
+
     tor_free_blocks(cb);
     tor_connector_bind_free(bc);
 /*

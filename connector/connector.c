@@ -2,7 +2,12 @@
 
 #include "../include/connector/connector.h"
 
-int tor_server_start( struct sockaddr_in *server, int port ) {
+void tor_connector_launch( void* ptr_bc ) {
+    bindConnect *bc = (bindConnect *)ptr_bc;
+    printf("Lanzando conexión: %s:%d\n", bc->host, bc->port);
+}
+
+int tor_server_start( struct sockaddr_in *server, char *host, int port ) {
     int fd;
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {

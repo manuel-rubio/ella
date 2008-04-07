@@ -2,9 +2,22 @@
 
 #include "../include/util/header.h"
 
+int tor_atons( char *s ) {
+    // todo
+}
+
 int tor_compare( char *s1, char *s2 )
 {
     int i;
+    if (s1 == NULL) {
+        if (s2 == NULL) {
+            return 0;
+        } else {
+            return -1;
+        }
+    } else if (s2 == NULL) {
+        return 1;
+    }
     for (i=0; s1[i]!='\0' && s2[i]!='\0'; i++) {
         if (s1[i] > s2[i])
             return -1;
