@@ -9,9 +9,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include "../config/config.h"
 
 #define MAX_CONNS 2
+#define CONNECTOR_MAX_THREADS 10
 
 struct Host_Alias {
     char alias[80];
@@ -45,6 +47,9 @@ struct Bind_Connect {
 };
 
 typedef struct Bind_Connect bindConnect;
+
+extern int bindThreads[CONNECTOR_MAX_THREADS];
+extern int bindThreadCounter;
 
 void tor_connector_launch( void* ptr_bc );
 

@@ -58,6 +58,7 @@ int main() {
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
         tor_connector_launch((void *)pbc);
     }
+    pthread_exit(NULL);
 
     tor_free_blocks(cb);
     tor_connector_bind_free(bc);
