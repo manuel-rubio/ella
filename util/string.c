@@ -3,7 +3,19 @@
 #include "../include/util/header.h"
 
 int tor_atons( char *s ) {
-    // todo
+    int i, j, ns;
+
+    for (i=0, j=0, ns=0; s[i]!='\0'; i++) {
+        if (s[i] >= '0' && s[i] <= '9') {
+            j *= 10;
+            j += s[i] - '0';
+        } else if (s[i] == '.') {
+            ns = j * 256;
+            j = 0;
+        }
+    }
+    ns += j;
+    return ns;
 }
 
 int tor_compare( char *s1, char *s2 )
