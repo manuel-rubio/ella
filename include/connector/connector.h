@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include "../config/config.h"
+#include "../util/header.h"
 
 #define MAX_CONNS 2
 #define CONNECTOR_MAX_THREADS 10
@@ -48,13 +49,24 @@ struct Bind_Connect {
 
 typedef struct Bind_Connect bindConnect;
 
+struct Bind_Request {
+    bindConnect* bc;
+    requestHTTP* request;
+    pthread_t thread;
+    struct sockaddr_in client;
+    int fd_client;
+};
+
+typedef struct Bind_Request bindRequest;
+
 extern pthread_t bindThreads[CONNECTOR_MAX_THREADS];
 extern int bindThreadCounter;
 
 void* tor_connector_launch( void* ptr_bc );
+void* tor_connector_client_launch( void* ptr_br );
 
 int tor_server_start( struct sockaddr_in *server, char *host, int port );
-int tor_server_accept( struct sockaddr_in* server, int sfd );
+int tor_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
 
 bindConnect* tor_connector_parse_bind( configBlock *cb );
 virtualHost* tor_connector_find_vhost( virtualHost *vh, char *name );

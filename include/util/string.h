@@ -7,3 +7,4 @@ int tor_length( char* s );
 char* tor_rtrim( char* s );
 char* tor_ltrim( char* s );
 char* tor_trim( char* s );
+void tor_concat( char *dst, char *src );

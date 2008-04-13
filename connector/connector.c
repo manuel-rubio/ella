@@ -6,16 +6,102 @@ pthread_t bindThreads[CONNECTOR_MAX_THREADS];
 int bindThreadCounter = 0;
 char bindThreadExit = 0;
 
+// TODO: eliminar esta función. Es temporal.
+void prepare_page( char *s ) {
+    char *pagina = "\
+<html>\n\
+<head>\n\
+    <title>Tornasauce</title>\n\
+</head>\n\
+<body>\n\
+    <h1>Tornasauce</h1>\n\
+    <hr />\n\
+    <p>Servidor de Bosque Viejo</p>\n\
+    <hr />\n\
+    <form method=\"post\">\n\
+    <input type=\"text\" name=\"hola\" />\n\
+    <input type=\"submit\" />\n\
+    </form>\n\
+</body>\n\
+</html>";
+    sprintf(s,"\
+HTTP/1.0 200 OK\n\
+Date: Sun, 16 Mar 2008 19:55:06 GMT\n\
+Server: Tornasauce/0.1\n\
+Last-Modified: Thu, 03 Jan 2008 11:30:47 GMT\n\
+Accept-Ranges: bytes\n\
+Content-Length: %d\n\
+Content-Type: text/html\n\
+\n\
+%s", tor_length(pagina), pagina);
+}
+
 void* tor_connector_launch( void* ptr_bc ) {
     bindConnect *bc;
-    struct sockaddr_in server;
+    bindRequest *br;
+    struct sockaddr_in server, client;
+    int fd_server, fd_client;
+    int rc;
+    int i, count = 0;
+    char request[8192], buffer[2048];
 
     bc = (bindConnect *)ptr_bc;
     printf("Lanzando conexión: %s:%d\n", bc->host, bc->port);
-    tor_server_start(&server, bc->host, bc->port);
+    bzero(&server, sizeof(server));
+    fd_server = tor_server_start(&server, bc->host, bc->port);
+
+    // TODO: cargar módulos
+
     while (!bindThreadExit) {
-        // TODO: parte de conexiones (copiar de comentarios de main.c)
+        bzero(&client, sizeof(client));
+        fd_client = tor_server_accept(&server, &client, fd_server);
+
+        bzero(request, sizeof(request));
+        bzero(buffer, sizeof(buffer));
+        while (recv(fd_client, buffer, sizeof(buffer), 0) != -1) {
+            for (i=0; buffer[i]!='\0' && count<2; i++) {
+                if (buffer[i] == '\n') {
+                    count++;
+                } else if (buffer[i] == '\r') {
+                    continue;
+                } else {
+                    count = 0;
+                }
+            }
+            tor_concat(request, buffer);
+            bzero(buffer, sizeof(buffer));
+            if (count == 2)
+                break;
+        }
+        br = (bindRequest *)malloc(sizeof(bindRequest));
+        br->request = tor_parse_request(request);
+        br->fd_client = fd_client;
+        br->bc = bc;
+        bcopy(&client, &(br->client), sizeof(client));
+        rc = pthread_create(&br->thread, NULL, tor_connector_client_launch, (void *)br);
+        if (rc) {
+            printf("ERROR; return code from pthread_create() is %d\n", rc);
+        }
     }
+    pthread_exit(NULL);
+    return NULL;
+}
+
+void* tor_connector_client_launch( void* ptr_br ) {
+    bindRequest *br;
+    char buffer[8192] = { 0 };
+
+    br = (bindRequest *)ptr_br;
+    printf("Conexión desde: %s\n", inet_ntoa((br->client).sin_addr));
+
+    // TODO: proceso de paso de módulos, uno a uno, para procesamiento de petición.
+    prepare_page(buffer);
+    send(br->fd_client, buffer, sizeof(buffer), 0);
+
+    // cerramos todo antes de salir
+    shutdown(br->fd_client, SHUT_RD);
+    close(br->fd_client);
+    free(ptr_br);
     return NULL;
 }
 
@@ -44,12 +130,11 @@ int tor_server_start( struct sockaddr_in *server, char *host, int port ) {
     return fd;
 }
 
-int tor_server_accept( struct sockaddr_in* server, int sfd ) {
+int tor_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
     int sin_size, fd;
-    struct sockaddr_in client;
 
     sin_size = sizeof(struct sockaddr_in);
-    if ((fd = accept(sfd,(struct sockaddr *)&client, &sin_size))==-1) {
+    if ((fd = accept(sfd, (struct sockaddr *)&client, &sin_size))==-1) {
         printf("error en accept()\n");
         exit(-1);
     }

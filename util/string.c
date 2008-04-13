@@ -115,3 +115,13 @@ char* tor_trim( char *s )
     tor_rtrim(s);
     return s;
 }
+
+void tor_concat( char *dst, char *src ) {
+    int i, j;
+
+    for (i=0; dst[i]!='\0'; i++)
+        ;
+    for (j=0; src[j]!='\0'; j++, i++)
+        dst[i] = src[j];
+    dst[i] = '\0';
+}
