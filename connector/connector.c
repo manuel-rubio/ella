@@ -4,10 +4,18 @@
 
 pthread_t bindThreads[CONNECTOR_MAX_THREADS];
 int bindThreadCounter = 0;
+char bindThreadExit = 0;
 
 void* tor_connector_launch( void* ptr_bc ) {
-    bindConnect *bc = (bindConnect *)ptr_bc;
+    bindConnect *bc;
+    struct sockaddr_in server;
+
+    bc = (bindConnect *)ptr_bc;
     printf("Lanzando conexión: %s:%d\n", bc->host, bc->port);
+    tor_server_start(&server, bc->host, bc->port);
+    while (!bindThreadExit) {
+        // TODO: parte de conexiones (copiar de comentarios de main.c)
+    }
     return NULL;
 }
 
@@ -21,7 +29,7 @@ int tor_server_start( struct sockaddr_in *server, char *host, int port ) {
 
     server->sin_family = AF_INET;
     server->sin_port = htons(port);
-    server->sin_addr.s_addr = INADDR_ANY;
+    server->sin_addr.s_addr = inet_addr(host);
     bzero(&(server->sin_zero),8);
 
     if (bind(fd,(struct sockaddr*)server, sizeof(struct sockaddr))==-1) {
