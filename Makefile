@@ -3,7 +3,7 @@ all: tornasauce
 GCC=gcc -g
 
 tornasauce: util/string.o util/header.o connector/connector.o config/config.o main/main.o modules/modules.o include/config.h
-	$(GCC) -o tornasauce util/string.o connector/connector.o config/config.o main/main.o util/header.o modules/modules.o
+	$(GCC) -pthread -o tornasauce util/string.o connector/connector.o config/config.o main/main.o util/header.o modules/modules.o
 
 util/string.o: include/util/string.h util/string.c include/config.h
 	$(GCC) -c -o util/string.o util/string.c

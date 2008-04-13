@@ -49,6 +49,7 @@ int main() {
     int fd_client, fd_server, i, count;
     int port;
     bindConnect *bc, *pbc;
+    int rc;
 
     cb = cf.read();
     bc = tor_connector_parse_bind(cb);
@@ -56,7 +57,10 @@ int main() {
     modules = tor_modules_load(cb_modules);
 
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
-        tor_connector_launch((void *)pbc);
+        rc = pthread_create(&bindThreads[bindThreadCounter++], NULL, tor_connector_launch, (void *)pbc);
+        if (rc) {
+            printf("ERROR; return code from pthread_create() is %d\n", rc);
+        }
     }
     pthread_exit(NULL);
 

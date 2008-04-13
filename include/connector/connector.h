@@ -48,10 +48,10 @@ struct Bind_Connect {
 
 typedef struct Bind_Connect bindConnect;
 
-extern int bindThreads[CONNECTOR_MAX_THREADS];
+extern pthread_t bindThreads[CONNECTOR_MAX_THREADS];
 extern int bindThreadCounter;
 
-void tor_connector_launch( void* ptr_bc );
+void* tor_connector_launch( void* ptr_bc );
 
 int tor_server_start( struct sockaddr_in *server, char *host, int port );
 int tor_server_accept( struct sockaddr_in* server, int sfd );

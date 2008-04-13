@@ -2,18 +2,13 @@
 
 #include "../include/connector/connector.h"
 
-int bindThreads[CONNECTOR_MAX_THREADS];
+pthread_t bindThreads[CONNECTOR_MAX_THREADS];
 int bindThreadCounter = 0;
 
-void tor_connector_launch( void* ptr_bc ) {
-    int rc;
+void* tor_connector_launch( void* ptr_bc ) {
     bindConnect *bc = (bindConnect *)ptr_bc;
-
     printf("Lanzando conexión: %s:%d\n", bc->host, bc->port);
-    rc = pthread_create(&bindThreads[bindThreadCounter++], NULL, tor_server_start, (void *)bc);
-    if (rc) {
-        printf("ERROR; return code from pthread_create() is %d\n", rc);
-    }
+    return NULL;
 }
 
 int tor_server_start( struct sockaddr_in *server, char *host, int port ) {
