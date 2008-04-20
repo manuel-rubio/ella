@@ -42,6 +42,7 @@ int dumb_run( requestHTTP *rh, responseHTTP **rs ) {
 void dumb_init( moduleTAD *module ) {
     strcpy(module->name, "dumb");
     module->type = MODULE_TYPE_PROC;
+    module->priority = 75;
 
     module->load = NULL;
     module->unload = NULL;

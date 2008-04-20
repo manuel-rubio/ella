@@ -84,11 +84,14 @@ void* tor_connector_client_launch( void* ptr_br ) {
                 printf("INFO: ejecutando módulo %s\n", pmt->name);
                 if (pmt->run != NULL) {
                     res = pmt->run(br->request, &rs);
-                    if (res) {
-                        printf("ERROR: procesando módulo %s de tipo %d\n", pmt->name, pmt->type);
+                    if (res == MODULE_RETURN_FAIL) {
+                        printf("ERROR: módulo %s tuvo un error de ejecución\n", pmt->name);
+                    } else if (res == MODULE_RETURN_STOP) {
+                        printf("INFO: módulo %s requiere parada de procesamiento\n", pmt->name);
+                        break;
                     }
                 } else {
-                    printf("FATAL: método 'run' no definido\n");
+                    printf("FATAL: método 'run' del módulo %s no definido\n", pmt->name);
                 }
             }
             buffer = tor_gen_response(rs);

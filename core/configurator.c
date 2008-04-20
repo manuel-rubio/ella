@@ -6,10 +6,12 @@
 configFuncs tor_get_initial_conf() {
     configFuncs cf;
 #if defined __CONFIG_STATIC
+    // en caso de especificar de forma estática el sistema de configuración,
+    // no se tendrán en cuenta los módulos de configuración.
     cf.name = "INI";
     cf.read = tor_ini_read;
 #else
-    // TODO: definir un fichero de configuración donde especificar el tipo de configuración a usar.
+    // TODO: sistema de carga de ficheros de configuración dinámica.
 #endif
     return cf;
 }

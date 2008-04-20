@@ -23,8 +23,10 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
         if (mt == NULL) {
             mt = (moduleTAD *)malloc(sizeof(moduleTAD));
             pmt = mt;
+            pmt->prev = NULL;
         } else {
             pmt->next = (moduleTAD *)malloc(sizeof(moduleTAD));
+            pmt->next->prev = pmt;
             pmt = pmt->next;
         }
         pmt->next = NULL;
@@ -73,7 +75,14 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
         printf("INFO: Ignorando módulo %s", tor_get_detail_value(cb, "unload", i));
     }
 
+    if (mt != NULL) {
+        tor_modules_sort(&mt);
+    }
     return mt;
+}
+
+void tor_modules_sort( moduleTAD **modules ) {
+    // TODO: listas enlazadas.
 }
 
 void tor_modules_free( moduleTAD *modules ) {

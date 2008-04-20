@@ -38,6 +38,7 @@ int main() {
     }
     pthread_exit(NULL);
 
+    tor_modules_free(modules);
     tor_free_blocks(cb);
     tor_connector_bind_free(bc);
 }

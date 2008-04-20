@@ -18,9 +18,9 @@
  *  así como otras estructuras a lo largo del código.
  */
 struct Config_Detail {
-    char key[STRING_SIZE];
-    char value[STRING_SIZE];
-    int  index;
+    char key[STRING_SIZE];   //!< clave del detalle.
+    char value[STRING_SIZE]; //!< valor del detalle.
+    int  index;              //!< índice del valor, en caso de multivaluado.
     struct Config_Detail *next;
 };
 
@@ -34,18 +34,26 @@ typedef struct Config_Detail configDetail;
  *  y subnombre específico.
  */
 struct Config_Block {
-    char name[STRING_SIZE];
-    char lastname[STRING_SIZE];
-    configDetail *details;
+    char name[STRING_SIZE];     //!< nombre del bloque.
+    char lastname[STRING_SIZE]; //!< subnombre del bloque.
+    configDetail *details;      //!< detalles del bloque.
     struct Config_Block *next;
 };
 
 typedef struct Config_Block configBlock;
 
 // TODO: esta estructura se usará cuando se implemente "tor_get_initial_conf"
+/**
+ *  Estructura de datos para funciones de carga de configuración.
+ *
+ *  En este código se encuentra la función estática por defecto para
+ *  la lectura de ficheros de tipo INI. Para anexionar un módulo, se
+ *  tendrá que crear una función de tipo "read" tal y como se indica
+ *  en esta estructura.
+ */
 struct Config_Funcs {
-    configBlock* (*read)();
-    char *name;
+    configBlock* (*read)();  //!< función de lectura de configuración.
+    char *name;              //!< nombre de la función.
 };
 
 typedef struct Config_Funcs configFuncs;
@@ -133,17 +141,78 @@ configBlock* tor_get_block( configBlock *cb, char *name, char *lastname );
  */
 char* tor_get_detail_key( configBlock *cb, char *value, int index );
 
+/**
+ *  Toma el valor de un detalle solicitado de un bloque de configuración.
+ *
+ *  Busca entre las claves de configuración de un bloque por el valor
+ *  y el índice, y retorna su valor.
+ *
+ *  @param cb puntero a configBlock de cabecera.
+ *  @param key clave por la que buscar.
+ *  @param index índie en el que buscar (por defecto es 0).
+ *  @return puntero al valor del detalle solicitado o NULL.
+ */
 char* tor_get_detail_value( configBlock *cb, char *key, int index );
 
+/**
+ *  Toma el número de valores.
+ *
+ *  Cuenta todos los valores coincidentes con el parámetro pasado
+ *  como parámetro.
+ *
+ *  @param cb puntero a configBlock de cabecera.
+ *  @param value valor por el que buscar los coincidentes.
+ *  @return el número de valores encontrados.
+ */
 int tor_get_detail_values( configBlock *cb, char *value );
 
+/**
+ *  Toma el número de valores que tiene una clave.
+ *
+ *  Cuenta los valores que tiene una clave determinada.
+ *
+ *  @param cb puntero a configBlock de cabecera.
+ *  @param key clave de la que tomar los valores.
+ *  @return el número de valores encontrados.
+ */
 int tor_get_detail_indexes( configBlock *cb, char *key );
 
+/**
+ *  Toma el valor de la IP de una cadena del tipo 0.0.0.0:80.
+ *
+ *  Disecciona un valor que contiene una dirección IP y un puerto
+ *  anexionado, tomando solo el valor de la dirección IP.
+ *
+ *  @param cb puntero a configBlock de cabecera.
+ *  @param key clave de la que tomar la dirección IP.
+ *  @param index índice del que tomar el valor.
+ *  @param s cadena en la que guardar la dirección IP.
+ */
 void tor_get_bindhost( configBlock *cb, char *key, int index, char *s );
 
+/**
+ *  Toma el valor del puerto de una cadena del tipo 0.0.0.0:80.
+ *
+ *  Disecciona un valor que contiene una dirección IP y un puerto
+ *  anexionado, tomando solo el valor del puerto.
+ *
+ *  @param cb puntero a configBlock de cabecera.
+ *  @param key clave de la que tomar el puerto.
+ *  @param index índice del que tomar el valor.
+ *  @return el puerto tomado.
+ */
 int tor_get_bindport( configBlock *cb, char *key, int index );
 
 /* INI method */
+
+/**
+ *  Función para tomar la configuración de fichero INI.
+ *
+ *  Se encarga de leer el fichero de tipo INI para crear toda la
+ *  estructura de tipo configBlock y configDetail.
+ *
+ *  @return un puntero a la cabecera de configBlock creada o NULL.
+ */
 configBlock* tor_ini_read();
 
 #endif

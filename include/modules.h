@@ -7,30 +7,72 @@
 #include "header.h"
 #include "configurator.h"
 
+/**
+ *  Tipos de módulos que puede haber, y en orden de prioridad.
+ */
 enum {
-    MODULE_TYPE_LOG,
+    MODULE_TYPE_SEC,
     MODULE_TYPE_PROC,
-    MODULE_TYPE_SEC
+    MODULE_TYPE_LOG
 };
 
+/**
+ *  Tipos de retornos para la función "run".
+ */
+enum {
+    MODULE_RETURN_OK,
+    MODULE_RETURN_FAIL,
+    MODULE_RETURN_STOP
+};
+
+/**
+ *  Estructura de Módulos.
+ *
+ *  Se carga un módulo externo (en forma de librería) y se anexionan los
+ *  métodos para usarse en procesamiento automático.
+ */
 struct Module {
-    char name[80];
-    int  type;
+    char name[80];    //!< nombre del módulo.
+    int  type;        //!< tipo del módulo.
+    int  priority;    //!< prioridad de ejecución del módulo (0-99)
 
-    void (*load)();
-    void (*unload)();
-    void (*reload)();
-    void (*get_status)( char * );
-    int (*run)( requestHTTP *, responseHTTP ** );
+    void (*load)();   //!< ejecuta en la carga del módulo.
+    void (*unload)(); //!< ejecuta en la descarga del módulo.
+    void (*reload)(); //!< para la recarga del módulo.
+    void (*get_status)( char * ); //!< retorna el estado del módulo.
+    int (*run)( requestHTTP *, responseHTTP ** ); //!< ejecuta el módulo.
 
-    void *handle;
-    configDetail *details;
-    struct Module *next;
+    void *handle;          //!< manejador de la librería cargada.
+    configDetail *details; //!< lista enlazada de todos los detalles.
+    struct Module *next, *prev;
 };
 
 typedef struct Module moduleTAD;
 
+/**
+ *  Carga los módulos de la configuración.
+ *
+ *  Toma los módulos a cargar a través de un configBlock y va
+ *  cargando uno a uno cada módulo en una lista enlazada que
+ *  será retornada.
+ *
+ *  @param cb puntero a configBlock de cabecera.
+ *  @return una lista enlazada de moduleTAD.
+ */
 moduleTAD* tor_modules_load( configBlock *cb );
+
+/**
+ *  Reordena los módulos por tipo y prioridad.
+ *
+ *  @param modules lista de módulos a ordenar.
+ */
+void tor_modules_sort( moduleTAD **modules );
+
+/**
+ *  Libera los recursos reservador de la carga de módulos.
+ *
+ *  @param modules puntero a moduleTAD de cabecera.
+ */
 void tor_modules_free( moduleTAD *modules );
 
 #endif
