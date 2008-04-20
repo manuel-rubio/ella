@@ -12,9 +12,9 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "../config/config.h"
-#include "../util/header.h"
-#include "../modules/modules.h"
+#include "configurator.h"
+#include "header.h"
+#include "modules.h"
 
 struct Host_Alias {
     char alias[80];

@@ -1,11 +1,11 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#if !defined __CONFIG_CONFIG_H
-#define __CONFIG_CONFIG_H
+#if !defined __CONFIGURATOR_H
+#define __CONFIGURATOR_H
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../config.h"
+#include "config.h"
 
 #define STRING_SIZE 80
 

@@ -1,6 +1,6 @@
 #include <string.h>
-#include "../include/modules/modules.h"
-#include "../include/util/header.h"
+#include "../include/modules.h"
+#include "../include/header.h"
 
 void dumb_get_status( char *s ) {
     strcpy(s, "OK");

@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/modules/modules.h"
+#include "../include/modules.h"
 
 moduleTAD* tor_modules_load( configBlock *cb ) {
     int indexes, i;

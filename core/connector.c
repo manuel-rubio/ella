@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/connector/connector.h"
+#include "../include/connector.h"
 
 /* TODO: definimos los clientes máximos a 10, temporalmente */
 #define MAX_CLIENTS 10

@@ -1,11 +1,11 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
 #include <signal.h>
-#include "../include/config/config.h"
-#include "../include/connector/connector.h"
-#include "../include/util/string.h"
-#include "../include/util/header.h"
-#include "../include/modules/modules.h"
+#include "../include/configurator.h"
+#include "../include/connector.h"
+#include "../include/string.h"
+#include "../include/header.h"
+#include "../include/modules.h"
 
 void stop_tornasauce( int d ) {
     bindThreadExit = 1;

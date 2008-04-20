@@ -4,8 +4,8 @@
 #define __MODULES_H
 
 #include <dlfcn.h>
-#include "../util/header.h"
-#include "../config/config.h"
+#include "header.h"
+#include "configurator.h"
 
 enum {
     MODULE_TYPE_LOG,

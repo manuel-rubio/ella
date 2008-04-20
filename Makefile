@@ -2,34 +2,34 @@ all: tornasauce
 
 GCC=gcc -g
 
-tornasauce: util/string.o util/header.o connector/connector.o config/config.o main/main.o modules/modules.o include/config.h modules/libdumb.so
-	$(GCC) -ldl -pthread -o tornasauce util/string.o connector/connector.o config/config.o main/main.o util/header.o modules/modules.o
+tornasauce: core/string.o core/header.o core/connector.o core/configurator.o core/main.o core/modules.o include/config.h modules/libdumb.so
+	$(GCC) -ldl -pthread -o tornasauce core/string.o core/connector.o core/configurator.o core/main.o core/header.o core/modules.o
 
-util/string.o: include/util/string.h util/string.c include/config.h
-	$(GCC) -c -o util/string.o util/string.c
+core/string.o: include/string.h core/string.c include/config.h
+	$(GCC) -c -o core/string.o core/string.c
 
-util/header.o: include/util/header.h util/header.c include/config.h
-	$(GCC) -c -o util/header.o util/header.c
+core/header.o: include/header.h core/header.c include/config.h
+	$(GCC) -c -o core/header.o core/header.c
 
-connector/connector.o: include/util/string.h include/connector/connector.h connector/connector.c include/config.h
-	$(GCC) -c -o connector/connector.o connector/connector.c
+core/connector.o: include/string.h include/connector.h core/connector.c include/config.h
+	$(GCC) -c -o core/connector.o core/connector.c
 
-config/config.o: include/util/string.h include/config/config.h config/config.c include/config.h
-	$(GCC) -c -o config/config.o config/config.c
+core/configurator.o: include/string.h include/configurator.h core/configurator.c include/config.h
+	$(GCC) -c -o core/configurator.o core/configurator.c
 
-main/main.o: main/main.c include/util/string.h include/connector/connector.h include/util/header.h
-	$(GCC) -c -o main/main.o main/main.c
+core/main.o: core/main.c include/string.h include/connector.h include/header.h
+	$(GCC) -c -o core/main.o core/main.c
 
-modules/modules.o: modules/modules.c include/modules/modules.h include/util/header.h include/config/config.h include/config.h
-	$(GCC) -c -o modules/modules.o modules/modules.c
+core/modules.o: core/modules.c include/modules.h include/header.h include/configurator.h include/config.h
+	$(GCC) -c -o core/modules.o core/modules.c
 
 clean:
-	rm -f tornasauce config/*.o connector/*.o config/*.o main/*.o util/*.o modules/*.o modules/*.so
+	rm -f tornasauce core/*.o modules/*.o modules/*.so
 
 
 
-modules/libdumb.so: modules/dumb.o util/string.o util/header.o include/util/string.h include/util/header.h
-	$(GCC) -shared -Wl,-soname,libdumb.so -o modules/libdumb.so modules/dumb.o util/string.o util/header.o -lc
+modules/libdumb.so: modules/dumb.o core/string.o core/header.o include/string.h include/header.h
+	$(GCC) -shared -Wl,-soname,libdumb.so -o modules/libdumb.so modules/dumb.o core/string.o core/header.o -lc
 
 modules/dumb.o: modules/dumb.c
 	$(GCC) -c -fPIC -o modules/dumb.o modules/dumb.c

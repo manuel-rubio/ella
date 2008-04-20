@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/util/header.h"
+#include "../include/string.h"
 
 char* tor_chomp( char *s ) {
     int c;
