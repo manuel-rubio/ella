@@ -3,6 +3,7 @@
 #if !defined __MODULES_H
 #define __MODULES_H
 
+#include <dlfcn.h>
 #include "../util/header.h"
 #include "../config/config.h"
 
@@ -19,9 +20,10 @@ struct Module {
     void (*load)();
     void (*unload)();
     void (*reload)();
-    void (*get_status)( char *s );
-    int (*run)( requestHTTP *rh );
+    void (*get_status)( char * );
+    int (*run)( requestHTTP *, responseHTTP ** );
 
+    void *handle;
     configDetail *details;
     struct Module *next;
 };
@@ -29,5 +31,6 @@ struct Module {
 typedef struct Module moduleTAD;
 
 moduleTAD* tor_modules_load( configBlock *cb );
+void tor_modules_free( moduleTAD *modules );
 
 #endif

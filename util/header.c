@@ -11,6 +11,15 @@ requestHTTP* tor_new_request( char *request, char *uri, char *version ) {
     return rh;
 }
 
+responseHTTP* tor_new_response( int code, char *message, char *version ) {
+    responseHTTP *rs = (responseHTTP *)malloc(sizeof(responseHTTP));
+    rs->headers = NULL;
+    rs->code = code;
+    tor_copy(message, rs->message);
+    tor_copy(version, rs->version);
+    return rs;
+}
+
 headerHTTP* tor_new_header( char *key, char *value, int index ) {
     headerHTTP *h = (headerHTTP *)malloc(sizeof(headerHTTP));
     tor_copy(key, h->key);
@@ -18,6 +27,21 @@ headerHTTP* tor_new_header( char *key, char *value, int index ) {
     h->index = index;
     h->next = NULL;
     return h;
+}
+
+void tor_set_response_content( responseHTTP *rs, char *s ) {
+    char size[9];
+    headerHTTP* ph;
+
+    sprintf(size, "%d", tor_length(s));
+    rs->content = s;
+    if (rs->headers == NULL) {
+        rs->headers = tor_new_header("Content-Length", size, 0);
+    } else {
+        for (ph = rs->headers; ph->next!=NULL; ph=ph->next)
+            ;
+        ph->next = tor_new_header("Content-Length", size, 0);
+    }
 }
 
 void tor_free_request( requestHTTP *rh ) {
@@ -28,6 +52,16 @@ void tor_free_request( requestHTTP *rh ) {
         tor_free_header(rh->headers);
     }
     free(rh);
+}
+
+void tor_free_response( responseHTTP *rs ) {
+    if (rs == NULL) {
+        return;
+    }
+    if (rs->headers != NULL) {
+        tor_free_header(rs->headers);
+    }
+    free(rs);
 }
 
 void tor_free_header( headerHTTP *h ) {
@@ -128,4 +162,38 @@ requestHTTP* tor_parse_request( char *s ) {
         tor_trim(h->value);
     }
     return rh;
+}
+
+char* tor_gen_response( responseHTTP *rs ) {
+    char *s, *tmp, buffer[512];
+    int size = 8192, content = 0;
+    headerHTTP *ph;
+
+    s = (char *)malloc(size);
+    sprintf(s, "HTTP/%s %d %s\r\n", rs->version, rs->code, rs->message);
+    for (ph = rs->headers; ph!=NULL; ph=ph->next) {
+        // TODO: hacer la concatenación de los valores por los índices
+        sprintf(buffer, "%s: %s\r\n", ph->key, ph->value);
+        if (tor_length(buffer) + tor_length(s) > size) {
+            size += 8192;
+            tmp = (char *)malloc(size);
+            free(s);
+            s = tmp;
+        }
+        tor_concat(s, buffer);
+        if (!content && tor_compare(ph->key, "Content-Length") == 0) {
+            content = 1;
+        }
+    }
+    if (content) {
+        tor_concat(s, "\r\n");
+        if (tor_length(buffer) + tor_length(rs->content) > size) {
+            size += tor_length(rs->content);
+            tmp = (char *)malloc(size);
+            free(s);
+            s = tmp;
+        }
+        tor_concat(s, rs->content);
+    }
+    return s;
 }
