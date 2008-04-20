@@ -4,12 +4,13 @@
 
 moduleTAD* tor_modules_load( configBlock *cb ) {
     int indexes, i;
-    char *module, lib[50];
+    char *module, lib[50], *autoload;
     moduleTAD *pmt = NULL, *mt = NULL, *tmt = NULL;
     void (*init_module)( moduleTAD* );
     configBlock *pcb;
 
-    if (tor_compare(tor_get_detail_value(cb, "autoload", 0), "yes") == 0) {
+    autoload = tor_get_detail_value(cb, "autoload", 0);
+    if (autoload != NULL && strcmp(autoload, "yes") == 0) {
         printf("INFO: AutoCarga: sí (no implementado aún)\n");
     } else {
         printf("INFO: AutoCarga: no\n");

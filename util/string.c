@@ -2,73 +2,7 @@
 
 #include "../include/util/header.h"
 
-int tor_atons( char *s ) {
-    int i, j, ns;
-
-    for (i=0, j=0, ns=0; s[i]!='\0'; i++) {
-        if (s[i] >= '0' && s[i] <= '9') {
-            j *= 10;
-            j += s[i] - '0';
-        } else if (s[i] == '.') {
-            ns = j * 256;
-            j = 0;
-        }
-    }
-    ns += j;
-    return ns;
-}
-
-int tor_compare( char *s1, char *s2 )
-{
-    int i;
-    if (s1 == NULL) {
-        if (s2 == NULL) {
-            return 0;
-        } else {
-            return -1;
-        }
-    } else if (s2 == NULL) {
-        return 1;
-    }
-    for (i=0; s1[i]!='\0' && s2[i]!='\0'; i++) {
-        if (s1[i] > s2[i])
-            return -1;
-        if (s1[i] < s2[i])
-            return 1;
-    }
-    if (s1[i]!='\0')
-        return -1;
-    if (s2[i]!='\0')
-        return 1;
-    return 0;
-}
-
-int tor_ncompare( char *s1, char *s2, int n )
-{
-    int i;
-    for (i=0; s1[i]!='\0' && s2[i]!='\0' && i<n; i++) {
-        if (s1[i] > s2[i])
-            return -1;
-        if (s1[i] < s2[i])
-            return 1;
-    }
-    if (s1[i]!='\0')
-        return -1;
-    if (s2[i]!='\0')
-        return 1;
-    return 0;
-}
-
-void tor_copy( char *src, char *dst )
-{
-    int i;
-    for (i=0; src[i]!='\0'; i++)
-        dst[i] = src[i];
-    dst[i] = '\0';
-}
-
-char* tor_chomp( char *s )
-{
+char* tor_chomp( char *s ) {
     int c;
     for (c=0; s[c]!='\0'; c++)
         ;
@@ -77,18 +11,9 @@ char* tor_chomp( char *s )
     return s;
 }
 
-int tor_length( char *s )
-{
-    int c;
-    for (c=0; s[c]!='\0'; c++)
-        ;
-    return c;
-}
-
-char* tor_rtrim( char *s )
-{
+char* tor_rtrim( char *s ) {
     int c, i;
-    c = tor_length(s);
+    c = strlen(s);
     for (i=c-1; i>=0 && s[i]==32; i--)
         ;
     if (i > 0 && i < (c - 1))
@@ -96,8 +21,7 @@ char* tor_rtrim( char *s )
     return s;
 }
 
-char* tor_ltrim( char *s )
-{
+char* tor_ltrim( char *s ) {
     int i, j, k=0;
     for (j=0; s[j]!='\0' && s[j]==32; j++)
         ;
@@ -109,19 +33,8 @@ char* tor_ltrim( char *s )
     return s;
 }
 
-char* tor_trim( char *s )
-{
+char* tor_trim( char *s ) {
     tor_ltrim(s);
     tor_rtrim(s);
     return s;
-}
-
-void tor_concat( char *dst, char *src ) {
-    int i, j;
-
-    for (i=0; dst[i]!='\0'; i++)
-        ;
-    for (j=0; src[j]!='\0'; j++, i++)
-        dst[i] = src[j];
-    dst[i] = '\0';
 }

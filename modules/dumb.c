@@ -1,9 +1,9 @@
+#include <string.h>
 #include "../include/modules/modules.h"
 #include "../include/util/header.h"
-#include "../include/util/string.h"
 
 void dumb_get_status( char *s ) {
-    tor_copy("OK", s);
+    strcpy(s, "OK");
 }
 
 int dumb_run( requestHTTP *rh, responseHTTP **rs ) {
@@ -40,7 +40,7 @@ int dumb_run( requestHTTP *rh, responseHTTP **rs ) {
 }
 
 void dumb_init( moduleTAD *module ) {
-    tor_copy("dumb", module->name);
+    strcpy(module->name, "dumb");
     module->type = MODULE_TYPE_PROC;
 
     module->load = NULL;

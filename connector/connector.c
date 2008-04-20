@@ -2,8 +2,9 @@
 
 #include "../include/connector/connector.h"
 
-pthread_t bindThreads[CONNECTOR_MAX_THREADS];
-int bindThreadCounter = 0;
+/* TODO: definimos los clientes máximos a 10, temporalmente */
+#define MAX_CLIENTS 10
+
 char bindThreadExit = 0;
 
 void* tor_connector_launch( void* ptr_bc ) {
@@ -18,11 +19,17 @@ void* tor_connector_launch( void* ptr_bc ) {
     bc = (bindConnect *)ptr_bc;
     printf("INFO: Lanzando conexión: %s:%d\n", bc->host, bc->port);
     bzero(&server, sizeof(server));
-    fd_server = tor_server_start(&server, bc->host, bc->port);
+    fd_server = tor_server_start(&server, bc->host, bc->port, MAX_CLIENTS);
+    fcntl(fd_server, F_SETFL, fcntl(fd_server, F_GETFL, 0) | O_NONBLOCK);
 
     while (!bindThreadExit) {
         bzero(&client, sizeof(client));
-        fd_client = tor_server_accept(&server, &client, fd_server);
+        do {
+            fd_client = tor_server_accept(&server, &client, fd_server);
+        } while (fd_client < 0 && (errno == EWOULDBLOCK || errno == EAGAIN) && !bindThreadExit);
+
+        if (bindThreadExit)
+            break;
 
         bzero(request, sizeof(request));
         bzero(buffer, sizeof(buffer));
@@ -36,7 +43,7 @@ void* tor_connector_launch( void* ptr_bc ) {
                     count = 0;
                 }
             }
-            tor_concat(request, buffer);
+            strcat(request, buffer);
             bzero(buffer, sizeof(buffer));
             if (count == 2)
                 break;
@@ -85,7 +92,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
                 }
             }
             buffer = tor_gen_response(rs);
-            send(br->fd_client, buffer, tor_length(buffer), 0);
+            send(br->fd_client, buffer, strlen(buffer), 0);
             free(buffer);
         }
     }
@@ -97,7 +104,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
     return NULL;
 }
 
-int tor_server_start( struct sockaddr_in *server, char *host, int port ) {
+int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
     int fd;
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
@@ -115,7 +122,7 @@ int tor_server_start( struct sockaddr_in *server, char *host, int port ) {
         exit(-1);
     }
 
-    if (listen(fd,MAX_CONNS) == -1) {
+    if (listen(fd, max_clients) == -1) {
         printf("ERROR: no es posible hacer 'listen'\n");
         exit(-1);
     }
@@ -127,6 +134,9 @@ int tor_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, i
 
     sin_size = sizeof(struct sockaddr_in);
     if ((fd = accept(sfd, (struct sockaddr *)client, &sin_size))==-1) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            return fd;
+        }
         printf("ERROR: imposible aceptar conexión entrante\n");
         exit(-1);
     }
@@ -144,10 +154,10 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
     int         port;
 
     for (pcb = cb; pcb != NULL; pcb = pcb->next) {
-        if (tor_compare("modules", pcb->name) == 0) {
+        if (strcmp("modules", pcb->name) == 0) {
             // este bloque no se procesará aquí
             continue;
-        } else if (tor_compare("aliases", pcb->name) == 0) {
+        } else if (strcmp("aliases", pcb->name) == 0) {
             aliases = pcb;
         } else {
             if (bc == NULL) {
@@ -162,7 +172,7 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
                 tor_get_bindhost(pcb, "bind", 0, host);
                 port = tor_get_bindport(pcb, "bind", 0);
                 for (pibc = bc; pibc != NULL; pbc = pibc, pibc = pibc->next) {
-                    if (tor_compare(host, pibc->host) == 0 && port == pibc->port)
+                    if (strcmp(host, pibc->host) == 0 && port == pibc->port)
                         break;
                 }
                 if (pibc == NULL) {
@@ -189,7 +199,7 @@ virtualHost* tor_connector_find_vhost( virtualHost *vh, char *name ) {
     virtualHost *pvh;
 
     for (pvh = vh; pvh != NULL; pvh = pvh->next) {
-        if (tor_compare(pvh->host_name, name) == 0) {
+        if (strcmp(pvh->host_name, name) == 0) {
             return pvh;
         }
     }
@@ -204,7 +214,7 @@ void tor_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHo
     if (*pvh == NULL) {
         *pvh = (virtualHost *)malloc(sizeof(virtualHost));
         vh = *pvh;
-        tor_copy(cb->name, vh->host_name);
+        strcpy(vh->host_name, cb->name);
         vh->aliases = NULL;
         vh->next = NULL;
 
@@ -219,7 +229,7 @@ void tor_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHo
                     pha->next = (hostAlias *)malloc(sizeof(hostAlias));
                     pha = pha->next;
                 }
-                tor_copy(tor_get_detail_key(aliases, vh->host_name, i), pha->alias);
+                strcpy(pha->alias, tor_get_detail_key(aliases, vh->host_name, i));
             }
         }
     }
@@ -240,9 +250,9 @@ void tor_connector_parse_location( configBlock* cb, virtualHost* vh ) {
         phl = phl->next;
     }
 
-    tor_copy(cb->lastname, phl->base_uri);
+    strcpy(phl->base_uri, cb->lastname);
     for (pcd = cb->details; pcd != NULL; pcd = pcd->next) {
-        if (tor_compare(pcd->key, "bind") != 0) {
+        if (strcmp(pcd->key, "bind") != 0) {
             if (phl_cd == NULL) {
                 phl->details = tor_new_detail(pcd->key, pcd->value, pcd->index);
                 phl_cd = phl->details;

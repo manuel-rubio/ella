@@ -10,12 +10,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "../config/config.h"
 #include "../util/header.h"
 #include "../modules/modules.h"
-
-#define MAX_CONNS 2
-#define CONNECTOR_MAX_THREADS 10
 
 struct Host_Alias {
     char alias[80];
@@ -44,6 +43,7 @@ typedef struct Virtual_Host virtualHost;
 struct Bind_Connect {
     char host[80];
     int port;
+    pthread_t thread;
     struct Module* modules;
     struct Virtual_Host* vhosts;
     struct Bind_Connect* next;
@@ -61,14 +61,12 @@ struct Bind_Request {
 
 typedef struct Bind_Request bindRequest;
 
-extern pthread_t bindThreads[CONNECTOR_MAX_THREADS];
-extern int bindThreadCounter;
 extern char bindThreadExit;
 
 void* tor_connector_launch( void* ptr_bc );
 void* tor_connector_client_launch( void* ptr_br );
 
-int tor_server_start( struct sockaddr_in *server, char *host, int port );
+int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_clients );
 int tor_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
 
 bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD *modules );

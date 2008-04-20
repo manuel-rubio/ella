@@ -1,13 +1,11 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
+#include <signal.h>
 #include "../include/config/config.h"
 #include "../include/connector/connector.h"
 #include "../include/util/string.h"
 #include "../include/util/header.h"
 #include "../include/modules/modules.h"
-#include <signal.h>
-
-#define MAX_BUFFER   8192
 
 void stop_tornasauce( int d ) {
     bindThreadExit = 1;
@@ -33,7 +31,7 @@ int main() {
     signal(SIGKILL, stop_tornasauce);
 
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
-        rc = pthread_create(&bindThreads[bindThreadCounter++], NULL, tor_connector_launch, (void *)pbc);
+        rc = pthread_create(&pbc->thread, NULL, tor_connector_launch, (void *)pbc);
         if (rc) {
             printf("ERROR: al crear hilo: %d\n", rc);
         }

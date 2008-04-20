@@ -5,9 +5,9 @@
 requestHTTP* tor_new_request( char *request, char *uri, char *version ) {
     requestHTTP *rh = (requestHTTP *)malloc(sizeof(requestHTTP));
     rh->headers = NULL;
-    tor_copy(request, rh->request);
-    tor_copy(uri, rh->uri);
-    tor_copy(version, rh->version);
+    strcpy(rh->request, request);
+    strcpy(rh->uri, uri);
+    strcpy(rh->version, version);
     return rh;
 }
 
@@ -15,15 +15,15 @@ responseHTTP* tor_new_response( int code, char *message, char *version ) {
     responseHTTP *rs = (responseHTTP *)malloc(sizeof(responseHTTP));
     rs->headers = NULL;
     rs->code = code;
-    tor_copy(message, rs->message);
-    tor_copy(version, rs->version);
+    strcpy(rs->message, message);
+    strcpy(rs->version, version);
     return rs;
 }
 
 headerHTTP* tor_new_header( char *key, char *value, int index ) {
     headerHTTP *h = (headerHTTP *)malloc(sizeof(headerHTTP));
-    tor_copy(key, h->key);
-    tor_copy(value, h->value);
+    strcpy(h->key, key);
+    strcpy(h->value, value);
     h->index = index;
     h->next = NULL;
     return h;
@@ -33,7 +33,7 @@ void tor_set_response_content( responseHTTP *rs, char *s ) {
     char size[9];
     headerHTTP* ph;
 
-    sprintf(size, "%d", tor_length(s));
+    sprintf(size, "%d", strlen(s));
     rs->content = s;
     if (rs->headers == NULL) {
         rs->headers = tor_new_header("Content-Length", size, 0);
@@ -79,7 +79,7 @@ char* tor_get_header_value( requestHTTP *rh, char *key, int index ) {
     if (rh == NULL || rh->headers == NULL)
         return NULL;
     for (h = rh->headers; h != NULL; h = h->next)
-        if (tor_compare(h->key, key) == 0 && h->index == index)
+        if (strcmp(h->key, key) == 0 && h->index == index)
             return h->value;
     return NULL;
 }
@@ -90,7 +90,7 @@ int tor_get_header_indexes( requestHTTP *rh, char *key ) {
     if (rh == NULL || rh->headers == NULL)
         return 0;
     for (h = rh->headers; h != NULL; h = h->next)
-        if (tor_compare(h->key, key) == 0)
+        if (strcmp(h->key, key) == 0)
             indexes++;
     return indexes;
 }
@@ -149,7 +149,7 @@ requestHTTP* tor_parse_request( char *s ) {
                 h->value[j] = '\0';
                 tor_trim(h->value);
                 h->next = (headerHTTP *)malloc(sizeof(headerHTTP));
-                tor_copy(h->key, h->next->key);
+                strcpy(h->next->key, h->key);
                 h->next->index = h->index + 1;
                 h = h->next;
                 h->next = NULL;
@@ -174,26 +174,26 @@ char* tor_gen_response( responseHTTP *rs ) {
     for (ph = rs->headers; ph!=NULL; ph=ph->next) {
         // TODO: hacer la concatenación de los valores por los índices
         sprintf(buffer, "%s: %s\r\n", ph->key, ph->value);
-        if (tor_length(buffer) + tor_length(s) > size) {
+        if (strlen(buffer) + strlen(s) > size) {
             size += 8192;
             tmp = (char *)malloc(size);
             free(s);
             s = tmp;
         }
-        tor_concat(s, buffer);
-        if (!content && tor_compare(ph->key, "Content-Length") == 0) {
+        strcat(s, buffer);
+        if (!content && strcmp(ph->key, "Content-Length") == 0) {
             content = 1;
         }
     }
     if (content) {
-        tor_concat(s, "\r\n");
-        if (tor_length(buffer) + tor_length(rs->content) > size) {
-            size += tor_length(rs->content);
+        strcat(s, "\r\n");
+        if (strlen(buffer) + strlen(rs->content) > size) {
+            size += strlen(rs->content);
             tmp = (char *)malloc(size);
             free(s);
             s = tmp;
         }
-        tor_concat(s, rs->content);
+        strcat(s, rs->content);
     }
     return s;
 }
