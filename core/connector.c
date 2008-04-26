@@ -80,7 +80,6 @@ void* tor_connector_client_launch( void* ptr_br ) {
             printf("FATAL: No hay ModuleTAD en BindConnect de BindRequest para atender la petición\n");
         } else {
             for (pmt = br->bc->modules; pmt!=NULL; pmt=pmt->next) {
-                // TODO: procesar módulos por orden de importancia y parar en caso de que lo soliciten
                 printf("INFO: ejecutando módulo %s\n", pmt->name);
                 if (pmt->run != NULL) {
                     res = pmt->run(br->request, &rs);

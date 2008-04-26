@@ -29,11 +29,12 @@ headerHTTP* tor_new_header( char *key, char *value, int index ) {
     return h;
 }
 
-void tor_set_response_content( responseHTTP *rs, char *s ) {
+void tor_set_response_content( responseHTTP *rs, int type, void *s ) {
     char size[9];
     headerHTTP* ph;
 
     sprintf(size, "%d", strlen(s));
+    rs->content_type = type;
     rs->content = s;
     if (rs->headers == NULL) {
         rs->headers = tor_new_header("Content-Length", size, 0);

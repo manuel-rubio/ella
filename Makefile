@@ -2,7 +2,9 @@ all: tornasauce
 
 GCC=gcc -g
 
-tornasauce: core/string.o core/header.o core/connector.o core/configurator.o core/main.o core/modules.o include/config.h modules/libdumb.so
+all: tornasauce modules/libdumb.so modules/libhttp10.so
+
+tornasauce: core/string.o core/header.o core/connector.o core/configurator.o core/main.o core/modules.o include/config.h
 	$(GCC) -ldl -pthread -o tornasauce core/string.o core/connector.o core/configurator.o core/main.o core/header.o core/modules.o
 
 core/string.o: include/string.h core/string.c include/config.h
@@ -33,3 +35,9 @@ modules/libdumb.so: modules/dumb.o core/string.o core/header.o include/string.h 
 
 modules/dumb.o: modules/dumb.c
 	$(GCC) -c -fPIC -o modules/dumb.o modules/dumb.c
+
+modules/libhttp10.so: modules/http10.o core/string.o core/header.o include/string.h include/header.h
+	$(GCC) -shared -Wl,-soname,libhttp10.so -o modules/libhttp10.so modules/http10.o core/string.o core/header.o -lc
+
+modules/http10.o: modules/http10.c
+	$(GCC) -c -fPIC -o modules/http10.o modules/http10.c

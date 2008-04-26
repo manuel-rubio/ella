@@ -35,8 +35,8 @@ int dumb_run( requestHTTP *rh, responseHTTP **rs ) {
     hh->next = tor_new_header("Accept-Ranges", "bytes", 0);
     hh = hh->next;
     hh->next = tor_new_header("Content-Type", "text/html", 0);
-    tor_set_response_content(*rs, pagina);
-    return 0;
+    tor_set_response_content(*rs, HEADER_CONTENT_STRING, (void *)pagina);
+    return MODULE_RETURN_STOP;
 }
 
 void dumb_init( moduleTAD *module ) {

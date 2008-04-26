@@ -23,10 +23,8 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
         if (mt == NULL) {
             mt = (moduleTAD *)malloc(sizeof(moduleTAD));
             pmt = mt;
-            pmt->prev = NULL;
         } else {
             pmt->next = (moduleTAD *)malloc(sizeof(moduleTAD));
-            pmt->next->prev = pmt;
             pmt = pmt->next;
         }
         pmt->next = NULL;
@@ -76,13 +74,38 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     }
 
     if (mt != NULL) {
-        tor_modules_sort(&mt);
+        mt = tor_modules_sort(mt);
     }
     return mt;
 }
 
-void tor_modules_sort( moduleTAD **modules ) {
-    // TODO: listas enlazadas.
+moduleTAD* tor_modules_sort( moduleTAD *mt ) {
+    moduleTAD *pmt = NULL, // pointer to moduleTAD
+              *tmt = NULL, // temp moduleTAD
+              *rmt = NULL; // result moduleTAD
+
+    for (; mt!=NULL; mt=tmt) {
+        tmt = mt->next;
+        mt->next = NULL;
+        if (rmt == NULL) {
+            rmt = mt;
+        } else {
+            pmt = rmt;
+            while ((pmt->type > mt->type || (pmt->type == mt->type && pmt->priority > mt->priority)) && pmt->next != NULL) {
+                pmt = pmt->next;
+            }
+            if ((pmt->type < mt->type || (pmt->type == mt->type && pmt->priority < mt->priority)) && pmt->next == NULL) {
+                pmt->next = mt;
+            } else {
+                mt->next = pmt;
+                pmt = mt;
+                if (pmt->next == rmt) {
+                    rmt = pmt;
+                }
+            }
+        }
+    }
+    return rmt;
 }
 
 void tor_modules_free( moduleTAD *modules ) {

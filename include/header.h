@@ -41,6 +41,16 @@ struct request {
 typedef struct request requestHTTP;
 
 /**
+ *  Tipos de Contenidos.
+ *
+ *  El puntero genérico puede ofrecer estos tipos de contenidos distintos.
+ */
+enum {
+    HEADER_CONTENT_STRING,
+    HEADER_CONTENT_FILE
+};
+
+/**
  *  Estructura de respuesta.
  *
  *  Contendrá las cabeceras, código de respuesta, mensaje de respuesta,
@@ -51,8 +61,8 @@ struct response {
     char message[50];       //!< mensaje.
     char version[4];        //!< versión de HTTP: 1.0 ó 1.1.
     struct header *headers; //!< cabeceras.
-    char *content;          //!< contenido a retornar en cadena para retorno.
-    int fd_content;         //!< contenido a retornar en fichero.
+    void *content;          //!< contenido a retornar
+    int content_type;       //!< tipo de contenido que se retorna.
 };
 
 typedef struct response responseHTTP;
@@ -105,7 +115,7 @@ headerHTTP* tor_new_header( char *key, char *value, int index );
  *  @param rs estructura de respuesta HTTP.
  *  @param s contenido a anexionar.
  */
-void tor_set_response_content( responseHTTP *rs, char *s );
+void tor_set_response_content( responseHTTP *rs, int type, void *s );
 
 /**
  *  Libera una solicitud y sus cabeceras.

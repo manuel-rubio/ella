@@ -44,7 +44,7 @@ struct Module {
 
     void *handle;          //!< manejador de la librería cargada.
     configDetail *details; //!< lista enlazada de todos los detalles.
-    struct Module *next, *prev;
+    struct Module *next;
 };
 
 typedef struct Module moduleTAD;
@@ -66,7 +66,7 @@ moduleTAD* tor_modules_load( configBlock *cb );
  *
  *  @param modules lista de módulos a ordenar.
  */
-void tor_modules_sort( moduleTAD **modules );
+moduleTAD* tor_modules_sort( moduleTAD *modules );
 
 /**
  *  Libera los recursos reservador de la carga de módulos.
