@@ -32,16 +32,29 @@ headerHTTP* tor_new_header( char *key, char *value, int index ) {
 void tor_set_response_content( responseHTTP *rs, int type, void *s ) {
     char size[9];
     headerHTTP* ph;
+    struct stat st;
 
-    sprintf(size, "%d", strlen(s));
     rs->content_type = type;
-    rs->content = s;
-    if (rs->headers == NULL) {
-        rs->headers = tor_new_header("Content-Length", size, 0);
+    if (type != HEADER_CONTENT_NONE) {
+        if (type == HEADER_CONTENT_FILE) {
+            stat((char *)s, &st);
+            sprintf(size, "%ld", st.st_size);
+            printf("INFO: fichero %s de %d bytes\n", (char *)s, st.st_size);
+        } else {
+            // HEADER_CONTENT_STRING
+            sprintf(size, "%d", strlen(s));
+        }
+        rs->content = (char *)malloc(strlen(s));
+        strcpy(rs->content, s);
+        if (rs->headers == NULL) {
+            rs->headers = tor_new_header("Content-Length", size, 0);
+        } else {
+            for (ph = rs->headers; ph->next!=NULL; ph=ph->next)
+                ;
+            ph->next = tor_new_header("Content-Length", size, 0);
+        }
     } else {
-        for (ph = rs->headers; ph->next!=NULL; ph=ph->next)
-            ;
-        ph->next = tor_new_header("Content-Length", size, 0);
+        rs->content = NULL;
     }
 }
 
@@ -61,6 +74,9 @@ void tor_free_response( responseHTTP *rs ) {
     }
     if (rs->headers != NULL) {
         tor_free_header(rs->headers);
+    }
+    if (rs->content_type != HEADER_CONTENT_NONE) {
+        free(rs->content);
     }
     free(rs);
 }
@@ -182,19 +198,7 @@ char* tor_gen_response( responseHTTP *rs ) {
             s = tmp;
         }
         strcat(s, buffer);
-        if (!content && strcmp(ph->key, "Content-Length") == 0) {
-            content = 1;
-        }
     }
-    if (content) {
-        strcat(s, "\r\n");
-        if (strlen(buffer) + strlen(rs->content) > size) {
-            size += strlen(rs->content);
-            tmp = (char *)malloc(size);
-            free(s);
-            s = tmp;
-        }
-        strcat(s, rs->content);
-    }
+    strcat(s, "\r\n");
     return s;
 }

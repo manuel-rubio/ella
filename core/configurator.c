@@ -80,6 +80,16 @@ char* tor_get_detail_value( configBlock *cb, char *key, int index ) {
     return NULL;
 }
 
+char* tor_get_details_value( configDetail *details, char *key, int index ) {
+    configDetail *cd;
+    if (details == NULL)
+        return NULL;
+    for (cd=details; cd != NULL; cd = cd->next)
+        if (strcmp(cd->key, key) == 0 && cd->index == index)
+            return cd->value;
+    return NULL;
+}
+
 char* tor_get_detail_key( configBlock *cb, char *value, int index ) {
     configDetail *cd;
     int count = 0;
@@ -112,6 +122,17 @@ int tor_get_detail_indexes( configBlock *cb, char *key ) {
     if (cb == NULL || cb->details == NULL)
         return 0;
     for (cd=cb->details; cd != NULL; cd = cd->next)
+        if (strcmp(cd->key, key) == 0)
+            indexes++;
+    return indexes;
+}
+
+int tor_get_details_indexes( configDetail *details, char *key ) {
+    configDetail *cd;
+    int indexes = 0;
+    if (details == NULL)
+        return 0;
+    for (cd=details; cd != NULL; cd = cd->next)
         if (strcmp(cd->key, key) == 0)
             indexes++;
     return indexes;

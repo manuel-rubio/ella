@@ -6,6 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
 #include "config.h"
 
 /**
@@ -46,6 +51,7 @@ typedef struct request requestHTTP;
  *  El puntero genérico puede ofrecer estos tipos de contenidos distintos.
  */
 enum {
+    HEADER_CONTENT_NONE,
     HEADER_CONTENT_STRING,
     HEADER_CONTENT_FILE
 };

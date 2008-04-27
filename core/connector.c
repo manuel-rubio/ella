@@ -60,18 +60,24 @@ void* tor_connector_launch( void* ptr_bc ) {
     }
     printf("INFO: saliendo del programa\n");
     pthread_exit(NULL);
-    return NULL;
 }
 
 void* tor_connector_client_launch( void* ptr_br ) {
     bindRequest *br;
-    responseHTTP *rs;
+    responseHTTP rs;
     moduleTAD *pmt;
-    char *buffer;
-    int res;
+    char *buffer, bf[1024];
+    int res, f, bf_size, bucle = 1;
 
     br = (bindRequest *)ptr_br;
     printf("INFO: Conexión desde: %s\n", inet_ntoa((br->client).sin_addr));
+
+    rs.code = 0;
+    rs.message[0] = '\0';
+    rs.version[0] = '\0';
+    rs.headers = NULL;
+    rs.content = NULL;
+    rs.content_type = HEADER_CONTENT_NONE;
 
     if (br->bc == NULL) {
         printf("FATAL: No hay BindConnect en BindRequest para atender la petición\n");
@@ -82,7 +88,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
             for (pmt = br->bc->modules; pmt!=NULL; pmt=pmt->next) {
                 printf("INFO: ejecutando módulo %s\n", pmt->name);
                 if (pmt->run != NULL) {
-                    res = pmt->run(br->request, &rs);
+                    res = pmt->run(br, &rs);
                     if (res == MODULE_RETURN_FAIL) {
                         printf("ERROR: módulo %s tuvo un error de ejecución\n", pmt->name);
                     } else if (res == MODULE_RETURN_STOP) {
@@ -93,17 +99,41 @@ void* tor_connector_client_launch( void* ptr_br ) {
                     printf("FATAL: método 'run' del módulo %s no definido\n", pmt->name);
                 }
             }
-            buffer = tor_gen_response(rs);
+            buffer = tor_gen_response(&rs);
             send(br->fd_client, buffer, strlen(buffer), 0);
+            switch (rs.content_type) {
+                case HEADER_CONTENT_STRING:
+                    send(br->fd_client, rs.content, strlen(rs.content), 0);
+                    break;
+                case HEADER_CONTENT_FILE:
+                    f = open(rs.content, O_RDONLY);
+                    if (f == -1) {
+                        printf("FATAL: fichero no se pudo abrir (%d).\n", errno);
+                    } else {
+                        while (bucle && (bf_size = read(f, bf, 1024))) {
+                            if (bf_size == -1) {
+                                printf("FATAL: error durante lectura del fichero %s.\n", rs.content);
+                                bucle = 0;
+                            } else {
+                                send(br->fd_client, bf, bf_size, 0);
+                            }
+                        }
+                        if (bucle) {
+                            printf("INFO: Fichero %s enviado correctamente\n", rs.content);
+                        }
+                        close(f);
+                    }
+            }
             free(buffer);
         }
     }
 
     // cerramos todo antes de salir
+    printf("INFO: finalizado procesamiento desde: %s\n", inet_ntoa((br->client).sin_addr));
     shutdown(br->fd_client, SHUT_RD);
     close(br->fd_client);
     free(ptr_br);
-    return NULL;
+    pthread_exit(NULL);
 }
 
 int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
@@ -133,6 +163,15 @@ int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_
 
 int tor_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
     int sin_size, fd;
+    struct timeval t;
+    fd_set rfds;
+
+    // TODO: estudiar si es mejor select(), poll() o epoll()
+    t.tv_sec = 0;
+    t.tv_usec = 100;
+    FD_ZERO(&rfds);
+    FD_SET(sfd, &rfds);
+    select(1, &rfds, NULL, NULL, &t);
 
     sin_size = sizeof(struct sockaddr_in);
     if ((fd = accept(sfd, (struct sockaddr *)client, &sin_size))==-1) {
@@ -203,6 +242,17 @@ virtualHost* tor_connector_find_vhost( virtualHost *vh, char *name ) {
     for (pvh = vh; pvh != NULL; pvh = pvh->next) {
         if (strcmp(pvh->host_name, name) == 0) {
             return pvh;
+        }
+    }
+    return NULL;
+}
+
+hostLocation* tor_connector_find_location( hostLocation *hl, char *loc ) {
+    hostLocation* phl;
+
+    for (phl = hl; phl != NULL; phl = phl->next) {
+        if (strncmp(phl->base_uri, loc, strlen(phl->base_uri)) == 0) {
+            return phl;
         }
     }
     return NULL;

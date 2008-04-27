@@ -134,7 +134,7 @@ configBlock* tor_get_block( configBlock *cb, char *name, char *lastname );
  *  Busca entre los detalles de configuración de un bloque por el valor
  *  y el índice, y retorna su clave.
  *
- *  @param cb puntero a configBlock de cabecera.
+ *  @param cb puntero a configBlock específico.
  *  @param value valor por el que buscar.
  *  @param index índice en el que buscar (por defecto es 0).
  *  @return puntero a la clave del detalle solicitado o NULL.
@@ -147,12 +147,13 @@ char* tor_get_detail_key( configBlock *cb, char *value, int index );
  *  Busca entre las claves de configuración de un bloque por el valor
  *  y el índice, y retorna su valor.
  *
- *  @param cb puntero a configBlock de cabecera.
+ *  @param cb puntero a configBlock específico.
  *  @param key clave por la que buscar.
  *  @param index índie en el que buscar (por defecto es 0).
  *  @return puntero al valor del detalle solicitado o NULL.
  */
 char* tor_get_detail_value( configBlock *cb, char *key, int index );
+char* tor_get_details_value( configDetail *details, char *key, int index );
 
 /**
  *  Toma el número de valores.
@@ -160,7 +161,7 @@ char* tor_get_detail_value( configBlock *cb, char *key, int index );
  *  Cuenta todos los valores coincidentes con el parámetro pasado
  *  como parámetro.
  *
- *  @param cb puntero a configBlock de cabecera.
+ *  @param cb puntero a configBlock específico.
  *  @param value valor por el que buscar los coincidentes.
  *  @return el número de valores encontrados.
  */
@@ -171,11 +172,12 @@ int tor_get_detail_values( configBlock *cb, char *value );
  *
  *  Cuenta los valores que tiene una clave determinada.
  *
- *  @param cb puntero a configBlock de cabecera.
+ *  @param cb puntero a configBlock específico.
  *  @param key clave de la que tomar los valores.
  *  @return el número de valores encontrados.
  */
 int tor_get_detail_indexes( configBlock *cb, char *key );
+int tor_get_details_indexes( configDetail *details, char *key );
 
 /**
  *  Toma el valor de la IP de una cadena del tipo 0.0.0.0:80.
@@ -183,7 +185,7 @@ int tor_get_detail_indexes( configBlock *cb, char *key );
  *  Disecciona un valor que contiene una dirección IP y un puerto
  *  anexionado, tomando solo el valor de la dirección IP.
  *
- *  @param cb puntero a configBlock de cabecera.
+ *  @param cb puntero a configBlock específico.
  *  @param key clave de la que tomar la dirección IP.
  *  @param index índice del que tomar el valor.
  *  @param s cadena en la que guardar la dirección IP.
@@ -196,7 +198,7 @@ void tor_get_bindhost( configBlock *cb, char *key, int index, char *s );
  *  Disecciona un valor que contiene una dirección IP y un puerto
  *  anexionado, tomando solo el valor del puerto.
  *
- *  @param cb puntero a configBlock de cabecera.
+ *  @param cb puntero a configBlock específico.
  *  @param key clave de la que tomar el puerto.
  *  @param index índice del que tomar el valor.
  *  @return el puerto tomado.

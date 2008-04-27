@@ -36,8 +36,8 @@ modules/libdumb.so: modules/dumb.o core/string.o core/header.o include/string.h 
 modules/dumb.o: modules/dumb.c
 	$(GCC) -c -fPIC -o modules/dumb.o modules/dumb.c
 
-modules/libhttp10.so: modules/http10.o core/string.o core/header.o include/string.h include/header.h
-	$(GCC) -shared -Wl,-soname,libhttp10.so -o modules/libhttp10.so modules/http10.o core/string.o core/header.o -lc
+modules/libhttp10.so: modules/http10.o core/string.o core/header.o core/connector.o core/configurator.o include/string.h include/header.h
+	$(GCC) -shared -Wl,-soname,libhttp10.so -o modules/libhttp10.so modules/http10.o core/configurator.o core/connector.o core/string.o core/header.o -lc
 
 modules/http10.o: modules/http10.c
 	$(GCC) -c -fPIC -o modules/http10.o modules/http10.c

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <pthread.h>
 #include <fcntl.h>
@@ -161,6 +162,15 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD *modules );
  *  @return puntero a virtualHost encontrado o NULL.
  */
 virtualHost* tor_connector_find_vhost( virtualHost *vh, char *name );
+
+/**
+ *  Retorna una estructura de localización para una URL dada.
+ *
+ *  @param vh puntero a virtualHost de cabecera.
+ *  @param loc ruta a buscar entre los localizations.
+ *  @return puntero a hostLocation encontrado o NULL.
+ */
+hostLocation* tor_connector_find_location( hostLocation *vh, char *loc );
 
 /**
  *  Rellena una estructura de máquina virtual.

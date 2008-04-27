@@ -25,6 +25,8 @@ enum {
     MODULE_RETURN_STOP
 };
 
+struct Bind_Request;
+
 /**
  *  Estructura de Módulos.
  *
@@ -40,7 +42,7 @@ struct Module {
     void (*unload)(); //!< ejecuta en la descarga del módulo.
     void (*reload)(); //!< para la recarga del módulo.
     void (*get_status)( char * ); //!< retorna el estado del módulo.
-    int (*run)( requestHTTP *, responseHTTP ** ); //!< ejecuta el módulo.
+    int (*run)( struct Bind_Request *, responseHTTP * ); //!< ejecuta el módulo.
 
     void *handle;          //!< manejador de la librería cargada.
     configDetail *details; //!< lista enlazada de todos los detalles.
