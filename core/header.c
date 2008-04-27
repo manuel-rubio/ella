@@ -44,7 +44,7 @@ void tor_set_response_content( responseHTTP *rs, int type, void *s ) {
             // HEADER_CONTENT_STRING
             sprintf(size, "%d", strlen(s));
         }
-        rs->content = (char *)malloc(strlen(s));
+        rs->content = (char *)malloc(strlen(s) + 1);
         strcpy(rs->content, s);
         if (rs->headers == NULL) {
             rs->headers = tor_new_header("Content-Length", size, 0);
