@@ -170,12 +170,15 @@ int tor_get_bindport( configBlock *cb, char *key, int index ) {
 
 configBlock* tor_ini_read() {
     FILE *f;
-    char buffer[1024], clave[512], valor[512];
-    int bs = 0, i, j, index;
+    char buffer[1024] = { 0 },
+         clave[512] = { 0 },
+         valor[512] = { 0 },
+         key[STRING_SIZE] = { 0 };
+    int  bs = 0,
+         i, j, index,
+         name_flag = 0;
     configBlock *cb = NULL, *pcb = NULL;
     configDetail *pcd = NULL;
-    int name_flag = 0;
-    char key[STRING_SIZE];
 
     f = fopen(__CONFIG_DIR "/http.ini", "rt");
     if (f != NULL) {

@@ -3,11 +3,13 @@
 #include "../include/modules.h"
 
 moduleTAD* tor_modules_load( configBlock *cb ) {
-    int indexes, i;
-    char *module, lib[50], *autoload;
+    int  indexes, i;
+    char *module = NULL,
+         lib[80] = { 0 },
+         *autoload = NULL;
     moduleTAD *pmt = NULL, *mt = NULL, *tmt = NULL;
-    void (*init_module)( moduleTAD* );
-    configBlock *pcb;
+    void (*init_module)( moduleTAD* ) = NULL;
+    configBlock *pcb = NULL;
 
     autoload = tor_get_detail_value(cb, "autoload", 0);
     if (autoload != NULL && strcmp(autoload, "yes") == 0) {
@@ -20,6 +22,7 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     for (i=0; i<indexes; i++) {
         module = tor_get_detail_value(cb, "load", i);
         sprintf(lib, "modules/lib%s.so", module);
+        printf("DEBUG: probando a cargar %s.\n", lib);
         if (mt == NULL) {
             mt = (moduleTAD *)malloc(sizeof(moduleTAD));
             pmt = mt;
@@ -115,6 +118,7 @@ void tor_modules_free( moduleTAD *modules ) {
     if (modules->next != NULL)
         tor_modules_free(modules->next);
 
+    printf("INFO: liberando módulo %s.\n", modules->name);
     tor_free_details(modules->details);
     dlclose(modules->handle);
     free(modules);

@@ -65,6 +65,9 @@ void tor_free_request( requestHTTP *rh ) {
     if (rh->headers != NULL) {
         tor_free_header(rh->headers);
     }
+    if (rh->content != NULL) {
+        free(rh->content);
+    }
     free(rh);
 }
 

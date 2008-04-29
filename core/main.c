@@ -13,10 +13,10 @@ void stop_tornasauce( int d ) {
 
 int main() {
     configFuncs cf;
-    configBlock *cb, *cb_modules;
-    moduleTAD *modules;
-    bindConnect *bc, *pbc;
-    int rc;
+    configBlock *cb = NULL, *cb_modules = NULL;
+    moduleTAD *modules = NULL;
+    bindConnect *bc = NULL, *pbc = NULL;
+    int rc, status;
 
     cf = tor_get_initial_conf();
     cb = cf.read();
@@ -36,9 +36,17 @@ int main() {
             printf("ERROR: al crear hilo: %d\n", rc);
         }
     }
-    pthread_exit(NULL);
+
+    for (pbc = bc; pbc != NULL; pbc = pbc->next) {
+        if (pthread_join(pbc->thread, (void **) &status)) {
+            printf("ERROR: no se pudo realizar 'join' en hilos.\n");
+        }
+        printf("INFO: el hilo terminó con el estado %d.\n", status);
+    }
 
     tor_modules_free(modules);
     tor_free_blocks(cb);
     tor_connector_bind_free(bc);
+    printf("INFO: Liberada memoria.\n");
+    pthread_exit(NULL);
 }

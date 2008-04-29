@@ -53,6 +53,7 @@ void* tor_connector_launch( void* ptr_bc ) {
         br->fd_client = fd_client;
         br->bc = bc;
         bcopy(&client, &(br->client), sizeof(client));
+        tor_connector_client_launch((void *)br);
         rc = pthread_create(&br->thread, NULL, tor_connector_client_launch, (void *)br);
         if (rc) {
             printf("ERROR: al crear hilo: %d\n", rc);
@@ -64,7 +65,7 @@ void* tor_connector_launch( void* ptr_bc ) {
 
 void* tor_connector_client_launch( void* ptr_br ) {
     bindRequest *br;
-    responseHTTP rs;
+    responseHTTP *rs;
     moduleTAD *pmt;
     char *buffer, bf[1024];
     int res, f, bf_size, bucle = 1;
@@ -72,12 +73,13 @@ void* tor_connector_client_launch( void* ptr_br ) {
     br = (bindRequest *)ptr_br;
     printf("INFO: Conexión desde: %s\n", inet_ntoa((br->client).sin_addr));
 
-    rs.code = 0;
-    rs.message[0] = '\0';
-    rs.version[0] = '\0';
-    rs.headers = NULL;
-    rs.content = NULL;
-    rs.content_type = HEADER_CONTENT_NONE;
+    rs = (responseHTTP *)malloc(sizeof(responseHTTP));
+    rs->code = 0;
+    rs->message[0] = '\0';
+    rs->version[0] = '\0';
+    rs->headers = NULL;
+    rs->content = NULL;
+    rs->content_type = HEADER_CONTENT_NONE;
 
     if (br->bc == NULL) {
         printf("FATAL: No hay BindConnect en BindRequest para atender la petición\n");
@@ -88,7 +90,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
             for (pmt = br->bc->modules; pmt!=NULL; pmt=pmt->next) {
                 printf("INFO: ejecutando módulo %s\n", pmt->name);
                 if (pmt->run != NULL) {
-                    res = pmt->run(br, &rs);
+                    res = pmt->run(br, rs);
                     if (res == MODULE_RETURN_FAIL) {
                         printf("ERROR: módulo %s tuvo un error de ejecución\n", pmt->name);
                     } else if (res == MODULE_RETURN_STOP) {
@@ -99,31 +101,32 @@ void* tor_connector_client_launch( void* ptr_br ) {
                     printf("FATAL: método 'run' del módulo %s no definido\n", pmt->name);
                 }
             }
-            buffer = tor_gen_response(&rs);
+            buffer = tor_gen_response(rs);
             send(br->fd_client, buffer, strlen(buffer), 0);
-            switch (rs.content_type) {
+            switch (rs->content_type) {
                 case HEADER_CONTENT_STRING:
-                    send(br->fd_client, rs.content, strlen(rs.content), 0);
+                    send(br->fd_client, rs->content, strlen(rs->content), 0);
                     break;
                 case HEADER_CONTENT_FILE:
-                    f = open(rs.content, O_RDONLY);
+                    f = open(rs->content, O_RDONLY);
                     if (f == -1) {
                         printf("FATAL: fichero no se pudo abrir (%d).\n", errno);
                     } else {
                         while (bucle && (bf_size = read(f, bf, 1024))) {
                             if (bf_size == -1) {
-                                printf("FATAL: error durante lectura del fichero %s.\n", rs.content);
+                                printf("FATAL: error durante lectura del fichero %s.\n", rs->content);
                                 bucle = 0;
                             } else {
                                 send(br->fd_client, bf, bf_size, 0);
                             }
                         }
                         if (bucle) {
-                            printf("INFO: Fichero %s enviado correctamente\n", rs.content);
+                            printf("INFO: Fichero %s enviado correctamente\n", rs->content);
                         }
                         close(f);
                     }
             }
+            tor_free_response(rs);
             free(buffer);
         }
     }
@@ -132,7 +135,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
     printf("INFO: finalizado procesamiento desde: %s\n", inet_ntoa((br->client).sin_addr));
     shutdown(br->fd_client, SHUT_RD);
     close(br->fd_client);
-    free(ptr_br);
+    tor_connector_bindrequest_free(br);
     pthread_exit(NULL);
 }
 
@@ -191,8 +194,8 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
     configBlock *pcb = NULL,
                 *aliases = NULL;
     virtualHost *vh = NULL;
-    char        host[80];
-    int         port;
+    char        host[80] = { 0 };
+    int         port = 0;
 
     for (pcb = cb; pcb != NULL; pcb = pcb->next) {
         if (strcmp("modules", pcb->name) == 0) {
@@ -324,6 +327,14 @@ void tor_connector_bind_free( bindConnect* bc ) {
     if (bc->vhosts != NULL)
         tor_connector_vhost_free(bc->vhosts);
     free(bc);
+}
+
+void tor_connector_bindrequest_free( bindRequest* br ) {
+    if (br == NULL)
+        return;
+    if (br->request != NULL)
+        tor_free_request(br->request);
+    free(br);
 }
 
 void tor_connector_vhost_free( virtualHost* vh ) {

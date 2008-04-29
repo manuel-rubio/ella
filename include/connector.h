@@ -200,6 +200,13 @@ void tor_connector_parse_location( configBlock* cb, virtualHost* vh );
 void tor_connector_bind_free( bindConnect* bc );
 
 /**
+ *  Libera una estructura de conexión en petición.
+ *
+ *  @param br puntero bindRequest a liberar.
+ */
+void tor_connector_bindrequest_free( bindRequest* br );
+
+/**
  *  Libera una estructura de máquinas virtuales.
  *
  *  @param vh puntero virtualHost de cabecera a liberar.
