@@ -20,7 +20,9 @@ void* tor_connector_launch( void* ptr_bc ) {
     printf("INFO: Lanzando conexión: %s:%d\n", bc->host, bc->port);
     bzero(&server, sizeof(server));
     fd_server = tor_server_start(&server, bc->host, bc->port, MAX_CLIENTS);
-    fcntl(fd_server, F_SETFL, fcntl(fd_server, F_GETFL, 0) | O_NONBLOCK);
+    if (fd_server > 0) {
+        fcntl(fd_server, F_SETFL, fcntl(fd_server, F_GETFL, 0) | O_NONBLOCK);
+    }
 
     while (!bindThreadExit) {
         bzero(&client, sizeof(client));
@@ -53,7 +55,6 @@ void* tor_connector_launch( void* ptr_bc ) {
         br->fd_client = fd_client;
         br->bc = bc;
         bcopy(&client, &(br->client), sizeof(client));
-        tor_connector_client_launch((void *)br);
         rc = pthread_create(&br->thread, NULL, tor_connector_client_launch, (void *)br);
         if (rc) {
             printf("ERROR: al crear hilo: %d\n", rc);
@@ -144,7 +145,8 @@ int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
         printf("ERROR: al iniciar el servidor (socket)\n");
-        exit(-1);
+        bindThreadExit = 1;
+        return -1;
     }
 
     server->sin_family = AF_INET;
