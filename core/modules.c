@@ -61,7 +61,7 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
                     pmt = tmt;
                 }
             } else {
-                pcb = tor_get_block(cb, module, "");
+                pcb = tor_get_block(cb, module, NULL);
                 pmt->details = (pcb != NULL) ? pcb->details : NULL;
                 init_module(pmt);
                 printf("INFO: cargado módulo: %s\n", module);
