@@ -24,10 +24,10 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
         sprintf(lib, "modules/lib%s.so", module);
         printf("DEBUG: probando a cargar %s.\n", lib);
         if (mt == NULL) {
-            mt = (moduleTAD *)malloc(sizeof(moduleTAD));
+            mt = (moduleTAD *)tor_malloc(sizeof(moduleTAD));
             pmt = mt;
         } else {
-            pmt->next = (moduleTAD *)malloc(sizeof(moduleTAD));
+            pmt->next = (moduleTAD *)tor_malloc(sizeof(moduleTAD));
             pmt = pmt->next;
         }
         pmt->next = NULL;
@@ -35,12 +35,12 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
         if (pmt->handle == 0) {
             printf("ERROR: en carga de %s: %s", module, dlerror());
             if (mt->next == NULL) {
-                free(mt);
+                tor_free(mt, "tor_modules_load (error en carga 1)");
                 pmt = mt = NULL;
             } else {
                 for (tmt=mt; tmt->next!=pmt; tmt=tmt->next)
                     ;
-                free(tmt->next);
+                tor_free(tmt->next, "tor_modules_load (error en carga 2)");
                 tmt->next = NULL;
                 pmt = tmt;
             }
@@ -51,12 +51,12 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
                 printf("ERROR: en ejecución de %s_init: %s", module, dlerror());
                 dlclose(pmt->handle);
                 if (mt->next == NULL) {
-                    free(mt);
+                    tor_free(mt, "tor_modules_load (error en ejecución 1)");
                     pmt = mt = NULL;
                 } else {
                     for (tmt=mt; tmt->next!=pmt; tmt=tmt->next)
                         ;
-                    free(tmt->next);
+                    tor_free(tmt->next, "tor_modules_load (error en ejecución 2)");
                     tmt->next = NULL;
                     pmt = tmt;
                 }
@@ -121,5 +121,5 @@ void tor_modules_free( moduleTAD *modules ) {
     printf("INFO: liberando módulo %s.\n", modules->name);
     tor_free_details(modules->details);
     dlclose(modules->handle);
-    free(modules);
+    tor_free(modules, "tor_modules_free");
 }

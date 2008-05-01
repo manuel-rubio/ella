@@ -6,6 +6,7 @@
 #include <dlfcn.h>
 #include "header.h"
 #include "configurator.h"
+#include "memory.h"
 
 /**
  *  Tipos de módulos que puede haber, y en orden de prioridad.

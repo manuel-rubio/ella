@@ -38,7 +38,6 @@ void http10_page404( requestHTTP *rh, responseHTTP *rs ) {
     rs->headers = tor_new_header("Server", "Tornasauce/0.1", 0);
     sprintf(buffer, page404, rh->uri);
     tor_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
-    printf("DEBUG: [%s]\n", buffer);
 }
 
 int http10_run( struct Bind_Request *br, responseHTTP *rs ) {

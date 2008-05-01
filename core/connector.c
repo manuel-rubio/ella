@@ -50,7 +50,7 @@ void* tor_connector_launch( void* ptr_bc ) {
             if (count == 2)
                 break;
         }
-        br = (bindRequest *)malloc(sizeof(bindRequest));
+        br = (bindRequest *)tor_malloc(sizeof(bindRequest));
         br->request = tor_parse_request(request);
         br->fd_client = fd_client;
         br->bc = bc;
@@ -74,7 +74,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
     br = (bindRequest *)ptr_br;
     printf("INFO: Conexión desde: %s\n", inet_ntoa((br->client).sin_addr));
 
-    rs = (responseHTTP *)malloc(sizeof(responseHTTP));
+    rs = (responseHTTP *)tor_malloc(sizeof(responseHTTP));
     rs->code = 0;
     rs->message[0] = '\0';
     rs->version[0] = '\0';
@@ -99,11 +99,12 @@ void* tor_connector_client_launch( void* ptr_br ) {
                         break;
                     }
                 } else {
-                    printf("FATAL: método 'run' del módulo %s no definido\n", pmt->name);
+                    printf("ERROR: método 'run' del módulo %s no definido\n", pmt->name);
                 }
             }
             buffer = tor_gen_response(rs);
             send(br->fd_client, buffer, strlen(buffer), 0);
+            tor_free(buffer, "tor_connector_client_launch");
             switch (rs->content_type) {
                 case HEADER_CONTENT_STRING:
                     send(br->fd_client, rs->content, strlen(rs->content), 0);
@@ -111,11 +112,11 @@ void* tor_connector_client_launch( void* ptr_br ) {
                 case HEADER_CONTENT_FILE:
                     f = open(rs->content, O_RDONLY);
                     if (f == -1) {
-                        printf("FATAL: fichero no se pudo abrir (%d).\n", errno);
+                        printf("ERROR: fichero no se pudo abrir (%d).\n", errno);
                     } else {
                         while (bucle && (bf_size = read(f, bf, 1024))) {
                             if (bf_size == -1) {
-                                printf("FATAL: error durante lectura del fichero %s.\n", rs->content);
+                                printf("ERROR: error durante lectura del fichero %s.\n", rs->content);
                                 bucle = 0;
                             } else {
                                 send(br->fd_client, bf, bf_size, 0);
@@ -127,12 +128,11 @@ void* tor_connector_client_launch( void* ptr_br ) {
                         close(f);
                     }
             }
-            tor_free_response(rs);
-            free(buffer);
         }
     }
 
     // cerramos todo antes de salir
+    tor_free_response(rs);
     printf("INFO: finalizado procesamiento desde: %s\n", inet_ntoa((br->client).sin_addr));
     shutdown(br->fd_client, SHUT_RD);
     close(br->fd_client);
@@ -207,7 +207,7 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
             aliases = pcb;
         } else {
             if (bc == NULL) {
-                bc = (bindConnect *)malloc(sizeof(bindConnect));
+                bc = (bindConnect *)tor_malloc(sizeof(bindConnect));
                 pbc = bc;
                 tor_get_bindhost(pcb, "bind", 0, pbc->host);
                 pbc->port = tor_get_bindport(pcb, "bind", 0);
@@ -222,7 +222,7 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
                         break;
                 }
                 if (pibc == NULL) {
-                    pbc->next = (bindConnect *)malloc(sizeof(bindConnect));
+                    pbc->next = (bindConnect *)tor_malloc(sizeof(bindConnect));
                     pbc = bc->next;
                     pbc->vhosts = NULL;
                     pbc->modules = modules;
@@ -269,7 +269,7 @@ void tor_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHo
     virtualHost   *vh = *pvh;
 
     if (*pvh == NULL) {
-        *pvh = (virtualHost *)malloc(sizeof(virtualHost));
+        *pvh = (virtualHost *)tor_malloc(sizeof(virtualHost));
         vh = *pvh;
         strcpy(vh->host_name, cb->name);
         vh->aliases = NULL;
@@ -280,10 +280,10 @@ void tor_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHo
             indexes = tor_get_detail_values(aliases, vh->host_name);
             for (i=0; i<indexes; i++) {
                 if (vh->aliases == NULL) {
-                    vh->aliases = (hostAlias *)malloc(sizeof(hostAlias));
+                    vh->aliases = (hostAlias *)tor_malloc(sizeof(hostAlias));
                     pha = vh->aliases;
                 } else {
-                    pha->next = (hostAlias *)malloc(sizeof(hostAlias));
+                    pha->next = (hostAlias *)tor_malloc(sizeof(hostAlias));
                     pha = pha->next;
                 }
                 strcpy(pha->alias, tor_get_detail_key(aliases, vh->host_name, i));
@@ -299,11 +299,11 @@ void tor_connector_parse_location( configBlock* cb, virtualHost* vh ) {
                  *phl_cd = NULL;
 
     if (vh->locations == NULL) {
-        vh->locations = (hostLocation *)malloc(sizeof(hostLocation));
+        vh->locations = (hostLocation *)tor_malloc(sizeof(hostLocation));
         phl = vh->locations;
     } else {
         phl = vh->locations;
-        phl->next = (hostLocation *)malloc(sizeof(hostLocation));
+        phl->next = (hostLocation *)tor_malloc(sizeof(hostLocation));
         phl = phl->next;
     }
 
@@ -328,7 +328,7 @@ void tor_connector_bind_free( bindConnect* bc ) {
         tor_connector_bind_free(bc->next);
     if (bc->vhosts != NULL)
         tor_connector_vhost_free(bc->vhosts);
-    free(bc);
+    tor_free(bc, "tor_connector_bind_free");
 }
 
 void tor_connector_bindrequest_free( bindRequest* br ) {
@@ -336,7 +336,7 @@ void tor_connector_bindrequest_free( bindRequest* br ) {
         return;
     if (br->request != NULL)
         tor_free_request(br->request);
-    free(br);
+    tor_free(br, "tor_connector_bindrequest_free");
 }
 
 void tor_connector_vhost_free( virtualHost* vh ) {
@@ -348,7 +348,7 @@ void tor_connector_vhost_free( virtualHost* vh ) {
         tor_connector_location_free(vh->locations);
     if (vh->aliases != NULL)
         tor_connector_alias_free(vh->aliases);
-    free(vh);
+    tor_free(vh, "tor_connector_vhost_free");
 }
 
 void tor_connector_location_free( hostLocation* hl ) {
@@ -358,7 +358,7 @@ void tor_connector_location_free( hostLocation* hl ) {
         tor_connector_location_free(hl->next);
     if (hl->details != NULL)
         tor_free_details(hl->details);
-    free(hl);
+    tor_free(hl, "tor_connector_location_free");
 }
 
 void tor_connector_alias_free( hostAlias* ha ) {
@@ -366,5 +366,5 @@ void tor_connector_alias_free( hostAlias* ha ) {
         return;
     if (ha->next != NULL)
         tor_connector_alias_free(ha->next);
-    free(ha);
+    tor_free(ha, "tor_connector_alias_free");
 }

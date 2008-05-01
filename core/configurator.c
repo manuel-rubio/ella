@@ -1,7 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
 #include "../include/configurator.h"
-#include "../include/string.h"
 
 configFuncs tor_get_initial_conf() {
     configFuncs cf;
@@ -17,7 +16,7 @@ configFuncs tor_get_initial_conf() {
 }
 
 configBlock* tor_new_block( char *name, char *lastname ) {
-    configBlock* cb = (configBlock *)malloc(sizeof(configBlock));
+    configBlock* cb = (configBlock *)tor_malloc(sizeof(configBlock));
     cb->details = NULL;
     strcpy(cb->name, name);
     strcpy(cb->lastname, lastname);
@@ -26,7 +25,7 @@ configBlock* tor_new_block( char *name, char *lastname ) {
 }
 
 configDetail* tor_new_detail( char *key, char *value, int index ) {
-    configDetail* cd = (configDetail *)malloc(sizeof(configDetail));
+    configDetail* cd = (configDetail *)tor_malloc(sizeof(configDetail));
     strcpy(cd->key, key);
     strcpy(cd->value, value);
     cd->index = index;
@@ -44,7 +43,7 @@ void tor_free_blocks( configBlock *cb ) {
     if (cb->next != NULL) {
         tor_free_blocks(cb->next);
     }
-    free(cb);
+    tor_free(cb, "tor_free_blocks");
 }
 
 void tor_free_details( configDetail *cd ) {
@@ -54,7 +53,7 @@ void tor_free_details( configDetail *cd ) {
     if (cd->next != NULL) {
         tor_free_details(cd->next);
     }
-    free(cd);
+    tor_free(cd, "tor_free_details");
 }
 
 configBlock* tor_get_block( configBlock *cb, char *name, char *lastname ) {
@@ -190,10 +189,10 @@ configBlock* tor_ini_read() {
                 if (buffer[0] == '[') {
                     // seccion
                     if (pcb == NULL) {
-                        cb = (configBlock *)malloc(sizeof(configBlock));
+                        cb = (configBlock *)tor_malloc(sizeof(configBlock));
                         pcb = cb;
                     } else {
-                        pcb->next = (configBlock *)malloc(sizeof(configBlock));
+                        pcb->next = (configBlock *)tor_malloc(sizeof(configBlock));
                         pcb = pcb->next;
                     }
                     pcb->next = NULL;
@@ -220,12 +219,12 @@ configBlock* tor_ini_read() {
                         exit(1);
                     }
                     if (pcb->details == NULL) {
-                        pcb->details = (configDetail *)malloc(sizeof(configDetail));
+                        pcb->details = (configDetail *)tor_malloc(sizeof(configDetail));
                         pcd = pcb->details;
                     } else {
                         for (pcd = pcb->details; pcd->next != NULL; pcd = pcd->next)
                             ;
-                        pcd->next = (configDetail *)malloc(sizeof(configDetail));
+                        pcd->next = (configDetail *)tor_malloc(sizeof(configDetail));
                         pcd = pcd->next;
                     }
                     pcd->next = NULL;
@@ -248,7 +247,7 @@ configBlock* tor_ini_read() {
                                 pcd->value[j] = '\0';
                                 tor_trim(pcd->value);
                                 j = -1;
-                                pcd->next = (configDetail *)malloc(sizeof(configDetail));
+                                pcd->next = (configDetail *)tor_malloc(sizeof(configDetail));
                                 pcd = pcd->next;
                                 strcpy(pcd->key, key);
                                 pcd->index = ++index;

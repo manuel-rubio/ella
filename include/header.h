@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 
 #include "config.h"
+#include "memory.h"
 
 /**
  *  Estructura de cabecera.

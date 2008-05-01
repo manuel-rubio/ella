@@ -16,6 +16,7 @@
 #include "configurator.h"
 #include "header.h"
 #include "modules.h"
+#include "memory.h"
 
 /**
  *  Estructura de alias de máquinas y/o dominios.

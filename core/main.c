@@ -6,6 +6,7 @@
 #include "../include/string.h"
 #include "../include/header.h"
 #include "../include/modules.h"
+#include "../include/memory.h"
 
 void stop_tornasauce( int d ) {
     bindThreadExit = 1;
@@ -47,6 +48,6 @@ int main() {
     tor_modules_free(modules);
     tor_free_blocks(cb);
     tor_connector_bind_free(bc);
-    printf("INFO: Liberada memoria.\n");
+    tor_memory_stats();
     pthread_exit(NULL);
 }

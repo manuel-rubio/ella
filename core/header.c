@@ -3,8 +3,12 @@
 #include "../include/header.h"
 
 requestHTTP* tor_new_request( char *request, char *uri, char *version ) {
-    requestHTTP *rh = (requestHTTP *)malloc(sizeof(requestHTTP));
+    requestHTTP *rh = (requestHTTP *)tor_malloc(sizeof(requestHTTP));
     rh->headers = NULL;
+/*  TODO
+    rs->content_type = HEADER_CONTENT_NONE;
+    rs->content = NULL;
+*/
     strcpy(rh->request, request);
     strcpy(rh->uri, uri);
     strcpy(rh->version, version);
@@ -12,8 +16,10 @@ requestHTTP* tor_new_request( char *request, char *uri, char *version ) {
 }
 
 responseHTTP* tor_new_response( int code, char *message, char *version ) {
-    responseHTTP *rs = (responseHTTP *)malloc(sizeof(responseHTTP));
+    responseHTTP *rs = (responseHTTP *)tor_malloc(sizeof(responseHTTP));
     rs->headers = NULL;
+    rs->content_type = HEADER_CONTENT_NONE;
+    rs->content = NULL;
     rs->code = code;
     strcpy(rs->message, message);
     strcpy(rs->version, version);
@@ -21,7 +27,7 @@ responseHTTP* tor_new_response( int code, char *message, char *version ) {
 }
 
 headerHTTP* tor_new_header( char *key, char *value, int index ) {
-    headerHTTP *h = (headerHTTP *)malloc(sizeof(headerHTTP));
+    headerHTTP *h = (headerHTTP *)tor_malloc(sizeof(headerHTTP));
     strcpy(h->key, key);
     strcpy(h->value, value);
     h->index = index;
@@ -44,7 +50,7 @@ void tor_set_response_content( responseHTTP *rs, int type, void *s ) {
             // HEADER_CONTENT_STRING
             sprintf(size, "%d", strlen(s));
         }
-        rs->content = (char *)malloc(strlen(s) + 1);
+        rs->content = (char *)tor_malloc(strlen(s) + 1);
         strcpy(rs->content, s);
         if (rs->headers == NULL) {
             rs->headers = tor_new_header("Content-Length", size, 0);
@@ -64,11 +70,13 @@ void tor_free_request( requestHTTP *rh ) {
     }
     if (rh->headers != NULL) {
         tor_free_header(rh->headers);
+        rh->headers = NULL;
     }
     if (rh->content != NULL) {
-        free(rh->content);
+        tor_free(rh->content, "tor_free_request (content)");
+        rh->content = NULL;
     }
-    free(rh);
+    tor_free(rh, "tor_free_request");
 }
 
 void tor_free_response( responseHTTP *rs ) {
@@ -77,11 +85,13 @@ void tor_free_response( responseHTTP *rs ) {
     }
     if (rs->headers != NULL) {
         tor_free_header(rs->headers);
+        rs->headers = NULL;
     }
-    if (rs->content_type != HEADER_CONTENT_NONE) {
-        free(rs->content);
+    if (rs->content_type != HEADER_CONTENT_NONE && rs->content != NULL) {
+        tor_free(rs->content, "tor_free_response (content)");
+        rs->content = NULL;
     }
-    free(rs);
+    tor_free(rs, "tor_free_response");
 }
 
 void tor_free_header( headerHTTP *h ) {
@@ -90,8 +100,9 @@ void tor_free_header( headerHTTP *h ) {
     }
     if (h->next != NULL) {
         tor_free_header(h->next);
+        h->next = NULL;
     }
-    free(h);
+    tor_free(h, "tor_free_header");
 }
 
 char* tor_get_header_value( requestHTTP *rh, char *key, int index ) {
@@ -120,7 +131,7 @@ requestHTTP* tor_parse_request( char *s ) {
     requestHTTP *rh = NULL;
     headerHTTP *h = NULL;
 
-    rh = (requestHTTP *)malloc(sizeof(requestHTTP));
+    rh = (requestHTTP *)tor_malloc(sizeof(requestHTTP));
     rh->headers = NULL;
     // getting request
     for (i=0; s[i]!='\0' && s[i]!=' '; i++)
@@ -150,10 +161,10 @@ requestHTTP* tor_parse_request( char *s ) {
             break;
         // get header
         if (rh->headers == NULL) {
-            rh->headers = (headerHTTP *)malloc(sizeof(headerHTTP));
+            rh->headers = (headerHTTP *)tor_malloc(sizeof(headerHTTP));
             h = rh->headers;
         } else {
-            h->next = (headerHTTP *)malloc(sizeof(headerHTTP));
+            h->next = (headerHTTP *)tor_malloc(sizeof(headerHTTP));
             h = h->next;
         }
         h->next = NULL;
@@ -168,7 +179,7 @@ requestHTTP* tor_parse_request( char *s ) {
             if (s[i] == ',') { // new index
                 h->value[j] = '\0';
                 tor_trim(h->value);
-                h->next = (headerHTTP *)malloc(sizeof(headerHTTP));
+                h->next = (headerHTTP *)tor_malloc(sizeof(headerHTTP));
                 strcpy(h->next->key, h->key);
                 h->next->index = h->index + 1;
                 h = h->next;
@@ -189,15 +200,15 @@ char* tor_gen_response( responseHTTP *rs ) {
     int size = 8192, content = 0;
     headerHTTP *ph;
 
-    s = (char *)malloc(size);
+    s = (char *)tor_malloc(size);
     sprintf(s, "HTTP/%s %d %s\r\n", rs->version, rs->code, rs->message);
     for (ph = rs->headers; ph!=NULL; ph=ph->next) {
         // TODO: hacer la concatenación de los valores por los índices
         sprintf(buffer, "%s: %s\r\n", ph->key, ph->value);
         if (strlen(buffer) + strlen(s) > size) {
             size += 8192;
-            tmp = (char *)malloc(size);
-            free(s);
+            tmp = (char *)tor_malloc(size);
+            tor_free(s, "tor_gen_response");
             s = tmp;
         }
         strcat(s, buffer);
