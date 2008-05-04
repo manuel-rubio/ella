@@ -78,7 +78,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     tor_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
 
     // TODO: implementar la gestión de cabeceras según el RFC1945
-    return MODULE_RETURN_OK;
+    return MODULE_RETURN_PROC_STOP;
 }
 
 int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {

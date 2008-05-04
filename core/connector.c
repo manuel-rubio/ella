@@ -70,6 +70,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
     moduleTAD *pmt;
     char *buffer, bf[1024];
     int res, f, bf_size, bucle = 1;
+    int mod_proc = 1, mod_sec = 1, mod_head = 1;
 
     br = (bindRequest *)ptr_br;
     printf("INFO: Conexión desde: %s\n", inet_ntoa((br->client).sin_addr));
@@ -91,12 +92,29 @@ void* tor_connector_client_launch( void* ptr_br ) {
             for (pmt = br->bc->modules; pmt!=NULL; pmt=pmt->next) {
                 printf("INFO: ejecutando módulo %s\n", pmt->name);
                 if (pmt->run != NULL) {
+                    if (pmt->type == MODULE_TYPE_SEC && !mod_sec)
+                        continue;
+                    if (pmt->type == MODULE_TYPE_PROC && !mod_proc)
+                        continue;
+                    if (pmt->type == MODULE_TYPE_HEAD && !mod_head)
+                        continue;
                     res = pmt->run(br, rs);
-                    if (res == MODULE_RETURN_FAIL) {
-                        printf("ERROR: módulo %s tuvo un error de ejecución\n", pmt->name);
-                    } else if (res == MODULE_RETURN_STOP) {
-                        printf("INFO: módulo %s requiere parada de procesamiento\n", pmt->name);
-                        break;
+                    switch (res) {
+                        case MODULE_RETURN_FAIL:
+                            printf("ERROR: módulo %s tuvo un error de ejecución\n", pmt->name);
+                            break;
+                        case MODULE_RETURN_PROC_STOP:
+                            printf("INFO: módulo %s pide parada de procesamiento en PROC\n", pmt->name);
+                            mod_proc = 0;
+                            break;
+                        case MODULE_RETURN_SEC_STOP:
+                            printf("INFO: módulo %s pide parada de procesamiento en SEC\n", pmt->name);
+                            mod_sec = 0;
+                            break;
+                        case MODULE_RETURN_STOP:
+                            printf("INFO: módulo %s requiere parada de procesamiento\n", pmt->name);
+                            pmt = NULL; /* terminamos el bucle for. */
+                            break;
                     }
                 } else {
                     printf("ERROR: método 'run' del módulo %s no definido\n", pmt->name);

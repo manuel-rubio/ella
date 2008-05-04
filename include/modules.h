@@ -12,9 +12,10 @@
  *  Tipos de módulos que puede haber, y en orden de prioridad.
  */
 enum {
-    MODULE_TYPE_SEC,
-    MODULE_TYPE_PROC,
-    MODULE_TYPE_LOG
+    MODULE_TYPE_SEC,  /*!< módulos de seguridad (prioritarios). */
+    MODULE_TYPE_PROC, /*!< módulos de procesado de peticiones (http 1.0, http 1.1...) */
+    MODULE_TYPE_HEAD, /*!< módulos de proceso de cabecera de respuesta (mime, encriptación SSL...) */
+    MODULE_TYPE_LOG   /*!< módulos de anotaciones y estadísticas */
 };
 
 /**
@@ -23,7 +24,10 @@ enum {
 enum {
     MODULE_RETURN_OK,
     MODULE_RETURN_FAIL,
-    MODULE_RETURN_STOP
+    MODULE_RETURN_STOP,
+    MODULE_RETURN_SEC_STOP,
+    MODULE_RETURN_PROC_STOP,
+    MODULE_RETURN_HEAD_STOP
 };
 
 struct Bind_Request;
