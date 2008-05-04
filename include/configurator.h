@@ -62,14 +62,6 @@ typedef struct Config_Funcs configFuncs;
 
 
 /**
- *  Inicializa el sistema de lectura de configuración.
- *
- *  Esta función carga las funciones esenciales para proceder
- *  con la carga de los valores de configuración del servidor.
- */
-configFuncs tor_get_initial_conf();
-
-/**
  *  Crea un bloque de configuración.
  *
  *  Se encarga de crear un bloque de configuración, reservando
@@ -136,12 +128,12 @@ configBlock* tor_get_block( configBlock *cb, char *name, char *lastname );
  *  Busca entre los detalles de configuración de un bloque por el valor
  *  y el índice, y retorna su clave.
  *
- *  @param cb puntero a configBlock específico.
+ *  @param details puntero a configDetail de cabecera.
  *  @param value valor por el que buscar.
  *  @param index índice en el que buscar (por defecto es 0).
  *  @return puntero a la clave del detalle solicitado o NULL.
  */
-char* tor_get_detail_key( configBlock *cb, char *value, int index );
+char* tor_get_detail_key( configDetail *details, char *value, int index );
 
 /**
  *  Toma el valor de un detalle solicitado de un bloque de configuración.
@@ -149,13 +141,12 @@ char* tor_get_detail_key( configBlock *cb, char *value, int index );
  *  Busca entre las claves de configuración de un bloque por el valor
  *  y el índice, y retorna su valor.
  *
- *  @param cb puntero a configBlock específico.
+ *  @param details puntero a configDetail de cabecera.
  *  @param key clave por la que buscar.
  *  @param index índie en el que buscar (por defecto es 0).
  *  @return puntero al valor del detalle solicitado o NULL.
  */
-char* tor_get_detail_value( configBlock *cb, char *key, int index );
-char* tor_get_details_value( configDetail *details, char *key, int index );
+char* tor_get_detail_value( configDetail *details, char *key, int index );
 
 /**
  *  Toma el número de valores.
@@ -163,23 +154,22 @@ char* tor_get_details_value( configDetail *details, char *key, int index );
  *  Cuenta todos los valores coincidentes con el parámetro pasado
  *  como parámetro.
  *
- *  @param cb puntero a configBlock específico.
+ *  @param details puntero a configDetail de cabecera.
  *  @param value valor por el que buscar los coincidentes.
  *  @return el número de valores encontrados.
  */
-int tor_get_detail_values( configBlock *cb, char *value );
+int tor_get_detail_values( configDetail *details, char *value );
 
 /**
  *  Toma el número de valores que tiene una clave.
  *
  *  Cuenta los valores que tiene una clave determinada.
  *
- *  @param cb puntero a configBlock específico.
+ *  @param details puntero a configDetail de cabecera.
  *  @param key clave de la que tomar los valores.
  *  @return el número de valores encontrados.
  */
-int tor_get_detail_indexes( configBlock *cb, char *key );
-int tor_get_details_indexes( configDetail *details, char *key );
+int tor_get_detail_indexes( configDetail *details, char *key );
 
 /**
  *  Toma el valor de la IP de una cadena del tipo 0.0.0.0:80.
@@ -206,17 +196,5 @@ void tor_get_bindhost( configBlock *cb, char *key, int index, char *s );
  *  @return el puerto tomado.
  */
 int tor_get_bindport( configBlock *cb, char *key, int index );
-
-/* INI method */
-
-/**
- *  Función para tomar la configuración de fichero INI.
- *
- *  Se encarga de leer el fichero de tipo INI para crear toda la
- *  estructura de tipo configBlock y configDetail.
- *
- *  @return un puntero a la cabecera de configBlock creada o NULL.
- */
-configBlock* tor_ini_read();
 
 #endif

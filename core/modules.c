@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/modules.h"
+#include "../include/tornasauce.h"
 
 moduleTAD* tor_modules_load( configBlock *cb ) {
     int  indexes, i;
@@ -11,16 +11,16 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     void (*init_module)( moduleTAD* ) = NULL;
     configBlock *pcb = NULL;
 
-    autoload = tor_get_detail_value(cb, "autoload", 0);
+    autoload = tor_get_detail_value(cb->details, "autoload", 0);
     if (autoload != NULL && strcmp(autoload, "yes") == 0) {
         printf("INFO: AutoCarga: sí (no implementado aún)\n");
     } else {
         printf("INFO: AutoCarga: no\n");
     }
 
-    indexes = tor_get_detail_indexes(cb, "load");
+    indexes = tor_get_detail_indexes(cb->details, "load");
     for (i=0; i<indexes; i++) {
-        module = tor_get_detail_value(cb, "load", i);
+        module = tor_get_detail_value(cb->details, "load", i);
         sprintf(lib, "modules/lib%s.so", module);
         printf("DEBUG: probando a cargar %s.\n", lib);
         if (mt == NULL) {
@@ -70,10 +70,10 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     }
 
     printf("INFO: NoLoad (no implementado aún)\n");
-    indexes = tor_get_detail_indexes(cb, "noload");
+    indexes = tor_get_detail_indexes(cb->details, "noload");
     for (i=0; i<indexes; i++) {
         // TODO: este no tiene sentido, a menos que se tenga "autoload"
-        printf("INFO: Ignorando módulo %s", tor_get_detail_value(cb, "unload", i));
+        printf("INFO: Ignorando módulo %s", tor_get_detail_value(cb->details, "unload", i));
     }
 
     if (mt != NULL) {

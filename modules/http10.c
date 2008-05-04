@@ -82,8 +82,8 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
 }
 
 int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
-    char *path = tor_get_details_value(hl->details, "path", 0);
-    int indexes = tor_get_details_indexes(hl->details, "index");
+    char *path = tor_get_detail_value(hl->details, "path", 0);
+    int indexes = tor_get_detail_indexes(hl->details, "index");
     char *index;
     int i, j, k, f;
     struct stat st;
@@ -104,7 +104,7 @@ int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
             if (buffer[j-1] != '/') {
                 buffer[j++] = '/';
             }
-            index = tor_get_details_value(hl->details, "index", k);
+            index = tor_get_detail_value(hl->details, "index", k);
             for (i=0; index[i]!='\0'; i++, j++)
                 buffer[j] = index[i];
         }

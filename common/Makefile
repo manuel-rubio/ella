@@ -1,0 +1,22 @@
+all: ../libtornasauce0.so
+
+clean:
+	$(RM) -f ../libtornasauce0.so *.o
+
+configurator.o: configurator.c $(INC)
+	$(GCC) -c -o configurator.o configurator.c
+
+connector.o: connector.c $(INC)
+	$(GCC) -c -o connector.o connector.c
+
+header.o: header.c $(INC)
+	$(GCC) -c -o header.o header.c
+
+memory.o: memory.c $(INC)
+	$(GCC) -c -o memory.o memory.c
+
+string.o: string.c $(INC)
+	$(GCC) -c -o string.o string.c
+
+../libtornasauce0.so: configurator.o connector.o header.o memory.o string.o
+	$(GCC) -shared -Wl,-soname,libtornasauce0.so -o ../libtornasauce0.so configurator.o connector.o header.o memory.o string.o -lc
