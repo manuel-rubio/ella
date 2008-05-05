@@ -88,12 +88,26 @@ void tor_free_all( void ) {
     printf("INFO: liberadas %d reservas y %ld bytes\n", freed, freed_size);
 }
 
+void tor_memory_print_units( long units ) {
+    double u = (double) units;
+    if (units < 1024)
+        printf("%.2lf bytes\n", u);
+    else if (units < (1024 * 1024))
+        printf("%.2lf kbytes\n", u / 1024);
+    else if (units < (1024 * 1024 * 1024))
+        printf("%.2lf Mbytes\n", u / (1024 * 1024));
+}
+
 void tor_memory_stats( void ) {
     pthread_mutex_lock(&memory_allocation);
-    printf("INFO: Memoria reservada: %ld bytes\n", tor_memory_allocated);
-    printf("INFO: Memoria liberada: %ld bytes\n", tor_memory_freed);
-    printf("INFO: Descuadre (memoria perdida): %ld bytes\n", tor_memory);
+    printf("INFO: Memoria reservada: ");
+    tor_memory_print_units(tor_memory_allocated);
+    printf("INFO: Memoria liberada: ");
+    tor_memory_print_units(tor_memory_freed);
+    printf("INFO: Descuadre (memoria perdida): ");
+    tor_memory_print_units(tor_memory);
     printf("INFO: Máximo número de reservas simultáneas: %d\n", tor_max_simult_allocs);
-    printf("INFO: Máxima cantidad de memory en uso: %ld bytes\n", tor_max_memory_in_use);
+    printf("INFO: Máxima cantidad de memory en uso: ");
+    tor_memory_print_units(tor_max_memory_in_use);
     pthread_mutex_unlock(&memory_allocation);
 }
