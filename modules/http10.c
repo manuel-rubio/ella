@@ -24,7 +24,7 @@ char *page404 = "\
 
 void http10_get_status( char *s ) {
     // TODO: especificar en "s" el estado del módulo
-    strcpy(s, "OK");
+    strcpy(s, "HTTP 1.0 - RFC1945 - Process module without dynamic information.");
 }
 
 void http10_page404( requestHTTP *rh, responseHTTP *rs ) {
@@ -119,7 +119,7 @@ int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
 }
 
 void http10_init( moduleTAD *module ) {
-    strcpy(module->name, "HTTP 1.0 - RFC1945");
+    strcpy(module->name, "http10");
     module->type = MODULE_TYPE_PROC;
     module->priority = 50;
 
