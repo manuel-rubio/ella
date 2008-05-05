@@ -9,18 +9,19 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
          *autoload = NULL;
     moduleTAD *pmt = NULL, *mt = NULL, *tmt = NULL;
     void (*init_module)( moduleTAD* ) = NULL;
-    configBlock *pcb = NULL;
+    configBlock *pcb = NULL, *cb_modules = NULL;
 
-    autoload = tor_get_detail_value(cb->details, "autoload", 0);
+    cb_modules = tor_get_block(cb, "modules", NULL);
+    autoload = tor_get_detail_value(cb_modules->details, "autoload", 0);
     if (autoload != NULL && strcmp(autoload, "yes") == 0) {
         printf("INFO: AutoCarga: sí (no implementado aún)\n");
     } else {
         printf("INFO: AutoCarga: no\n");
     }
 
-    indexes = tor_get_detail_indexes(cb->details, "load");
+    indexes = tor_get_detail_indexes(cb_modules->details, "load");
     for (i=0; i<indexes; i++) {
-        module = tor_get_detail_value(cb->details, "load", i);
+        module = tor_get_detail_value(cb_modules->details, "load", i);
         sprintf(lib, "modules/lib%s.so", module);
         printf("DEBUG: probando a cargar %s.\n", lib);
         if (mt == NULL) {
@@ -73,10 +74,10 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     }
 
     printf("INFO: NoLoad (no implementado aún)\n");
-    indexes = tor_get_detail_indexes(cb->details, "noload");
+    indexes = tor_get_detail_indexes(cb_modules->details, "noload");
     for (i=0; i<indexes; i++) {
         // TODO: este no tiene sentido, a menos que se tenga "autoload"
-        printf("INFO: Ignorando módulo %s", tor_get_detail_value(cb->details, "unload", i));
+        printf("INFO: Ignorando módulo %s", tor_get_detail_value(cb_modules->details, "unload", i));
     }
 
     if (mt != NULL) {

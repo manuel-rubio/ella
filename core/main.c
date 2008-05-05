@@ -8,7 +8,7 @@ void stop_tornasauce( int d ) {
 
 int main() {
     configFuncs cf;
-    configBlock *cb = NULL, *cb_modules = NULL;
+    configBlock *cb = NULL;
     moduleTAD *modules = NULL;
     bindConnect *bc = NULL, *pbc = NULL;
     int rc, status;
@@ -16,8 +16,7 @@ int main() {
     cf = tor_get_initial_conf();
     cb = cf.read();
 
-    cb_modules = tor_get_block(cb, "modules", NULL);
-    modules = tor_modules_load(cb_modules);
+    modules = tor_modules_load(cb);
     bc = tor_connector_parse_bind(cb, modules);
 
     signal(SIGTERM, stop_tornasauce);

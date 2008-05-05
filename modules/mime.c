@@ -26,6 +26,7 @@ char* mime_find_type( char *file ) {
     char *extension;
     int i, z;
 
+    printf("INFO: fichero %s\n", file);
     z = strlen(file);
     for (i=z; i>0 && file[i]!='.'; i--)
         ;
@@ -34,7 +35,10 @@ char* mime_find_type( char *file ) {
     i++;
     for (mt=mime_types; mt!=NULL; mt=mt->next) {
         if (strcmp(file+i, mt->extension) == 0) {
+            printf("INFO: encontrada %s.\n", mt->extension);
             return mt->mime;
+        } else {
+            printf("INFO: no casa con [%s] del tipo [%s]\n", mt->extension, mt->mime);
         }
     }
 }
@@ -64,7 +68,7 @@ int mime_run( struct Bind_Request *br, responseHTTP *rs ) {
 
 void mime_load( void ) {
     struct Mime_Types **mt = &mime_types;
-    char buffer[100] = { 0 };
+    char buffer[100] = { 0 }, *ext;
     FILE *f;
     int i, j, k;
 
@@ -73,7 +77,8 @@ void mime_load( void ) {
         printf("ERROR: fichero de tipos %s no se ha encontrado o no se puede abrir.\n", mime_file);
         return;
     }
-    while (fread(buffer, sizeof(buffer), 1, f)) {
+    while (fgets(buffer, sizeof(buffer), f)) {
+        tor_chomp(buffer);
         for (i=0; buffer[i]!='\0' && buffer[i]!='\t'; i++)
             ;
         if (buffer[i] == '\t')
@@ -81,15 +86,33 @@ void mime_load( void ) {
                 ;
         else
             continue;
-        k = strlen(buffer);
-        if (*mt != NULL)
-            *mt = (*mt)->next;
-        (*mt) = (struct Mime_Types *)tor_malloc(sizeof(struct Mime_Types));
-        strncpy((*mt)->mime, buffer, i);
-        (*mt)->mime[i] = '\0';
-        strcpy((*mt)->extension, buffer+j);
-        printf("INFO: cargado tipo %s para extension %s.\n", (*mt)->mime, (*mt)->extension);
+        ext = buffer + j;
+        if (strchr(ext, ' ')) {
+            do {
+                if (*mt != NULL)
+                    mt = &(*mt)->next;
+                (*mt) = (struct Mime_Types *)tor_malloc(sizeof(struct Mime_Types));
+                strncpy((*mt)->mime, buffer, i);
+                (*mt)->mime[i] = '\0';
+                for (k=0; ext[k]!=' ' && ext[k]!='\0'; k++)
+                    (*mt)->extension[k] = ext[k];
+                (*mt)->extension[k] = '\0';
+                for (j=0; ext[j]!=' ' && ext[j]!='\0'; j++)
+                    ;
+                ext = (ext[j]==' ') ? ext + j + 1 : ext + j;
+                mime_types_loaded++;
+            } while (ext[0]!='\0');
+        } else {
+            if (*mt != NULL)
+                mt = &(*mt)->next;
+            (*mt) = (struct Mime_Types *)tor_malloc(sizeof(struct Mime_Types));
+            strncpy((*mt)->mime, buffer, i);
+            (*mt)->mime[i] = '\0';
+            strcpy((*mt)->extension, ext);
+            mime_types_loaded++;
+        }
     }
+    fclose(f);
 }
 
 void mime_free_types( struct Mime_Types *mt ) {
@@ -123,12 +146,16 @@ void mime_init( moduleTAD *module ) {
     module->run = NULL;
     module->get_status = mime_error;
 
-    if (!module->details)
+    if (!module->details) {
+        printf("ERROR: mime module not loaded, you should configure [mime].\n");
         return;
+    }
 
     types = tor_get_detail_value(module->details, "types", 0);
-    if (types == NULL)
+    if (types == NULL) {
+        printf("ERROR: mime.types file not defined.\n");
         return;
+    }
 
     module->load = mime_load;
     module->unload = mime_unload;
