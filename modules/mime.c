@@ -35,10 +35,8 @@ char* mime_find_type( char *file ) {
     i++;
     for (mt=mime_types; mt!=NULL; mt=mt->next) {
         if (strcmp(file+i, mt->extension) == 0) {
-            printf("INFO: encontrada %s.\n", mt->extension);
+            printf("INFO: encontrada [%s] para [%s].\n", mt->extension, file);
             return mt->mime;
-        } else {
-            printf("INFO: no casa con [%s] del tipo [%s]\n", mt->extension, mt->mime);
         }
     }
 }
@@ -120,7 +118,7 @@ void mime_free_types( struct Mime_Types *mt ) {
         return;
 
     if (mt->next != NULL)
-        mime_free_mime_types(mt->next);
+        mime_free_types(mt->next);
 
     tor_free(mt, "mime_free_types");
 }
