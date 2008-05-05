@@ -14,3 +14,9 @@ libhttp10.so: http10.o ../libtornasauce0.so $(INC)
 
 http10.o: http10.c
 	$(GCC) -c -fPIC -o http10.o http10.c
+
+libmime.so: mime.o ../libtornasauce0.so $(INC)
+	$(GCC) -shared -Wl,-soname,libmime.so -o libmime.so mime.o ../libtornasauce0.so -lc
+
+mime.o: mime.c
+	$(GCC) -c -fPIC -o mime.o mime.c
