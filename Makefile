@@ -5,7 +5,8 @@ export INC
 GCC = gcc -g
 
 MODULES = libdumb.so \
-          libhttp10.so
+          libhttp10.so \
+	  libmime.so
 
 INC := ../include/configurator.h \
        ../include/config.h \
