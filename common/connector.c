@@ -18,7 +18,7 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
             continue;
         } else if (strcmp("aliases", pcb->name) == 0) {
             aliases = pcb;
-        } else {
+        } else if (pcb->lastname[0] != '\0') {
             if (bc == NULL) {
                 bc = (bindConnect *)tor_malloc(sizeof(bindConnect));
                 pbc = bc;
@@ -36,9 +36,11 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
                 }
                 if (pibc == NULL) {
                     pbc->next = (bindConnect *)tor_malloc(sizeof(bindConnect));
-                    pbc = bc->next;
+                    pbc = pbc->next;
                     pbc->vhosts = NULL;
                     pbc->modules = modules;
+                    strcpy(pbc->host, host);
+                    pbc->port = port;
                     pbc->next = NULL;
                 }
             }
