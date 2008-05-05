@@ -4,6 +4,7 @@
 #define __TORNASAUCE_H
 
 #include <signal.h>
+#include "config.h"
 #include "configurator.h"
 #include "connector.h"
 #include "string.h"
