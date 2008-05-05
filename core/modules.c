@@ -64,6 +64,9 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
                 pcb = tor_get_block(cb, module, NULL);
                 pmt->details = (pcb != NULL) ? pcb->details : NULL;
                 init_module(pmt);
+                if (pmt->load != NULL) {
+                    pmt->load();
+                }
                 printf("INFO: cargado módulo: %s\n", module);
             }
         }
@@ -117,6 +120,9 @@ void tor_modules_free( moduleTAD *modules ) {
 
     if (modules->next != NULL)
         tor_modules_free(modules->next);
+
+    if (modules->unload != NULL)
+        modules->unload();
 
     printf("INFO: liberando módulo %s.\n", modules->name);
     tor_free_details(modules->details);
