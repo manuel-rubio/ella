@@ -43,5 +43,6 @@ int main() {
     tor_free_blocks(cb);
     tor_connector_bind_free(bc);
     tor_memory_stats();
+    tor_free_all();
     pthread_exit(NULL);
 }
