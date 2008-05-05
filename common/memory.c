@@ -67,7 +67,9 @@ void tor_free( void *ptr, const char *name ) {
 }
 
 void tor_free_all( void ) {
-    int i, freed, freed_size, size;
+    long freed, freed_size, size;
+    int i;
+
     pthread_mutex_lock(&memory_allocation);
     for (i=0, freed=0; i<MAX_MEM_ALLOCS; i++) {
         if (tor_memory_data[i][0] != 0) {
@@ -83,7 +85,7 @@ void tor_free_all( void ) {
     }
     tor_memory_ptr = 0;
     pthread_mutex_unlock(&memory_allocation);
-    printf("INFO: liberadas %d reservas y %d bytes\n", freed, freed_size);
+    printf("INFO: liberadas %d reservas y %ld bytes\n", freed, freed_size);
 }
 
 void tor_memory_stats( void ) {
