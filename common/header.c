@@ -147,7 +147,7 @@ requestHTTP* tor_parse_request( char *s ) {
     for (i = i+1, j=0, capture=0; s[i]!='\0' && s[i]!='\r' && s[i]!='\n'; i++) {
         if (capture)
             rh->version[j++] = s[i];
-        else if (s[i] == '/' || s[i] == '1')
+        else if (s[i] == '/' || s[i] == '1' || s[i] == '0')
             capture = 1;
     }
     rh->version[j] = '\0';
