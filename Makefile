@@ -6,7 +6,7 @@ GCC = gcc -g
 
 MODULES = libdumb.so \
           libhttp10.so \
-	  libmime.so
+          libmime.so
 
 INC := ../include/configurator.h \
        ../include/config.h \
@@ -15,9 +15,9 @@ INC := ../include/configurator.h \
        ../include/memory.h \
        ../include/string.h
 
-all: tornasauce
+all: ews
 
-tornasauce: common core modules
+ews: common core modules
 	$(MAKE) -C common
 	$(MAKE) -C core
 	$(MAKE) -C modules

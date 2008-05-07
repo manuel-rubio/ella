@@ -1,7 +1,7 @@
-all: ../tornasauce
+all: ../ews
 
 clean:
-	rm -f ../tornasauce *.o
+	rm -f ../ews *.o
 
 configurator.o: configurator.c $(INC)
 	$(GCC) -c -o configurator.o configurator.c
@@ -15,5 +15,5 @@ modules.o: modules.c $(INC)
 main.o: main.c $(INC)
 	$(GCC) -c -o main.o main.c
 
-../tornasauce: configurator.o connector.o modules.o main.o ../libtornasauce0.so
-	$(GCC) -ldl -pthread -o ../tornasauce ../libtornasauce0.so configurator.o connector.o modules.o main.o
+../ews: configurator.o connector.o modules.o main.o ../libews0.so
+	$(GCC) -ldl -pthread -o ../ews ../libews0.so configurator.o connector.o modules.o main.o

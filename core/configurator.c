@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/tornasauce.h"
+#include "../include/ella.h"
 
 configFuncs tor_get_initial_conf() {
     configFuncs cf;

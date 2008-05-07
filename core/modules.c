@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/tornasauce.h"
+#include "../include/ella.h"
 
 moduleTAD* tor_modules_load( configBlock *cb ) {
     int  indexes, i;

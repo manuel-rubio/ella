@@ -1,7 +1,7 @@
-all: ../libtornasauce0.so
+all: ../libews0.so
 
 clean:
-	$(RM) -f ../libtornasauce0.so *.o
+	$(RM) -f ../libews0.so *.o
 
 configurator.o: configurator.c $(INC)
 	$(GCC) -c -o configurator.o configurator.c
@@ -18,5 +18,5 @@ memory.o: memory.c $(INC)
 string.o: string.c $(INC)
 	$(GCC) -c -o string.o string.c
 
-../libtornasauce0.so: configurator.o connector.o header.o memory.o string.o
-	$(GCC) -shared -Wl,-soname,libtornasauce0.so -o ../libtornasauce0.so configurator.o connector.o header.o memory.o string.o -lc
+../libews0.so: configurator.o connector.o header.o memory.o string.o
+	$(GCC) -shared -Wl,-soname,libews0.so -o ../libews0.so configurator.o connector.o header.o memory.o string.o -lc

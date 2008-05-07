@@ -1,8 +1,8 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/tornasauce.h"
+#include "../include/ella.h"
 
-void stop_tornasauce( int d ) {
+void stop_ews( int d ) {
     bindThreadExit = 1;
 }
 
@@ -19,10 +19,10 @@ int main() {
     modules = tor_modules_load(cb);
     bc = tor_connector_parse_bind(cb, modules);
 
-    signal(SIGTERM, stop_tornasauce);
-    signal(SIGINT, stop_tornasauce);
-    signal(SIGQUIT, stop_tornasauce);
-    signal(SIGKILL, stop_tornasauce);
+    signal(SIGTERM, stop_ews);
+    signal(SIGINT, stop_ews);
+    signal(SIGQUIT, stop_ews);
+    signal(SIGKILL, stop_ews);
 
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
         rc = pthread_create(&pbc->thread, NULL, tor_connector_launch, (void *)pbc);
