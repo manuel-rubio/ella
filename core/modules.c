@@ -22,7 +22,7 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     indexes = tor_get_detail_indexes(cb_modules->details, "load");
     for (i=0; i<indexes; i++) {
         module = tor_get_detail_value(cb_modules->details, "load", i);
-        sprintf(lib, "modules/lib%s.so", module);
+        sprintf(lib, __MODULES_DIR "/lib%s.so", module);
         printf("DEBUG: probando a cargar %s.\n", lib);
         if (mt == NULL) {
             mt = (moduleTAD *)tor_malloc(sizeof(moduleTAD));
