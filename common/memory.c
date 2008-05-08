@@ -91,11 +91,11 @@ void tor_free_all( void ) {
 void tor_memory_print_units( long units ) {
     double u = (double) units;
     if (units < 1024)
-        printf("%.2lf bytes\n", u);
+        printf("%.1lf bytes\n", u);
     else if (units < (1024 * 1024))
-        printf("%.2lf kbytes\n", u / 1024);
+        printf("%.1lf kbytes\n", u / 1024);
     else if (units < (1024 * 1024 * 1024))
-        printf("%.2lf Mbytes\n", u / (1024 * 1024));
+        printf("%.1lf Mbytes\n", u / (1024 * 1024));
 }
 
 void tor_memory_stats( void ) {
