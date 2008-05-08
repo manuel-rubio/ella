@@ -50,14 +50,14 @@ int mime_run( struct Bind_Request *br, responseHTTP *rs ) {
 
     switch (rs->content_type) {
         case HEADER_CONTENT_STRING:
-            hh->next = tor_new_header("Content-Type", "text/html", 0);
+            hh->next = ews_new_header("Content-Type", "text/html", 0);
             break;
         case HEADER_CONTENT_FILE:
             type = mime_find_type(rs->content);
             if (type != NULL) {
-                hh->next = tor_new_header("Content-Type", type, 0);
+                hh->next = ews_new_header("Content-Type", type, 0);
             } else {
-                hh->next = tor_new_header("Content-Type", "text/plain", 0);
+                hh->next = ews_new_header("Content-Type", "text/plain", 0);
             }
             break;
     }
@@ -76,7 +76,7 @@ void mime_load( void ) {
         return;
     }
     while (fgets(buffer, sizeof(buffer), f)) {
-        tor_chomp(buffer);
+        ews_chomp(buffer);
         for (i=0; buffer[i]!='\0' && buffer[i]!='\t'; i++)
             ;
         if (buffer[i] == '\t')
@@ -89,7 +89,7 @@ void mime_load( void ) {
             do {
                 if (*mt != NULL)
                     mt = &(*mt)->next;
-                (*mt) = (struct Mime_Types *)tor_malloc(sizeof(struct Mime_Types));
+                (*mt) = (struct Mime_Types *)ews_malloc(sizeof(struct Mime_Types));
                 strncpy((*mt)->mime, buffer, i);
                 (*mt)->mime[i] = '\0';
                 for (k=0; ext[k]!=' ' && ext[k]!='\0'; k++)
@@ -103,7 +103,7 @@ void mime_load( void ) {
         } else {
             if (*mt != NULL)
                 mt = &(*mt)->next;
-            (*mt) = (struct Mime_Types *)tor_malloc(sizeof(struct Mime_Types));
+            (*mt) = (struct Mime_Types *)ews_malloc(sizeof(struct Mime_Types));
             strncpy((*mt)->mime, buffer, i);
             (*mt)->mime[i] = '\0';
             strcpy((*mt)->extension, ext);
@@ -120,7 +120,7 @@ void mime_free_types( struct Mime_Types *mt ) {
     if (mt->next != NULL)
         mime_free_types(mt->next);
 
-    tor_free(mt, "mime_free_types");
+    ews_free(mt, "mime_free_types");
 }
 
 void mime_unload( void ) {
@@ -149,7 +149,7 @@ void mime_init( moduleTAD *module ) {
         return;
     }
 
-    types = tor_get_detail_value(module->details, "types", 0);
+    types = ews_get_detail_value(module->details, "types", 0);
     if (types == NULL) {
         printf("ERROR: mime.types file not defined.\n");
         return;

@@ -44,7 +44,7 @@ struct Config_Block {
 
 typedef struct Config_Block configBlock;
 
-// TODO: esta estructura se usará cuando se implemente "tor_get_initial_conf"
+// TODO: esta estructura se usará cuando se implemente "ews_get_initial_conf"
 /**
  *  Estructura de datos para funciones de carga de configuración.
  *
@@ -72,7 +72,7 @@ typedef struct Config_Funcs configFuncs;
  *  @param lastname subnombre del bloque.
  *  @return estructura de tipo configBlock.
  */
-configBlock* tor_new_block( char *name, char *lastname );
+configBlock* ews_new_block( char *name, char *lastname );
 
 /**
  *  Crea un detalle de configuración.
@@ -86,7 +86,7 @@ configBlock* tor_new_block( char *name, char *lastname );
  *  @param index en caso de multivaluado, su número de orden.
  *  @return estructura de tipo configDetail.
  */
-configDetail* tor_new_detail( char *key, char *value, int index );
+configDetail* ews_new_detail( char *key, char *value, int index );
 
 /**
  *  Libera los bloques de configuración.
@@ -96,7 +96,7 @@ configDetail* tor_new_detail( char *key, char *value, int index );
  *
  *  @param cb puntero a configBlock de cabecera.
  */
-void tor_free_blocks( configBlock *cb );
+void ews_free_blocks( configBlock *cb );
 
 /**
  *  Libera los detalles de configuración.
@@ -106,7 +106,7 @@ void tor_free_blocks( configBlock *cb );
  *
  *  @param cd puntero a configDetail de cabecera.
  */
-void tor_free_details( configDetail *cd );
+void ews_free_details( configDetail *cd );
 
 /**
  *  Toma un puntero al configBlock solicitado.
@@ -120,7 +120,7 @@ void tor_free_details( configDetail *cd );
  *  @param lastname valor del subnombre por el que buscar (puese ser NULL)
  *  @return puntero a configBlock solicitado o NULL.
  */
-configBlock* tor_get_block( configBlock *cb, char *name, char *lastname );
+configBlock* ews_get_block( configBlock *cb, char *name, char *lastname );
 
 /**
  *  Toma la clave de un detalle solicitado de un bloque de configuración.
@@ -133,7 +133,7 @@ configBlock* tor_get_block( configBlock *cb, char *name, char *lastname );
  *  @param index índice en el que buscar (por defecto es 0).
  *  @return puntero a la clave del detalle solicitado o NULL.
  */
-char* tor_get_detail_key( configDetail *details, char *value, int index );
+char* ews_get_detail_key( configDetail *details, char *value, int index );
 
 /**
  *  Toma el valor de un detalle solicitado de un bloque de configuración.
@@ -146,7 +146,7 @@ char* tor_get_detail_key( configDetail *details, char *value, int index );
  *  @param index índie en el que buscar (por defecto es 0).
  *  @return puntero al valor del detalle solicitado o NULL.
  */
-char* tor_get_detail_value( configDetail *details, char *key, int index );
+char* ews_get_detail_value( configDetail *details, char *key, int index );
 
 /**
  *  Toma el número de valores.
@@ -158,7 +158,7 @@ char* tor_get_detail_value( configDetail *details, char *key, int index );
  *  @param value valor por el que buscar los coincidentes.
  *  @return el número de valores encontrados.
  */
-int tor_get_detail_values( configDetail *details, char *value );
+int ews_get_detail_values( configDetail *details, char *value );
 
 /**
  *  Toma el número de valores que tiene una clave.
@@ -169,7 +169,7 @@ int tor_get_detail_values( configDetail *details, char *value );
  *  @param key clave de la que tomar los valores.
  *  @return el número de valores encontrados.
  */
-int tor_get_detail_indexes( configDetail *details, char *key );
+int ews_get_detail_indexes( configDetail *details, char *key );
 
 /**
  *  Toma el valor de la IP de una cadena del tipo 0.0.0.0:80.
@@ -182,7 +182,7 @@ int tor_get_detail_indexes( configDetail *details, char *key );
  *  @param index índice del que tomar el valor.
  *  @param s cadena en la que guardar la dirección IP.
  */
-void tor_get_bindhost( configBlock *cb, char *key, int index, char *s );
+void ews_get_bindhost( configBlock *cb, char *key, int index, char *s );
 
 /**
  *  Toma el valor del puerto de una cadena del tipo 0.0.0.0:80.
@@ -195,6 +195,6 @@ void tor_get_bindhost( configBlock *cb, char *key, int index, char *s );
  *  @param index índice del que tomar el valor.
  *  @return el puerto tomado.
  */
-int tor_get_bindport( configBlock *cb, char *key, int index );
+int ews_get_bindport( configBlock *cb, char *key, int index );
 
 #endif

@@ -2,7 +2,7 @@
 
 #include "../include/ella.h"
 
-moduleTAD* tor_modules_load( configBlock *cb ) {
+moduleTAD* ews_modules_load( configBlock *cb ) {
     int  indexes, i;
     char *module = NULL,
          lib[80] = { 0 },
@@ -11,24 +11,24 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     void (*init_module)( moduleTAD* ) = NULL;
     configBlock *pcb = NULL, *cb_modules = NULL;
 
-    cb_modules = tor_get_block(cb, "modules", NULL);
-    autoload = tor_get_detail_value(cb_modules->details, "autoload", 0);
+    cb_modules = ews_get_block(cb, "modules", NULL);
+    autoload = ews_get_detail_value(cb_modules->details, "autoload", 0);
     if (autoload != NULL && strcmp(autoload, "yes") == 0) {
         printf("INFO: AutoCarga: sí (no implementado aún)\n");
     } else {
         printf("INFO: AutoCarga: no\n");
     }
 
-    indexes = tor_get_detail_indexes(cb_modules->details, "load");
+    indexes = ews_get_detail_indexes(cb_modules->details, "load");
     for (i=0; i<indexes; i++) {
-        module = tor_get_detail_value(cb_modules->details, "load", i);
+        module = ews_get_detail_value(cb_modules->details, "load", i);
         sprintf(lib, __MODULES_DIR "/lib%s.so", module);
         printf("DEBUG: probando a cargar %s.\n", lib);
         if (mt == NULL) {
-            mt = (moduleTAD *)tor_malloc(sizeof(moduleTAD));
+            mt = (moduleTAD *)ews_malloc(sizeof(moduleTAD));
             pmt = mt;
         } else {
-            pmt->next = (moduleTAD *)tor_malloc(sizeof(moduleTAD));
+            pmt->next = (moduleTAD *)ews_malloc(sizeof(moduleTAD));
             pmt = pmt->next;
         }
         pmt->next = NULL;
@@ -36,12 +36,12 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
         if (pmt->handle == 0) {
             printf("ERROR: en carga de %s: %s", module, dlerror());
             if (mt->next == NULL) {
-                tor_free(mt, "tor_modules_load (error en carga 1)");
+                ews_free(mt, "ews_modules_load (error en carga 1)");
                 pmt = mt = NULL;
             } else {
                 for (tmt=mt; tmt->next!=pmt; tmt=tmt->next)
                     ;
-                tor_free(tmt->next, "tor_modules_load (error en carga 2)");
+                ews_free(tmt->next, "ews_modules_load (error en carga 2)");
                 tmt->next = NULL;
                 pmt = tmt;
             }
@@ -52,17 +52,17 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
                 printf("ERROR: en ejecución de %s_init: %s", module, dlerror());
                 dlclose(pmt->handle);
                 if (mt->next == NULL) {
-                    tor_free(mt, "tor_modules_load (error en ejecución 1)");
+                    ews_free(mt, "ews_modules_load (error en ejecución 1)");
                     pmt = mt = NULL;
                 } else {
                     for (tmt=mt; tmt->next!=pmt; tmt=tmt->next)
                         ;
-                    tor_free(tmt->next, "tor_modules_load (error en ejecución 2)");
+                    ews_free(tmt->next, "ews_modules_load (error en ejecución 2)");
                     tmt->next = NULL;
                     pmt = tmt;
                 }
             } else {
-                pcb = tor_get_block(cb, module, NULL);
+                pcb = ews_get_block(cb, module, NULL);
                 pmt->details = (pcb != NULL) ? pcb->details : NULL;
                 init_module(pmt);
                 if (pmt->load != NULL) {
@@ -74,19 +74,19 @@ moduleTAD* tor_modules_load( configBlock *cb ) {
     }
 
     printf("INFO: NoLoad (no implementado aún)\n");
-    indexes = tor_get_detail_indexes(cb_modules->details, "noload");
+    indexes = ews_get_detail_indexes(cb_modules->details, "noload");
     for (i=0; i<indexes; i++) {
         // TODO: este no tiene sentido, a menos que se tenga "autoload"
-        printf("INFO: Ignorando módulo %s", tor_get_detail_value(cb_modules->details, "unload", i));
+        printf("INFO: Ignorando módulo %s", ews_get_detail_value(cb_modules->details, "unload", i));
     }
 
     if (mt != NULL) {
-        mt = tor_modules_sort(mt);
+        mt = ews_modules_sort(mt);
     }
     return mt;
 }
 
-moduleTAD* tor_modules_sort( moduleTAD *mt ) {
+moduleTAD* ews_modules_sort( moduleTAD *mt ) {
     moduleTAD *pmt = NULL, // pointer to moduleTAD
               *tmt = NULL, // temp moduleTAD
               *rmt = NULL; // result moduleTAD
@@ -115,18 +115,18 @@ moduleTAD* tor_modules_sort( moduleTAD *mt ) {
     return rmt;
 }
 
-void tor_modules_free( moduleTAD *modules ) {
+void ews_modules_free( moduleTAD *modules ) {
     if (modules == NULL)
         return;
 
     if (modules->next != NULL)
-        tor_modules_free(modules->next);
+        ews_modules_free(modules->next);
 
     if (modules->unload != NULL)
         modules->unload();
 
     printf("INFO: liberando módulo %s.\n", modules->name);
-    tor_free_details(modules->details);
+    ews_free_details(modules->details);
     dlclose(modules->handle);
-    tor_free(modules, "tor_modules_free");
+    ews_free(modules, "ews_modules_free");
 }

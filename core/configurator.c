@@ -2,13 +2,13 @@
 
 #include "../include/ella.h"
 
-configFuncs tor_get_initial_conf() {
+configFuncs ews_get_initial_conf() {
     configFuncs cf;
 #if defined __CONFIG_STATIC
     // en caso de especificar de forma estática el sistema de configuración,
     // no se tendrán en cuenta los módulos de configuración.
     cf.name = "INI";
-    cf.read = tor_ini_read;
+    cf.read = ews_ini_read;
 #else
     // TODO: sistema de carga de ficheros de configuración dinámica.
 #endif
@@ -17,7 +17,7 @@ configFuncs tor_get_initial_conf() {
 
 /* INI Method */
 
-configBlock* tor_ini_read() {
+configBlock* ews_ini_read() {
     FILE *f;
     char buffer[1024] = { 0 },
          clave[512] = { 0 },
@@ -34,15 +34,15 @@ configBlock* tor_ini_read() {
         do {
             fgets(buffer, sizeof(buffer), f);
             if (!feof(f)) {
-                tor_chomp(buffer);
-                tor_trim(buffer);
+                ews_chomp(buffer);
+                ews_trim(buffer);
                 if (buffer[0] == '[') {
                     // seccion
                     if (pcb == NULL) {
-                        cb = (configBlock *)tor_malloc(sizeof(configBlock));
+                        cb = (configBlock *)ews_malloc(sizeof(configBlock));
                         pcb = cb;
                     } else {
-                        pcb->next = (configBlock *)tor_malloc(sizeof(configBlock));
+                        pcb->next = (configBlock *)ews_malloc(sizeof(configBlock));
                         pcb = pcb->next;
                     }
                     pcb->next = NULL;
@@ -69,12 +69,12 @@ configBlock* tor_ini_read() {
                         exit(1);
                     }
                     if (pcb->details == NULL) {
-                        pcb->details = (configDetail *)tor_malloc(sizeof(configDetail));
+                        pcb->details = (configDetail *)ews_malloc(sizeof(configDetail));
                         pcd = pcb->details;
                     } else {
                         for (pcd = pcb->details; pcd->next != NULL; pcd = pcd->next)
                             ;
-                        pcd->next = (configDetail *)tor_malloc(sizeof(configDetail));
+                        pcd->next = (configDetail *)ews_malloc(sizeof(configDetail));
                         pcd = pcd->next;
                     }
                     pcd->next = NULL;
@@ -85,7 +85,7 @@ configBlock* tor_ini_read() {
                             if (buffer[i] == '=') {
                                 name_flag = 1;
                                 pcd->key[j] = '\0';
-                                tor_trim(pcd->key);
+                                ews_trim(pcd->key);
                                 strcpy(key, pcd->key);
                                 j = -1;
                                 continue;
@@ -95,9 +95,9 @@ configBlock* tor_ini_read() {
                             if (buffer[i] == ',') {
                                 index = pcd->index;
                                 pcd->value[j] = '\0';
-                                tor_trim(pcd->value);
+                                ews_trim(pcd->value);
                                 j = -1;
-                                pcd->next = (configDetail *)tor_malloc(sizeof(configDetail));
+                                pcd->next = (configDetail *)ews_malloc(sizeof(configDetail));
                                 pcd = pcd->next;
                                 strcpy(pcd->key, key);
                                 pcd->index = ++index;
@@ -107,7 +107,7 @@ configBlock* tor_ini_read() {
                         }
                     }
                     pcd->value[j] = '\0';
-                    tor_trim(pcd->value);
+                    ews_trim(pcd->value);
                 }
             }
         } while(!feof(f));

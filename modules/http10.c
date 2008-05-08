@@ -24,7 +24,7 @@ char *page404 = "\
 <h1>Not found</h1>\n\
 <p>The requested URL %s was not found on this server.</p>\n\
 <hr>\n\
-<address>Tornasauce/0.1</address>\n\
+<address>Ella Web Server/0.1</address>\n\
 </body></html>";
 
 char *page501 = "\
@@ -35,7 +35,7 @@ char *page501 = "\
 <h1>Method not implemented</h1>\n\
 <p>The request method isn't implemented.</p>\n\
 <hr>\n\
-<address>Tornasauce/0.1</address>\n\
+<address>Ella Web Server/0.1</address>\n\
 </body></html>";
 
 
@@ -79,10 +79,10 @@ void http10_error_page( int code, char *message, char *page, requestHTTP *rh, re
     rs->code = code;
     strcpy(rs->message, message);
     strcpy(rs->version, "1.0");
-    rs->headers = tor_new_header("Server", "Tornasauce/0.1", 0);
+    rs->headers = ews_new_header("Server", "Ella Web Server/0.1", 0);
     sprintf(buffer, page, rh->uri);
     if (method != METHOD_HEAD) {
-        tor_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
+        ews_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
     }
 }
 
@@ -90,7 +90,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     requestHTTP *rh = br->request;
     virtualHost *vh = NULL;
     hostLocation *hl = NULL;
-    char *host_name = tor_get_header_value(rh, "Host", 0);
+    char *host_name = ews_get_header_value(rh, "Host", 0);
     char *path;
     char buffer[BUFFER_SIZE], date[80];
     int i, j, f, method = 0;
@@ -111,13 +111,13 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
 
     if (host_name != NULL) {
-        vh = tor_connector_find_vhost((virtualHost *)br->bc->vhosts, host_name);
+        vh = ews_connector_find_vhost((virtualHost *)br->bc->vhosts, host_name);
     }
     if (host_name == NULL || vh == NULL) {
         // tomamos default, el primer vhost que haya
         vh = (virtualHost *)br->bc->vhosts;
     }
-    hl = tor_connector_find_location(vh->locations, rh->uri);
+    hl = ews_connector_find_location(vh->locations, rh->uri);
     if (hl == NULL) { // 404 - Not found
         printf("ERROR: location no casa con ninguna de las configuradas.\n");
         http10_error_page(404, "Not found", page404, rh, rs, method);
@@ -133,11 +133,11 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     rs->code = 200;
     strcpy(rs->message, "OK");
     strcpy(rs->version, "1.0");
-    rs->headers = tor_new_header("Server", "Tornasauce/0.1", 0);
+    rs->headers = ews_new_header("Server", "Ella Web Server/0.1", 0);
     http10_setdate(date, buffer);
-    rs->headers->next = tor_new_header("Date", date, 0);
+    rs->headers->next = ews_new_header("Date", date, 0);
     if (method != METHOD_HEAD) {
-        tor_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
+        ews_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
     }
 
     // TODO: implementar la gestión de cabeceras según el RFC1945
@@ -145,8 +145,8 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
 }
 
 int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
-    char *path = tor_get_detail_value(hl->details, "path", 0);
-    int indexes = tor_get_detail_indexes(hl->details, "index");
+    char *path = ews_get_detail_value(hl->details, "path", 0);
+    int indexes = ews_get_detail_indexes(hl->details, "index");
     char *index;
     int i, j, k, f;
     struct stat st;
@@ -167,7 +167,7 @@ int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
             if (buffer[j-1] != '/') {
                 buffer[j++] = '/';
             }
-            index = tor_get_detail_value(hl->details, "index", k);
+            index = ews_get_detail_value(hl->details, "index", k);
             for (i=0; index[i]!='\0'; i++, j++)
                 buffer[j] = index[i];
         }

@@ -85,7 +85,7 @@ typedef struct response responseHTTP;
  *  @param version la versión de HTTP: 1.0 ó 1.1.
  *  @return estructura requestHTTP nueva o NULL.
  */
-requestHTTP* tor_new_request( char *request, char *uri, char *version );
+requestHTTP* ews_new_request( char *request, char *uri, char *version );
 
 /**
  *  Crea una estructura de respuesta.
@@ -98,7 +98,7 @@ requestHTTP* tor_new_request( char *request, char *uri, char *version );
  *  @param version la versión HTTP: 1.0 ó 1.1.
  *  @return estructura responseHTTP nueva o NULL.
  */
-responseHTTP* tor_new_response( int code, char *message, char *version );
+responseHTTP* ews_new_response( int code, char *message, char *version );
 
 /**
  *  Crea una estructura de cabecera.
@@ -111,7 +111,7 @@ responseHTTP* tor_new_response( int code, char *message, char *version );
  *  @param index índice en caso de dato multivaluado.
  *  @return estructura header nueva o NULL.
  */
-headerHTTP* tor_new_header( char *key, char *value, int index );
+headerHTTP* ews_new_header( char *key, char *value, int index );
 
 /**
  *  Configura en la respuesta el contenido.
@@ -122,28 +122,28 @@ headerHTTP* tor_new_header( char *key, char *value, int index );
  *  @param rs estructura de respuesta HTTP.
  *  @param s contenido a anexionar.
  */
-void tor_set_response_content( responseHTTP *rs, int type, void *s );
+void ews_set_response_content( responseHTTP *rs, int type, void *s );
 
 /**
  *  Libera una solicitud y sus cabeceras.
  *
  *  @param rh estructura de solicitud a liberar.
  */
-void tor_free_request( requestHTTP *rh );
+void ews_free_request( requestHTTP *rh );
 
 /**
  *  Libera una respuesta y sus cabeceras.
  *
  *  @param rs estructura de respuesta a liberar.
  */
-void tor_free_response( responseHTTP *rs );
+void ews_free_response( responseHTTP *rs );
 
 /**
  *  Libera una lista de cabeceras.
  *
  *  @param h puntero a headerHTTP de cabecera a liberar.
  */
-void tor_free_header( headerHTTP *h );
+void ews_free_header( headerHTTP *h );
 
 /**
  *  Toma el valor dado el nombre e índice de una cabecera.
@@ -153,7 +153,7 @@ void tor_free_header( headerHTTP *h );
  *  @param index índice del valor a rescatar.
  *  @return valor de la cabecera en forma de cadena de caracteres.
  */
-char* tor_get_header_value( requestHTTP *rh, char *key, int index );
+char* ews_get_header_value( requestHTTP *rh, char *key, int index );
 
 /**
  *  Toma el número de valores que hay bajo una clave.
@@ -162,7 +162,7 @@ char* tor_get_header_value( requestHTTP *rh, char *key, int index );
  *  @param key clave para el conteo.
  *  @return número de elementos con la misma clave, encontrados.
  */
-int tor_get_header_indexes( requestHTTP *rh, char *key );
+int ews_get_header_indexes( requestHTTP *rh, char *key );
 
 /**
  *  Convierte un texto de solicitud en una estructura de solicitud.
@@ -170,7 +170,7 @@ int tor_get_header_indexes( requestHTTP *rh, char *key );
  *  @param s cadena de solicitud.
  *  @return estructura requestHTTP con el contenido convertido.
  */
-requestHTTP* tor_parse_request( char *s );
+requestHTTP* ews_parse_request( char *s );
 
 /**
  *  Convierte una estructura de respuesta en texto.
@@ -178,6 +178,6 @@ requestHTTP* tor_parse_request( char *s );
  *  @param rs estructura de tipo respuesta.
  *  @return cadena de texto con el contenido de la estructura.
  */
-char* tor_gen_response( responseHTTP *rs );
+char* ews_gen_response( responseHTTP *rs );
 
 #endif

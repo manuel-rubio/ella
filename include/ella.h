@@ -20,7 +20,7 @@ extern char bindThreadExit;  //!< interruptor para mantener la ejecución o no.
  *  Esta función carga las funciones esenciales para proceder
  *  con la carga de los valores de configuración del servidor.
  */
-configFuncs tor_get_initial_conf();
+configFuncs ews_get_initial_conf();
 
 /**
  *  Función para tomar la configuración de fichero INI.
@@ -30,7 +30,7 @@ configFuncs tor_get_initial_conf();
  *
  *  @return un puntero a la cabecera de configBlock creada o NULL.
  */
-configBlock* tor_ini_read();
+configBlock* ews_ini_read();
 
 /**
  *  Lanzador de ejecución del servidor.
@@ -41,7 +41,7 @@ configBlock* tor_ini_read();
  *
  *  @param ptr_bc puntero a una estructura bindConnect.
  */
-void* tor_connector_launch( void* ptr_bc );
+void* ews_connector_launch( void* ptr_bc );
 
 /**
  *  Lanzador de ejecución del cliente.
@@ -51,7 +51,7 @@ void* tor_connector_launch( void* ptr_bc );
  *
  *  @param ptr_br puntero a una estructura bindRequest.
  */
-void* tor_connector_client_launch( void* ptr_br );
+void* ews_connector_client_launch( void* ptr_br );
 
 /**
  *  Inicia servidor en IP y puerto determinado.
@@ -65,7 +65,7 @@ void* tor_connector_client_launch( void* ptr_br );
  *  @param port puerto en el que escuchar peticiones.
  *  @param max_clients máximo de clientes a soportar.
  */
-int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_clients );
+int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients );
 
 /**
  *  Recibe una petición desde socket.
@@ -76,6 +76,6 @@ int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_
  *  @param client estructura de datos del cliente.
  *  @param sfd descriptor de fichero del servidor.
  */
-int tor_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
+int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
 
 #endif

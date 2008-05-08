@@ -8,7 +8,7 @@
  *  @param s cadena a modificar.
  *  @return puntero a la misma cadena.
  */
-char* tor_rtrim( char* s );
+char* ews_rtrim( char* s );
 
 /**
  *  Elimina espacios en blanco por la izquierda.
@@ -16,7 +16,7 @@ char* tor_rtrim( char* s );
  *  @param s cadena a modificar.
  *  @return puntero a la misma cadena.
  */
-char* tor_ltrim( char* s );
+char* ews_ltrim( char* s );
 
 /**
  *  Elimina espacios en blanco por la derecha e izquierda.
@@ -24,7 +24,7 @@ char* tor_ltrim( char* s );
  *  @param s cadena a modificar.
  *  @return puntero a la misma cadena.
  */
-char* tor_trim( char* s );
+char* ews_trim( char* s );
 
 /**
  *  Elimina el retorno de carro (\\n y \\r) del final de la cadena.
@@ -32,4 +32,4 @@ char* tor_trim( char* s );
  *  @param s cadena a modificar.
  *  @return puntero a la misma cadena.
  */
-char* tor_chomp( char *s );
+char* ews_chomp( char *s );

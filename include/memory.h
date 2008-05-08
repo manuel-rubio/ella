@@ -1,7 +1,7 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#if !defined __TOR_MEMORY_H
-#define __TOR_MEMORY_H
+#if !defined __EWS_MEMORY_H
+#define __EWS_MEMORY_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,9 +11,9 @@
 
 #define MAX_MEM_ALLOCS 8192
 
-void* tor_malloc( int size );
-void tor_free( void *ptr, const char *name );
-void tor_free_all( void );
-void tor_memory_stats( void );
+void* ews_malloc( int size );
+void ews_free( void *ptr, const char *name );
+void ews_free_all( void );
+void ews_memory_stats( void );
 
 #endif

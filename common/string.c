@@ -2,7 +2,7 @@
 
 #include "../include/string.h"
 
-char* tor_chomp( char *s ) {
+char* ews_chomp( char *s ) {
     int c;
     for (c=0; s[c]!='\0'; c++)
         ;
@@ -11,7 +11,7 @@ char* tor_chomp( char *s ) {
     return s;
 }
 
-char* tor_rtrim( char *s ) {
+char* ews_rtrim( char *s ) {
     int c, i;
     c = strlen(s);
     for (i=c-1; i>=0 && s[i]==32; i--)
@@ -21,7 +21,7 @@ char* tor_rtrim( char *s ) {
     return s;
 }
 
-char* tor_ltrim( char *s ) {
+char* ews_ltrim( char *s ) {
     int i, j, k=0;
     for (j=0; s[j]!='\0' && s[j]==32; j++)
         ;
@@ -33,8 +33,8 @@ char* tor_ltrim( char *s ) {
     return s;
 }
 
-char* tor_trim( char *s ) {
-    tor_ltrim(s);
-    tor_rtrim(s);
+char* ews_trim( char *s ) {
+    ews_ltrim(s);
+    ews_rtrim(s);
     return s;
 }

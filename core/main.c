@@ -13,11 +13,11 @@ int main() {
     bindConnect *bc = NULL, *pbc = NULL;
     int rc, status;
 
-    cf = tor_get_initial_conf();
+    cf = ews_get_initial_conf();
     cb = cf.read();
 
-    modules = tor_modules_load(cb);
-    bc = tor_connector_parse_bind(cb, modules);
+    modules = ews_modules_load(cb);
+    bc = ews_connector_parse_bind(cb, modules);
 
     signal(SIGTERM, stop_ews);
     signal(SIGINT, stop_ews);
@@ -25,7 +25,7 @@ int main() {
     signal(SIGKILL, stop_ews);
 
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
-        rc = pthread_create(&pbc->thread, NULL, tor_connector_launch, (void *)pbc);
+        rc = pthread_create(&pbc->thread, NULL, ews_connector_launch, (void *)pbc);
         if (rc) {
             printf("ERROR: al crear hilo: %d\n", rc);
         }
@@ -38,10 +38,10 @@ int main() {
         printf("INFO: el hilo terminó con el estado %d.\n", status);
     }
 
-    tor_modules_free(modules);
-    tor_free_blocks(cb);
-    tor_connector_bind_free(bc);
-    tor_memory_stats();
-    tor_free_all();
+    ews_modules_free(modules);
+    ews_free_blocks(cb);
+    ews_connector_bind_free(bc);
+    ews_memory_stats();
+    ews_free_all();
     pthread_exit(NULL);
 }

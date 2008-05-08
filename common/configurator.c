@@ -2,8 +2,8 @@
 
 #include "../include/configurator.h"
 
-configBlock* tor_new_block( char *name, char *lastname ) {
-    configBlock* cb = (configBlock *)tor_malloc(sizeof(configBlock));
+configBlock* ews_new_block( char *name, char *lastname ) {
+    configBlock* cb = (configBlock *)ews_malloc(sizeof(configBlock));
     cb->details = NULL;
     strcpy(cb->name, name);
     strcpy(cb->lastname, lastname);
@@ -11,8 +11,8 @@ configBlock* tor_new_block( char *name, char *lastname ) {
     return cb;
 }
 
-configDetail* tor_new_detail( char *key, char *value, int index ) {
-    configDetail* cd = (configDetail *)tor_malloc(sizeof(configDetail));
+configDetail* ews_new_detail( char *key, char *value, int index ) {
+    configDetail* cd = (configDetail *)ews_malloc(sizeof(configDetail));
     strcpy(cd->key, key);
     strcpy(cd->value, value);
     cd->index = index;
@@ -20,30 +20,30 @@ configDetail* tor_new_detail( char *key, char *value, int index ) {
     return cd;
 }
 
-void tor_free_blocks( configBlock *cb ) {
+void ews_free_blocks( configBlock *cb ) {
     if (cb == NULL) {
         return;
     }
     if (cb->details != NULL) {
-        tor_free_details(cb->details);
+        ews_free_details(cb->details);
     }
     if (cb->next != NULL) {
-        tor_free_blocks(cb->next);
+        ews_free_blocks(cb->next);
     }
-    tor_free(cb, "tor_free_blocks");
+    ews_free(cb, "ews_free_blocks");
 }
 
-void tor_free_details( configDetail *cd ) {
+void ews_free_details( configDetail *cd ) {
     if (cd == NULL) {
         return;
     }
     if (cd->next != NULL) {
-        tor_free_details(cd->next);
+        ews_free_details(cd->next);
     }
-    tor_free(cd, "tor_free_details");
+    ews_free(cd, "ews_free_details");
 }
 
-configBlock* tor_get_block( configBlock *cb, char *name, char *lastname ) {
+configBlock* ews_get_block( configBlock *cb, char *name, char *lastname ) {
     for (;cb != NULL; cb = cb->next) {
         if (lastname) {
             if (strcmp(cb->name, name) == 0 && strcmp(cb->lastname, lastname) == 0)
@@ -56,7 +56,7 @@ configBlock* tor_get_block( configBlock *cb, char *name, char *lastname ) {
     return NULL;
 }
 
-char* tor_get_detail_value( configDetail *details, char *key, int index ) {
+char* ews_get_detail_value( configDetail *details, char *key, int index ) {
     configDetail *cd;
     if (details == NULL)
         return NULL;
@@ -66,7 +66,7 @@ char* tor_get_detail_value( configDetail *details, char *key, int index ) {
     return NULL;
 }
 
-char* tor_get_detail_key( configDetail *details, char *value, int index ) {
+char* ews_get_detail_key( configDetail *details, char *value, int index ) {
     configDetail *cd;
     int count = 0;
     if (details == NULL)
@@ -81,7 +81,7 @@ char* tor_get_detail_key( configDetail *details, char *value, int index ) {
     return NULL;
 }
 
-int tor_get_detail_values( configDetail *details, char *value ) {
+int ews_get_detail_values( configDetail *details, char *value ) {
     configDetail *cd;
     int indexes = 0;
     if (details == NULL)
@@ -92,7 +92,7 @@ int tor_get_detail_values( configDetail *details, char *value ) {
     return indexes;
 }
 
-int tor_get_detail_indexes( configDetail *details, char *key ) {
+int ews_get_detail_indexes( configDetail *details, char *key ) {
     configDetail *cd;
     int indexes = 0;
     if (details == NULL)
@@ -103,8 +103,8 @@ int tor_get_detail_indexes( configDetail *details, char *key ) {
     return indexes;
 }
 
-void tor_get_bindhost( configBlock *cb, char *key, int index, char *s ) {
-    char *host = tor_get_detail_value(cb->details, key, index);
+void ews_get_bindhost( configBlock *cb, char *key, int index, char *s ) {
+    char *host = ews_get_detail_value(cb->details, key, index);
     int i, capture;
 
     if (host == NULL)
@@ -114,8 +114,8 @@ void tor_get_bindhost( configBlock *cb, char *key, int index, char *s ) {
     s[i] = '\0';
 }
 
-int tor_get_bindport( configBlock *cb, char *key, int index ) {
-    char *host = tor_get_detail_value(cb->details, key, index);
+int ews_get_bindport( configBlock *cb, char *key, int index ) {
+    char *host = ews_get_detail_value(cb->details, key, index);
     char s[10];
     int i, j, capture;
 

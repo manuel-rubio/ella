@@ -103,7 +103,7 @@ typedef struct Bind_Request bindRequest;
  *  @param modules puntero a moduleTAD de cabecera.
  *  @return una estructura de tipo conexión (bindConnect) o NULL.
  */
-bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD *modules );
+bindConnect* ews_connector_parse_bind( configBlock *cb, moduleTAD *modules );
 
 /**
  *  Retorna una estructura de máquina virtual por nombre.
@@ -114,7 +114,7 @@ bindConnect* tor_connector_parse_bind( configBlock *cb, moduleTAD *modules );
  *  @param name nombre de la máquina virtual a buscar.
  *  @return puntero a virtualHost encontrado o NULL.
  */
-virtualHost* tor_connector_find_vhost( virtualHost *vh, char *name );
+virtualHost* ews_connector_find_vhost( virtualHost *vh, char *name );
 
 /**
  *  Retorna una estructura de localización para una URL dada.
@@ -123,7 +123,7 @@ virtualHost* tor_connector_find_vhost( virtualHost *vh, char *name );
  *  @param loc ruta a buscar entre los localizations.
  *  @return puntero a hostLocation encontrado o NULL.
  */
-hostLocation* tor_connector_find_location( hostLocation *vh, char *loc );
+hostLocation* ews_connector_find_location( hostLocation *vh, char *loc );
 
 /**
  *  Rellena una estructura de máquina virtual.
@@ -135,7 +135,7 @@ hostLocation* tor_connector_find_location( hostLocation *vh, char *loc );
  *  @param aliases puntero a configBlock de aliases.
  *  @param pvh puntero a puntero de virtualHost (puntero pasado por referencia)
  */
-void tor_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHost **pvh );
+void ews_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHost **pvh );
 
 /**
  *  Rellena locations de una estructura de máquina virtual.
@@ -143,41 +143,41 @@ void tor_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHo
  *  @param cb puntero a configBlock, donde están las configuraciones.
  *  @param vh puntero a virtualHost, donde crear las locations.
  */
-void tor_connector_parse_location( configBlock* cb, virtualHost* vh );
+void ews_connector_parse_location( configBlock* cb, virtualHost* vh );
 
 /**
  *  Libera una estructura de conexión.
  *
  *  @param bc puntero bindConnect de cabecera a liberar.
  */
-void tor_connector_bind_free( bindConnect* bc );
+void ews_connector_bind_free( bindConnect* bc );
 
 /**
  *  Libera una estructura de conexión en petición.
  *
  *  @param br puntero bindRequest a liberar.
  */
-void tor_connector_bindrequest_free( bindRequest* br );
+void ews_connector_bindrequest_free( bindRequest* br );
 
 /**
  *  Libera una estructura de máquinas virtuales.
  *
  *  @param vh puntero virtualHost de cabecera a liberar.
  */
-void tor_connector_vhost_free( virtualHost* vh );
+void ews_connector_vhost_free( virtualHost* vh );
 
 /**
  *  Libera una estructura de localizaciones.
  *
  *  @param hl puntero hostLocation de cabecera a liberar.
  */
-void tor_connector_location_free( hostLocation* hl );
+void ews_connector_location_free( hostLocation* hl );
 
 /**
  *  Libera una estructura de aliases.
  *
  *  @param ha puntero hostAlias de cabecera a liberar.
  */
-void tor_connector_alias_free( hostAlias* ha );
+void ews_connector_alias_free( hostAlias* ha );
 
 #endif

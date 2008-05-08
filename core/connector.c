@@ -7,7 +7,7 @@
 
 char bindThreadExit = 0;
 
-void* tor_connector_launch( void* ptr_bc ) {
+void* ews_connector_launch( void* ptr_bc ) {
     bindConnect *bc;
     bindRequest *br;
     struct sockaddr_in server, client;
@@ -19,7 +19,7 @@ void* tor_connector_launch( void* ptr_bc ) {
     bc = (bindConnect *)ptr_bc;
     printf("INFO: Lanzando conexión: %s:%d\n", bc->host, bc->port);
     bzero(&server, sizeof(server));
-    fd_server = tor_server_start(&server, bc->host, bc->port, MAX_CLIENTS);
+    fd_server = ews_server_start(&server, bc->host, bc->port, MAX_CLIENTS);
     if (fd_server > 0) {
         fcntl(fd_server, F_SETFL, fcntl(fd_server, F_GETFL, 0) | O_NONBLOCK);
     }
@@ -27,7 +27,7 @@ void* tor_connector_launch( void* ptr_bc ) {
     while (!bindThreadExit) {
         bzero(&client, sizeof(client));
         do {
-            fd_client = tor_server_accept(&server, &client, fd_server);
+            fd_client = ews_server_accept(&server, &client, fd_server);
         } while (fd_client < 0 && (errno == EWOULDBLOCK || errno == EAGAIN) && !bindThreadExit);
 
         if (bindThreadExit)
@@ -50,12 +50,12 @@ void* tor_connector_launch( void* ptr_bc ) {
             if (count == 2)
                 break;
         }
-        br = (bindRequest *)tor_malloc(sizeof(bindRequest));
-        br->request = tor_parse_request(request);
+        br = (bindRequest *)ews_malloc(sizeof(bindRequest));
+        br->request = ews_parse_request(request);
         br->fd_client = fd_client;
         br->bc = bc;
         bcopy(&client, &(br->client), sizeof(client));
-        rc = pthread_create(&br->thread, NULL, tor_connector_client_launch, (void *)br);
+        rc = pthread_create(&br->thread, NULL, ews_connector_client_launch, (void *)br);
         if (rc) {
             printf("ERROR: al crear hilo: %d\n", rc);
         }
@@ -64,7 +64,7 @@ void* tor_connector_launch( void* ptr_bc ) {
     pthread_exit(NULL);
 }
 
-void* tor_connector_client_launch( void* ptr_br ) {
+void* ews_connector_client_launch( void* ptr_br ) {
     bindRequest *br;
     responseHTTP *rs;
     moduleTAD *pmt;
@@ -75,7 +75,7 @@ void* tor_connector_client_launch( void* ptr_br ) {
     br = (bindRequest *)ptr_br;
     printf("INFO: Conexión desde: %s\n", inet_ntoa((br->client).sin_addr));
 
-    rs = (responseHTTP *)tor_malloc(sizeof(responseHTTP));
+    rs = (responseHTTP *)ews_malloc(sizeof(responseHTTP));
     rs->code = 0;
     rs->message[0] = '\0';
     rs->version[0] = '\0';
@@ -120,9 +120,9 @@ void* tor_connector_client_launch( void* ptr_br ) {
                     printf("ERROR: método 'run' del módulo %s no definido\n", pmt->name);
                 }
             }
-            buffer = tor_gen_response(rs);
+            buffer = ews_gen_response(rs);
             send(br->fd_client, buffer, strlen(buffer), 0);
-            tor_free(buffer, "tor_connector_client_launch");
+            ews_free(buffer, "ews_connector_client_launch");
             switch (rs->content_type) {
                 case HEADER_CONTENT_STRING:
                     send(br->fd_client, rs->content, strlen(rs->content), 0);
@@ -150,15 +150,15 @@ void* tor_connector_client_launch( void* ptr_br ) {
     }
 
     // cerramos todo antes de salir
-    tor_free_response(rs);
+    ews_free_response(rs);
     printf("INFO: finalizado procesamiento desde: %s\n", inet_ntoa((br->client).sin_addr));
     shutdown(br->fd_client, SHUT_RD);
     close(br->fd_client);
-    tor_connector_bindrequest_free(br);
+    ews_connector_bindrequest_free(br);
     pthread_exit(NULL);
 }
 
-int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
+int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
     int fd;
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
@@ -184,7 +184,7 @@ int tor_server_start( struct sockaddr_in *server, char *host, int port, int max_
     return fd;
 }
 
-int tor_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
+int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
     int sin_size, fd;
     struct timeval t;
     fd_set rfds;

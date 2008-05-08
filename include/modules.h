@@ -66,20 +66,20 @@ typedef struct Module moduleTAD;
  *  @param cb puntero a configBlock de cabecera.
  *  @return una lista enlazada de moduleTAD.
  */
-moduleTAD* tor_modules_load( configBlock *cb );
+moduleTAD* ews_modules_load( configBlock *cb );
 
 /**
  *  Reordena los módulos por tipo y prioridad.
  *
  *  @param modules lista de módulos a ordenar.
  */
-moduleTAD* tor_modules_sort( moduleTAD *modules );
+moduleTAD* ews_modules_sort( moduleTAD *modules );
 
 /**
  *  Libera los recursos reservador de la carga de módulos.
  *
  *  @param modules puntero a moduleTAD de cabecera.
  */
-void tor_modules_free( moduleTAD *modules );
+void ews_modules_free( moduleTAD *modules );
 
 #endif
