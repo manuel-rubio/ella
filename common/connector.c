@@ -13,12 +13,7 @@ bindConnect* ews_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
     int         port = 0;
 
     for (pcb = cb; pcb != NULL; pcb = pcb->next) {
-        if (strcmp("modules", pcb->name) == 0) {
-            // este bloque no se procesará aquí
-            continue;
-        } else if (strcmp("aliases", pcb->name) == 0) {
-            aliases = pcb;
-        } else if (pcb->lastname[0] != '\0') {
+        if (pcb->lastname[0] != '\0') {
             if (bc == NULL) {
                 bc = (bindConnect *)ews_malloc(sizeof(bindConnect));
                 pbc = bc;
@@ -51,6 +46,8 @@ bindConnect* ews_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
                 vh = NULL;
                 ews_connector_parse_vhost(pcb, aliases, &pbc->vhosts);
             }
+        } else if (strcmp("aliases", pcb->name) == 0) {
+            aliases = pcb;
         }
     }
     return bc;
@@ -68,14 +65,21 @@ virtualHost* ews_connector_find_vhost( virtualHost *vh, char *name ) {
 }
 
 hostLocation* ews_connector_find_location( hostLocation *hl, char *loc ) {
-    hostLocation* phl;
+    hostLocation *phl, *bhl;
+    int size, bsize;
 
+    bhl = NULL;
+    bsize = 0;
     for (phl = hl; phl != NULL; phl = phl->next) {
-        if (strncmp(phl->base_uri, loc, strlen(phl->base_uri)) == 0) {
-            return phl;
+        size = strlen(phl->base_uri);
+        if (strlen(loc) >= size && strncmp(phl->base_uri, loc, size) == 0) {
+            if (size > bsize) {
+                bhl = phl;
+                bsize = size;
+            }
         }
     }
-    return NULL;
+    return bhl;
 }
 
 void ews_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHost **pvh ) {
@@ -117,21 +121,21 @@ void ews_connector_parse_location( configBlock* cb, virtualHost* vh ) {
         vh->locations = (hostLocation *)ews_malloc(sizeof(hostLocation));
         phl = vh->locations;
     } else {
-        phl = vh->locations;
+        for (phl=vh->locations; phl->next!=NULL; phl=phl->next)
+            ;
         phl->next = (hostLocation *)ews_malloc(sizeof(hostLocation));
         phl = phl->next;
     }
 
+    phl->next = NULL;
     strcpy(phl->base_uri, cb->lastname);
     for (pcd = cb->details; pcd != NULL; pcd = pcd->next) {
-        if (strcmp(pcd->key, "bind") != 0) {
-            if (phl_cd == NULL) {
-                phl->details = ews_new_detail(pcd->key, pcd->value, pcd->index);
-                phl_cd = phl->details;
-            } else {
-                phl_cd->next = ews_new_detail(pcd->key, pcd->value, pcd->index);
-                phl_cd = phl_cd->next;
-            }
+        if (phl_cd == NULL) {
+            phl->details = ews_new_detail(pcd->key, pcd->value, pcd->index);
+            phl_cd = phl->details;
+        } else {
+            phl_cd->next = ews_new_detail(pcd->key, pcd->value, pcd->index);
+            phl_cd = phl_cd->next;
         }
     }
 }
