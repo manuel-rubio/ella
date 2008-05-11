@@ -15,9 +15,9 @@ INC := ../include/configurator.h \
        ../include/memory.h \
        ../include/string.h
 
-all: ews
+all: ewsd
 
-ews: common core modules
+ewsd: common core modules
 	$(MAKE) -C common
 	$(MAKE) -C core
 	$(MAKE) -C modules
