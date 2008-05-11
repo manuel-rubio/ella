@@ -5,10 +5,7 @@
 requestHTTP* ews_new_request( char *request, char *uri, char *version ) {
     requestHTTP *rh = (requestHTTP *)ews_malloc(sizeof(requestHTTP));
     rh->headers = NULL;
-/*  TODO
-    rs->content_type = HEADER_CONTENT_NONE;
-    rs->content = NULL;
-*/
+    rh->content = NULL;
     strcpy(rh->request, request);
     strcpy(rh->uri, uri);
     strcpy(rh->version, version);
@@ -133,6 +130,7 @@ requestHTTP* ews_parse_request( char *s ) {
 
     rh = (requestHTTP *)ews_malloc(sizeof(requestHTTP));
     rh->headers = NULL;
+    rh->content = NULL;
     // getting request
     for (i=0; s[i]!='\0' && s[i]!=' '; i++)
         rh->request[i] = s[i];
