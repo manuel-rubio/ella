@@ -4,6 +4,9 @@
 #define __TORNASAUCE_H
 
 #include <signal.h>
+#include <poll.h>
+#include <rpc/rpc.h>
+
 #include "config.h"
 #include "configurator.h"
 #include "connector.h"
@@ -51,7 +54,7 @@ void* ews_connector_launch( void* ptr_bc );
  *
  *  @param ptr_br puntero a una estructura bindRequest.
  */
-void* ews_connector_client_launch( void* ptr_br );
+static void* ews_connector_client_launch( void* ptr_br );
 
 /**
  *  Inicia servidor en IP y puerto determinado.
@@ -65,7 +68,7 @@ void* ews_connector_client_launch( void* ptr_br );
  *  @param port puerto en el que escuchar peticiones.
  *  @param max_clients máximo de clientes a soportar.
  */
-int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients );
+static int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients );
 
 /**
  *  Recibe una petición desde socket.
@@ -76,6 +79,11 @@ int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_
  *  @param client estructura de datos del cliente.
  *  @param sfd descriptor de fichero del servidor.
  */
-int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
+static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
+
+/**
+ *  Lanza el sistema de consola.
+ */
+int console_make_socket(void);
 
 #endif
