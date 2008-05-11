@@ -64,7 +64,7 @@ void* ews_connector_launch( void* ptr_bc ) {
     pthread_exit(NULL);
 }
 
-void* ews_connector_client_launch( void* ptr_br ) {
+static void* ews_connector_client_launch( void* ptr_br ) {
     bindRequest *br;
     responseHTTP *rs;
     moduleTAD *pmt;
@@ -158,7 +158,7 @@ void* ews_connector_client_launch( void* ptr_br ) {
     pthread_exit(NULL);
 }
 
-int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
+static int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
     int fd;
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
@@ -184,7 +184,7 @@ int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_
     return fd;
 }
 
-int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
+static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
     int sin_size, fd;
     struct timeval t;
     fd_set rfds;
