@@ -31,6 +31,10 @@ int main() {
         }
     }
 
+//     if (console_make_socket() < 0) {
+//         printf("ERROR: in console launch\n");
+//     }
+
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
         if (pthread_join(pbc->thread, (void **) &status)) {
             printf("ERROR: no se pudo realizar 'join' en hilos.\n");
