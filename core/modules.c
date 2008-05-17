@@ -119,14 +119,19 @@ void ews_modules_free( moduleTAD *modules ) {
     if (modules == NULL)
         return;
 
-    if (modules->next != NULL)
+    if (modules->next != NULL) {
         ews_modules_free(modules->next);
+        modules->next = NULL;
+    }
 
     if (modules->unload != NULL)
         modules->unload();
 
     printf("INFO: liberando módulo %s.\n", modules->name);
-    ews_free_details(modules->details);
+
+    // Los detalles se liberan con los bloques
+    modules->details = NULL;
+
     dlclose(modules->handle);
     ews_free(modules, "ews_modules_free");
 }

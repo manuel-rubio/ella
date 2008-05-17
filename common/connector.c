@@ -143,47 +143,65 @@ void ews_connector_parse_location( configBlock* cb, virtualHost* vh ) {
 void ews_connector_bind_free( bindConnect* bc ) {
     if (bc == NULL)
         return;
-    if (bc->next != NULL)
+    if (bc->next != NULL) {
         ews_connector_bind_free(bc->next);
-    if (bc->vhosts != NULL)
+        bc->next = NULL;
+    }
+    if (bc->vhosts != NULL) {
         ews_connector_vhost_free(bc->vhosts);
+        bc->vhosts = NULL;
+    }
     ews_free(bc, "ews_connector_bind_free");
 }
 
 void ews_connector_bindrequest_free( bindRequest* br ) {
     if (br == NULL)
         return;
-    if (br->request != NULL)
+    if (br->request != NULL) {
         ews_free_request(br->request);
+        br->request = NULL;
+    }
     ews_free(br, "ews_connector_bindrequest_free");
 }
 
 void ews_connector_vhost_free( virtualHost* vh ) {
     if (vh == NULL)
         return;
-    if (vh->next != NULL)
+    if (vh->next != NULL) {
         ews_connector_vhost_free(vh->next);
-    if (vh->locations != NULL)
+        vh->next = NULL;
+    }
+    if (vh->locations != NULL) {
         ews_connector_location_free(vh->locations);
-    if (vh->aliases != NULL)
+        vh->locations = NULL;
+    }
+    if (vh->aliases != NULL) {
         ews_connector_alias_free(vh->aliases);
+        vh->aliases = NULL;
+    }
     ews_free(vh, "ews_connector_vhost_free");
 }
 
 void ews_connector_location_free( hostLocation* hl ) {
     if (hl == NULL)
         return;
-    if (hl->next != NULL)
+    if (hl->next != NULL) {
         ews_connector_location_free(hl->next);
-    if (hl->details != NULL)
+        hl->next = NULL;
+    }
+    if (hl->details != NULL) {
         ews_free_details(hl->details);
+        hl->details = NULL;
+    }
     ews_free(hl, "ews_connector_location_free");
 }
 
 void ews_connector_alias_free( hostAlias* ha ) {
     if (ha == NULL)
         return;
-    if (ha->next != NULL)
+    if (ha->next != NULL) {
         ews_connector_alias_free(ha->next);
+        ha->next = NULL;
+    }
     ews_free(ha, "ews_connector_alias_free");
 }

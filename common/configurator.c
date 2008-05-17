@@ -26,9 +26,11 @@ void ews_free_blocks( configBlock *cb ) {
     }
     if (cb->details != NULL) {
         ews_free_details(cb->details);
+        cb->details = NULL;
     }
     if (cb->next != NULL) {
         ews_free_blocks(cb->next);
+        cb->next = NULL;
     }
     ews_free(cb, "ews_free_blocks");
 }
@@ -39,6 +41,7 @@ void ews_free_details( configDetail *cd ) {
     }
     if (cd->next != NULL) {
         ews_free_details(cd->next);
+        cd->next = NULL;
     }
     ews_free(cd, "ews_free_details");
 }
