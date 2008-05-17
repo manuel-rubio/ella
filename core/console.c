@@ -16,6 +16,8 @@ struct console consoles[EWS_MAX_CONNECTS];
 static int ews_socket = -1;     /*!< UNIX Socket for allowing remote control */
 static pthread_t lthread;
 
+extern char bindThreadExit;
+
 static int fdprint(int fd, const char *s) {
     return write(fd, s, strlen(s) + 1);
 }
@@ -23,46 +25,50 @@ static int fdprint(int fd, const char *s) {
 static void *console(void *vconsole) {
     struct console *con = (struct console *)vconsole;
     char hostname[MAXHOSTNAMELEN] = "";
-    char tmp[512] = { 0 };
+    char request[512] = { 0 };
+    char response[512] = { 0 };
     int res;
-    struct pollfd fds[2];
+    fd_set rfds;
+    struct timeval t;
+    int highsock;
+    int i;
 
     if (gethostname(hostname, sizeof(hostname)-1))
         strncpy(hostname, "<Unknown>", sizeof(hostname));
-    //snprintf(tmp, sizeof(tmp), "%s/%ld/%s\n", hostname, (long)ews_mainpid, EWS_VERSION);
-    printf("INFO: con->mute=%d\n", con->mute);
-    snprintf(tmp, sizeof(tmp), "%s/%s\n", hostname, EWS_VERSION);
-    fdprint(con->fd, tmp);
-    for(;;) {
-        fds[0].fd = con->fd;
-        fds[0].events = POLLIN;
-        fds[0].revents = 0;
-        fds[1].fd = con->p[0];
-        fds[1].events = POLLIN;
-        fds[1].revents = 0;
+    snprintf(response, sizeof(response), "%s/%.1f", hostname, EWS_VERSION);
+    fdprint(con->fd, response);
+    while (!bindThreadExit) {
+        FD_ZERO(&rfds);
+        FD_SET(con->fd, &rfds);
+        FD_SET(con->p[0], &rfds);
+        t.tv_sec = 0;
+        t.tv_usec = 500;
 
-        res = poll(fds, 2, -1);
-        if (res < 0) {
-            if (errno != EINTR)
-                printf("WARNING: poll returned < 0: %s\n", strerror(errno));
-            continue;
-        }
-        if (fds[0].revents) {
-            res = read(con->fd, tmp, sizeof(tmp));
+        highsock = (con->fd > con->p[0]) ? con->fd : con->p[0];
+        select(highsock+1, &rfds, NULL, NULL, &t);
+
+        if (FD_ISSET(con->fd, &rfds)) {
+            res = read(con->fd, request, sizeof(request));
             if (res < 1) {
                 break;
             }
-            tmp[res] = 0;
-            // TODO: cli_command(con->fd, tmp);
-            printf("INFO: ejecuta %s\n", tmp);
+            request[res] = 0;
+            for (i=0; request[i]!='\0'; i++)
+                request[i] = tolower(request[i]);
+            printf("INFO: ejecuta %s", request);
+            if (strncmp("quit", request, 4) == 0 || strncmp("exit", request, 4) == 0) {
+                fdprint(con->p[1], "Saliendo de la consola");
+                break;
+            }
+            // TODO: ews_cli_command
         }
-        if (fds[1].revents) {
-            res = read(con->p[0], tmp, sizeof(tmp));
+        if (FD_ISSET(con->p[0], &rfds)) {
+            res = read(con->p[0], request, sizeof(request));
             if (res < 1) {
                 printf("ERROR: read returned %d\n", res);
                 break;
             }
-            res = write(con->fd, tmp, res);
+            res = write(con->fd, request, res);
             if (res < 1)
                 break;
         }
@@ -82,20 +88,31 @@ static void *console_launch(void *unused) {
     socklen_t len;
     int x;
     int flags;
+    pthread_attr_t attr;
     fd_set rfds;
+    struct timeval t;
 
-    for (;;) {
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    while (!bindThreadExit) {
         if (ews_socket < 0)
             return NULL;
+
+        t.tv_sec = 0;
+        t.tv_usec = 500;
+
         FD_ZERO(&rfds);
         FD_SET(ews_socket, &rfds);
-        select(1, &rfds, NULL, NULL, NULL);
-
-        printf("INFO: recibida petición de conexión por socket de consola.\n");
+        select(ews_socket+1, &rfds, NULL, NULL, &t);
         pthread_testcancel();
+
+        if (!FD_ISSET(ews_socket, &rfds))
+            continue;
 
         len = sizeof(sunaddr);
         s = accept(ews_socket, (struct sockaddr *)&sunaddr, &len);
+        printf("INFO: recibida petición de conexión por socket de consola.\n");
         if (s < 0) {
             if (errno != EINTR)
                 printf("WARNING: Accept returned %d: %s\n", s, strerror(errno));
@@ -112,8 +129,7 @@ static void *console_launch(void *unused) {
                     flags = fcntl(consoles[x].p[1], F_GETFL);
                     fcntl(consoles[x].p[1], F_SETFL, flags | O_NONBLOCK);
                     consoles[x].fd = s;
-                    // consoles[x].mute = ews_opt_mute; // TODO: realizar mute
-                    if (pthread_create(&consoles[x].t, NULL, console, &consoles[x])) {
+                    if (pthread_create(&consoles[x].t, &attr, console, &consoles[x])) {
                         printf("WARNING: Unable to spawn thread to handle connection: %s\n", strerror(errno));
                         close(consoles[x].p[0]);
                         close(consoles[x].p[1]);
@@ -142,6 +158,7 @@ int console_make_socket(void) {
     int x;
     uid_t uid = -1;
     gid_t gid = -1;
+    pthread_attr_t lattr;
 
     for (x = 0; x < EWS_MAX_CONNECTS; x++)
         consoles[x].fd = -1;
@@ -170,6 +187,8 @@ int console_make_socket(void) {
     }
 //     ast_register_verbose(network_verboser); // TODO: hacer la parte de envío de logs a consola.
     printf("INFO: lanzado hilo para consola\n");
+    pthread_attr_init(&lattr);
+    pthread_attr_setstacksize(&lattr, EWS_STACKSIZE);
     pthread_create(&lthread, NULL, console_launch, NULL);
 
 // TODO: configurar permisos para el fichero socket de la consola.
