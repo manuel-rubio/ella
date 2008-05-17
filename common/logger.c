@@ -2,11 +2,11 @@
 
 #include "../include/logger.h"
 
-static int debug_level = LOG_LEVEL_INFO;
+static int debug_level = LOG_LEVEL_DEBUG;
 static char dateformat[256] = "%d/%m/%Y %H:%M:%S";
 
 static int logger_fds[128];
-pthread_mutex_t logger_fds_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t logger_fds_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char *log_names[] = {
     "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
@@ -57,10 +57,6 @@ int logger_unregister( int fd ) {
     return ok;
 }
 
-static int fdprint(int fd, const char *s) {
-    return write(fd, s, strlen(s) + 1);
-}
-
 void ews_verbose( log_t type, const char *format, ... ) {
     char      buffer[4096] = { 0 },
               date[40] = { 0 },
@@ -93,11 +89,13 @@ void ews_verbose( log_t type, const char *format, ... ) {
 
     // TODO: redireccionar a módulos de tipo log
 
+    pthread_mutex_lock(&logger_fds_mutex);
     for (i=0; i<sizeof(logger_fds); i++) {
         if (logger_fds[i] > -1) {
-            fdprint(logger_fds[i], buffer);
+            write(logger_fds[i], buffer, strlen(buffer) + 1);
         }
     }
+    pthread_mutex_unlock(&logger_fds_mutex);
 }
 
 void ews_verbose_to( int pipe, log_t type, const char *format, ... ) {
@@ -130,5 +128,7 @@ void ews_verbose_to( int pipe, log_t type, const char *format, ... ) {
     printf("%s", buffer);
 #endif
 
-    fdprint(pipe, buffer);
+    pthread_mutex_lock(&logger_fds_mutex);
+    write(pipe, buffer, strlen(buffer) + 1);
+    pthread_mutex_unlock(&logger_fds_mutex);
 }
