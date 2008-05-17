@@ -73,6 +73,7 @@ static void *console(void *vconsole) {
                 break;
         }
     }
+    logger_unregister(con->p[1]);
     ews_verbose(LOG_LEVEL_INFO, "Remote UNIX connection disconnected");
     close(con->fd);
     close(con->p[0]);
@@ -129,6 +130,7 @@ static void *console_launch(void *unused) {
                     flags = fcntl(consoles[x].p[1], F_GETFL);
                     fcntl(consoles[x].p[1], F_SETFL, flags | O_NONBLOCK);
                     consoles[x].fd = s;
+                    logger_register(consoles[x].p[1]);
                     if (pthread_create(&consoles[x].t, &attr, console, &consoles[x])) {
                         ews_verbose(LOG_LEVEL_WARN, "Unable to spawn thread to handle connection: %s", strerror(errno));
                         close(consoles[x].p[0]);

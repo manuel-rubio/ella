@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "string.h"
 
@@ -21,5 +22,7 @@ typedef enum {
 void ews_verbose( log_t type, const char *format, ... );
 void set_date_format( const char *s );
 void set_debug_level( int type );
+int logger_register( int fd );
+int logger_unregister( int fd );
 
 #endif
