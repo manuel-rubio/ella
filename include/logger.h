@@ -9,6 +9,7 @@
 #include <time.h>
 #include <pthread.h>
 
+#include "config.h"
 #include "string.h"
 
 typedef enum {
