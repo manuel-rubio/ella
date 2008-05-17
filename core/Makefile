@@ -12,6 +12,9 @@ connector.o: connector.c $(INC)
 console.o: console.c $(INC)
 	$(GCC) -c -o console.o console.c
 
+cli.o: cli.c $(INC)
+	$(GCC) -c -o cli.o cli.c
+
 modules.o: modules.c $(INC)
 	$(GCC) -c -o modules.o modules.c
 
@@ -24,5 +27,5 @@ ews.o: ews.c $(INC)
 ../ews: ews.o
 	$(GCC) -pthread -o ../ews ews.o
 
-../ewsd: configurator.o connector.o modules.o ewsd.o console.o ../libews0.so
-	$(GCC) -ldl -pthread -o ../ewsd ../libews0.so configurator.o connector.o modules.o ewsd.o console.o
+../ewsd: configurator.o connector.o modules.o ewsd.o console.o cli.o ../libews0.so
+	$(GCC) -ldl -pthread -o ../ewsd ../libews0.so configurator.o connector.o modules.o ewsd.o console.o cli.o

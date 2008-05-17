@@ -12,7 +12,7 @@ struct console {
     int mute;    /*!< Is the console muted for logs */
 };
 
-struct console consoles[EWS_MAX_CONNECTS];
+static struct console consoles[EWS_MAX_CONNECTS];
 static int ews_socket = -1;     /*!< UNIX Socket for allowing remote control */
 static pthread_t lthread;
 
@@ -55,12 +55,20 @@ static void *console(void *vconsole) {
             request[res] = 0;
             for (i=0; request[i]!='\0'; i++)
                 request[i] = tolower(request[i]);
-            ews_verbose_to(con->p[1], LOG_LEVEL_INFO, "ejecuta %s", request);
             if (strncmp("quit", request, 4) == 0 || strncmp("exit", request, 4) == 0) {
                 ews_verbose_to(con->p[1], LOG_LEVEL_INFO, "Saliendo de la consola");
                 break;
             }
-            // TODO: ews_cli_command
+            switch (ews_cli_command(con->p[1], request)) {
+                case -1:
+                    ews_verbose_to(con->p[1], LOG_LEVEL_ERROR, "Ha sucedido un error al ejecutar %s", request);
+                    break;
+                case 0:
+                    ews_verbose_to(con->p[1], LOG_LEVEL_WARN, "La aplicación no terminó de forma correcta");
+                    break;
+                default:
+                    ews_verbose_to(con->p[1], LOG_LEVEL_DEBUG, "La aplicación termino correctamente");
+            }
         }
         if (FD_ISSET(con->p[0], &rfds)) {
             res = read(con->p[0], request, sizeof(request));
@@ -164,6 +172,7 @@ int console_make_socket(void) {
 
     for (x = 0; x < EWS_MAX_CONNECTS; x++)
         consoles[x].fd = -1;
+    ews_cli_init();
     unlink(__CONSOLE_SOCKET);
     ews_socket = socket(PF_LOCAL, SOCK_STREAM, 0);
     if (ews_socket < 0) {

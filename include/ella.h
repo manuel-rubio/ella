@@ -87,4 +87,8 @@ static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* cl
  */
 int console_make_socket(void);
 
+void ews_cli_init();
+int ews_cli_command( int pipe, char *request );
+int ews_cli_add_command( char *name, char *description, char *long_description, int (*cli_command)( int, char * ) );
+
 #endif
