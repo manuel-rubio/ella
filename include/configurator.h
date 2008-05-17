@@ -5,9 +5,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "config.h"
 #include "string.h"
 #include "memory.h"
+#include "logger.h"
 
 #define STRING_SIZE 80
 

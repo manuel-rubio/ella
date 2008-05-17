@@ -55,7 +55,7 @@ static void *console(void *vconsole) {
             request[res] = 0;
             for (i=0; request[i]!='\0'; i++)
                 request[i] = tolower(request[i]);
-            printf("INFO: ejecuta %s", request);
+            ews_verbose(LOG_LEVEL_INFO, "ejecuta %s", request);
             if (strncmp("quit", request, 4) == 0 || strncmp("exit", request, 4) == 0) {
                 fdprint(con->p[1], "Saliendo de la consola");
                 break;
@@ -65,7 +65,7 @@ static void *console(void *vconsole) {
         if (FD_ISSET(con->p[0], &rfds)) {
             res = read(con->p[0], request, sizeof(request));
             if (res < 1) {
-                printf("ERROR: read returned %d\n", res);
+                ews_verbose(LOG_LEVEL_ERROR, "read returned %d", res);
                 break;
             }
             res = write(con->fd, request, res);
@@ -73,7 +73,7 @@ static void *console(void *vconsole) {
                 break;
         }
     }
-    printf("INFO: Remote UNIX connection disconnected\n");
+    ews_verbose(LOG_LEVEL_INFO, "Remote UNIX connection disconnected");
     close(con->fd);
     close(con->p[0]);
     close(con->p[1]);
@@ -112,15 +112,15 @@ static void *console_launch(void *unused) {
 
         len = sizeof(sunaddr);
         s = accept(ews_socket, (struct sockaddr *)&sunaddr, &len);
-        printf("INFO: recibida petición de conexión por socket de consola.\n");
+        ews_verbose(LOG_LEVEL_INFO, "recibida petición de conexión por socket de consola.");
         if (s < 0) {
             if (errno != EINTR)
-                printf("WARNING: Accept returned %d: %s\n", s, strerror(errno));
+                ews_verbose(LOG_LEVEL_WARN, "Accept returned %d: %s", s, strerror(errno));
         } else {
             for (x = 0; x < EWS_MAX_CONNECTS; x++) {
                 if (consoles[x].fd < 0) {
                     if (socketpair(AF_LOCAL, SOCK_STREAM, 0, consoles[x].p)) {
-                        printf("ERROR: Unable to create pipe: %s\n", strerror(errno));
+                        ews_verbose(LOG_LEVEL_ERROR, "Unable to create pipe: %s", strerror(errno));
                         consoles[x].fd = -1;
                         fdprint(s, "Server failed to create pipe\n");
                         close(s);
@@ -130,7 +130,7 @@ static void *console_launch(void *unused) {
                     fcntl(consoles[x].p[1], F_SETFL, flags | O_NONBLOCK);
                     consoles[x].fd = s;
                     if (pthread_create(&consoles[x].t, &attr, console, &consoles[x])) {
-                        printf("WARNING: Unable to spawn thread to handle connection: %s\n", strerror(errno));
+                        ews_verbose(LOG_LEVEL_WARN, "Unable to spawn thread to handle connection: %s", strerror(errno));
                         close(consoles[x].p[0]);
                         close(consoles[x].p[1]);
                         consoles[x].fd = -1;
@@ -142,10 +142,10 @@ static void *console_launch(void *unused) {
             }
             if (x >= EWS_MAX_CONNECTS) {
                 fdprint(s, "No more connections allowed\n");
-                printf("WARNING: No more connections allowed\n");
+                ews_verbose(LOG_LEVEL_WARN, "No more connections allowed");
                 close(s);
             } else if (consoles[x].fd > -1) {
-                printf("INFO: Remote UNIX connection\n");
+                ews_verbose(LOG_LEVEL_INFO, "Remote UNIX connection");
             }
         }
     }
@@ -165,7 +165,7 @@ int console_make_socket(void) {
     unlink(__CONSOLE_SOCKET);
     ews_socket = socket(PF_LOCAL, SOCK_STREAM, 0);
     if (ews_socket < 0) {
-        printf("WARNING: Unable to create control socket: %s\n", strerror(errno));
+        ews_verbose(LOG_LEVEL_WARN, "Unable to create control socket: %s", strerror(errno));
         return -1;
     }
     bzero(&sunaddr, sizeof(sunaddr));
@@ -173,20 +173,20 @@ int console_make_socket(void) {
     strncpy(sunaddr.sun_path, __CONSOLE_SOCKET, sizeof(sunaddr.sun_path));
     res = bind(ews_socket, (struct sockaddr *)&sunaddr, sizeof(sunaddr));
     if (res) {
-        printf("WARNING: Unable to bind socket to %s: %s\n", __CONSOLE_SOCKET, strerror(errno));
+        ews_verbose(LOG_LEVEL_WARN, "Unable to bind socket to %s: %s", __CONSOLE_SOCKET, strerror(errno));
         close(ews_socket);
         ews_socket = -1;
         return -1;
     }
     res = listen(ews_socket, 2);
     if (res < 0) {
-        printf("WARNING: Unable to listen on socket %s: %s\n", __CONSOLE_SOCKET, strerror(errno));
+        ews_verbose(LOG_LEVEL_WARN, "Unable to listen on socket %s: %s", __CONSOLE_SOCKET, strerror(errno));
         close(ews_socket);
         ews_socket = -1;
         return -1;
     }
 //     ast_register_verbose(network_verboser); // TODO: hacer la parte de envío de logs a consola.
-    printf("INFO: lanzado hilo para consola\n");
+    ews_verbose(LOG_LEVEL_INFO, "lanzado hilo para consola");
     pthread_attr_init(&lattr);
     pthread_attr_setstacksize(&lattr, EWS_STACKSIZE);
     pthread_create(&lthread, NULL, console_launch, NULL);

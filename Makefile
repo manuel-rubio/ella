@@ -12,6 +12,7 @@ INC := ../include/configurator.h \
        ../include/config.h \
        ../include/connector.h \
        ../include/header.h \
+       ../include/logger.h \
        ../include/memory.h \
        ../include/string.h
 

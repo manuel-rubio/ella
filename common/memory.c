@@ -60,7 +60,7 @@ void ews_free( void *ptr, const char *name ) {
         ews_memory_data[MAX_MEM_ALLOCS-1][1] = 0;
         ews_memory_ptr --;
     } else {
-        printf("WARNING: %s intento de liberar memoria no reservada (%d)\n", name, (int)ptr);
+        ews_verbose(LOG_LEVEL_WARN, "%s intento de liberar memoria no reservada (%d)", name, (int)ptr);
     }
 
     pthread_mutex_unlock(&memory_allocation);
@@ -85,29 +85,40 @@ void ews_free_all( void ) {
     }
     ews_memory_ptr = 0;
     pthread_mutex_unlock(&memory_allocation);
-    printf("INFO: liberadas %d reservas y %ld bytes\n", freed, freed_size);
+    ews_verbose(LOG_LEVEL_INFO, "liberadas %d reservas y %ld bytes", freed, freed_size);
 }
 
-void ews_memory_print_units( long units ) {
+void ews_memory_print_units( char *buffer, long units ) {
     double u = (double) units;
     if (units < 1024)
-        printf("%.1lf bytes\n", u);
+        sprintf(buffer, "%.1lf bytes", u);
     else if (units < (1024 * 1024))
-        printf("%.1lf kbytes\n", u / 1024);
+        sprintf(buffer, "%.1lf kbytes", u / 1024);
     else if (units < (1024 * 1024 * 1024))
-        printf("%.1lf Mbytes\n", u / (1024 * 1024));
+        sprintf(buffer, "%.1lf Mbytes", u / (1024 * 1024));
 }
 
 void ews_memory_stats( void ) {
+    char buffer[256];
     pthread_mutex_lock(&memory_allocation);
-    printf("INFO: Memoria reservada: ");
-    ews_memory_print_units(ews_memory_allocated);
-    printf("INFO: Memoria liberada: ");
-    ews_memory_print_units(ews_memory_freed);
-    printf("INFO: Descuadre (memoria perdida): ");
-    ews_memory_print_units(ews_memory);
-    printf("INFO: Máximo número de reservas simultáneas: %d\n", ews_max_simult_allocs);
-    printf("INFO: Máxima cantidad de memory en uso: ");
-    ews_memory_print_units(ews_max_memory_in_use);
+
+    strcpy(buffer, "Memoria reservada: ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_memory_allocated);
+    ews_verbose(LOG_LEVEL_INFO, buffer);
+
+    strcpy(buffer, "Memoria liberada: ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_memory_freed);
+    ews_verbose(LOG_LEVEL_INFO, buffer);
+
+    strcpy(buffer, "Descuadre (memoria perdida): ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_memory);
+    ews_verbose(LOG_LEVEL_INFO, buffer);
+
+    ews_verbose(LOG_LEVEL_INFO, "Máximo número de reservas simultáneas: %d", ews_max_simult_allocs);
+
+    strcpy(buffer, "Máxima cantidad de memory en uso: ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_max_memory_in_use);
+    ews_verbose(LOG_LEVEL_INFO, buffer);
+
     pthread_mutex_unlock(&memory_allocation);
 }

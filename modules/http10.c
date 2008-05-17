@@ -105,7 +105,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     } else if (strcmp(br->request->request, "HEAD") == 0) {
         method = METHOD_HEAD;
     } else {
-        printf("ERROR: method %s not implemented.\n", br->request->request);
+        ews_verbose(LOG_LEVEL_ERROR, "method %s not implemented.", br->request->request);
         http10_error_page(501, "Not implemented", page501, rh, rs, METHOD_GET);
         return MODULE_RETURN_OK;
     }
@@ -119,17 +119,17 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
     hl = ews_connector_find_location(vh->locations, rh->uri);
     if (hl == NULL) { // 404 - Not found
-        printf("ERROR: location no casa con ninguna de las configuradas.\n");
+        ews_verbose(LOG_LEVEL_ERROR, "location no casa con ninguna de las configuradas.");
         http10_error_page(404, "Not found", page404, rh, rs, method);
         return MODULE_RETURN_OK;
     }
     if (!http10_find_file(buffer, rh, hl)) { // 404 - Not found
-        printf("ERROR: fichero %s no encontrado.\n", buffer);
+        ews_verbose(LOG_LEVEL_ERROR, "fichero %s no encontrado.", buffer);
         http10_error_page(404, "Not found", page404, rh, rs, method);
         return MODULE_RETURN_OK;
     }
 
-    printf("INFO: enviando fichero %s\n", buffer);
+    ews_verbose(LOG_LEVEL_INFO, "enviando fichero %s", buffer);
     rs->code = 200;
     strcpy(rs->message, "OK");
     strcpy(rs->version, "1.0");
@@ -172,7 +172,7 @@ int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
                 buffer[j] = index[i];
         }
         buffer[j] = '\0';
-        printf("INFO: ruta %s\n", buffer);
+        ews_verbose(LOG_LEVEL_INFO, "ruta %s", buffer);
         f = stat(buffer, &st);
         if (f != -1 && S_ISREG(st.st_mode)) {
             return 1;

@@ -26,7 +26,7 @@ char* mime_find_type( char *file ) {
     char *extension;
     int i, z;
 
-    printf("INFO: fichero %s\n", file);
+    ews_verbose(LOG_LEVEL_INFO, "fichero %s", file);
     z = strlen(file);
     for (i=z; i>0 && file[i]!='.'; i--)
         ;
@@ -35,7 +35,7 @@ char* mime_find_type( char *file ) {
     i++;
     for (mt=mime_types; mt!=NULL; mt=mt->next) {
         if (strcmp(file+i, mt->extension) == 0) {
-            printf("INFO: encontrada [%s] para [%s].\n", mt->extension, file);
+            ews_verbose(LOG_LEVEL_INFO, "encontrada [%s] para [%s].", mt->extension, file);
             return mt->mime;
         }
     }
@@ -72,7 +72,7 @@ void mime_load( void ) {
 
     f = fopen(mime_file, "rt");
     if (!f) {
-        printf("ERROR: fichero de tipos %s no se ha encontrado o no se puede abrir.\n", mime_file);
+        ews_verbose(LOG_LEVEL_ERROR, "fichero de tipos %s no se ha encontrado o no se puede abrir.", mime_file);
         return;
     }
     while (fgets(buffer, sizeof(buffer), f)) {
@@ -145,13 +145,13 @@ void mime_init( moduleTAD *module ) {
     module->get_status = mime_error;
 
     if (!module->details) {
-        printf("ERROR: mime module not loaded, you should configure [mime].\n");
+        ews_verbose(LOG_LEVEL_ERROR, "mime module not loaded, you should configure [mime].");
         return;
     }
 
     types = ews_get_detail_value(module->details, "types", 0);
     if (types == NULL) {
-        printf("ERROR: mime.types file not defined.\n");
+        ews_verbose(LOG_LEVEL_ERROR, "mime.types file not defined.");
         return;
     }
 

@@ -65,7 +65,7 @@ configBlock* ews_ini_read() {
                 } else if ((buffer[0] >= 'A' && buffer[0] <= 'Z') || (buffer[0] >= 'a' && buffer[0] <= 'z') || buffer[0] == '_') {
                     // clave
                     if (pcb == NULL) {
-                        printf("ERROR: fichero de configuración, detalle fuera de bloque.\n");
+                        ews_verbose(LOG_LEVEL_ERROR, "fichero de configuración, detalle fuera de bloque.");
                         exit(1);
                     }
                     if (pcb->details == NULL) {

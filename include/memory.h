@@ -8,6 +8,7 @@
 #include <pthread.h>
 
 #include "config.h"
+#include "logger.h"
 
 #define MAX_MEM_ALLOCS 8192
 

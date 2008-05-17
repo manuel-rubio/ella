@@ -13,6 +13,7 @@
 
 #include "config.h"
 #include "memory.h"
+#include "logger.h"
 
 /**
  *  Estructura de cabecera.

@@ -27,19 +27,19 @@ int main() {
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
         rc = pthread_create(&pbc->thread, NULL, ews_connector_launch, (void *)pbc);
         if (rc) {
-            printf("ERROR: al crear hilo: %d\n", rc);
+            ews_verbose(LOG_LEVEL_ERROR, "al crear hilo: %d", rc);
         }
     }
 
     if (console_make_socket() < 0) {
-        printf("ERROR: in console launch\n");
+        ews_verbose(LOG_LEVEL_ERROR, "in console launch");
     }
 
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
         if (pthread_join(pbc->thread, (void **) &status)) {
-            printf("ERROR: no se pudo realizar 'join' en hilos.\n");
+            ews_verbose(LOG_LEVEL_ERROR, "no se pudo realizar 'join' en hilos.");
         }
-        printf("INFO: el hilo terminó con el estado %d.\n", status);
+        ews_verbose(LOG_LEVEL_INFO, "el hilo terminó con el estado %d.", status);
     }
 
     ews_modules_free(modules);

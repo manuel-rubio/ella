@@ -42,7 +42,7 @@ void ews_set_response_content( responseHTTP *rs, int type, void *s ) {
         if (type == HEADER_CONTENT_FILE) {
             stat((char *)s, &st);
             sprintf(size, "%ld", st.st_size);
-            printf("INFO: fichero %s de %d bytes\n", (char *)s, st.st_size);
+            ews_verbose(LOG_LEVEL_INFO, "fichero %s de %d bytes", (char *)s, st.st_size);
         } else {
             // HEADER_CONTENT_STRING
             sprintf(size, "%d", strlen(s));
