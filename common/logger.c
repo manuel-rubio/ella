@@ -5,7 +5,7 @@
 static int debug_level = LOG_LEVEL_INFO;
 static char dateformat[256] = "%d/%m/%Y %H:%M:%S";
 
-static int logger_fds[128] = { 0 };
+static int logger_fds[128];
 pthread_mutex_t logger_fds_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 char *log_names[] = {
@@ -18,6 +18,15 @@ void set_date_format( const char *s ) {
 
 void set_debug_level( int type ) {
     debug_level = type;
+}
+
+void logger_init() {
+    int i;
+    pthread_mutex_lock(&logger_fds_mutex);
+    for (i=0; i<sizeof(logger_fds); i++) {
+        logger_fds[i] = -1;
+    }
+    pthread_mutex_unlock(&logger_fds_mutex);
 }
 
 int logger_register( int fd ) {
@@ -69,7 +78,7 @@ void ews_verbose( log_t type, const char *format, ... ) {
     localtime_r(&t, &tm);
     strftime(date, sizeof(date), dateformat, &tm);
     sprintf(datefmt, "[%s] %s: %s", date, log_names[type], format);
-    format = &datefmt;
+    format = (char *)datefmt;
 
     va_start(ap, format);
     len = strlen(buffer);
@@ -85,8 +94,41 @@ void ews_verbose( log_t type, const char *format, ... ) {
     // TODO: redireccionar a módulos de tipo log
 
     for (i=0; i<sizeof(logger_fds); i++) {
-        if (logger_fds[i] > 0) {
+        if (logger_fds[i] > -1) {
             fdprint(logger_fds[i], buffer);
         }
     }
+}
+
+void ews_verbose_to( int pipe, log_t type, const char *format, ... ) {
+    char      buffer[4096] = { 0 },
+              date[40] = { 0 },
+              datefmt[4096] = { 0 };
+    va_list   ap;
+    time_t    t;
+    struct tm tm;
+    int       len,
+              i;
+
+    if (type < debug_level)
+        return;
+
+    time(&t);
+    localtime_r(&t, &tm);
+    strftime(date, sizeof(date), dateformat, &tm);
+    sprintf(datefmt, "[%s] %s: %s", date, log_names[type], format);
+    format = (char *)datefmt;
+
+    va_start(ap, format);
+    len = strlen(buffer);
+    vsnprintf(buffer + len, sizeof(buffer) - len, format, ap);
+    va_end(ap);
+
+    ews_chomp(buffer);
+    strcat(buffer, "\n");
+#if defined __VERBOSE_STDOUT
+    printf("%s", buffer);
+#endif
+
+    fdprint(pipe, buffer);
 }

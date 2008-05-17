@@ -21,6 +21,7 @@ typedef enum {
 } log_t;
 
 void ews_verbose( log_t type, const char *format, ... );
+void ews_verbose_to( int pipe, log_t type, const char *format, ... );
 void set_date_format( const char *s );
 void set_debug_level( int type );
 int logger_register( int fd );

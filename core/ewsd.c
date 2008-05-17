@@ -13,6 +13,7 @@ int main() {
     bindConnect *bc = NULL, *pbc = NULL;
     int rc, status;
 
+    logger_init();
     cf = ews_get_initial_conf();
     cb = cf.read();
 

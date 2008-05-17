@@ -55,9 +55,9 @@ static void *console(void *vconsole) {
             request[res] = 0;
             for (i=0; request[i]!='\0'; i++)
                 request[i] = tolower(request[i]);
-            ews_verbose(LOG_LEVEL_INFO, "ejecuta %s", request);
+            ews_verbose_to(con->p[1], LOG_LEVEL_INFO, "ejecuta %s", request);
             if (strncmp("quit", request, 4) == 0 || strncmp("exit", request, 4) == 0) {
-                fdprint(con->p[1], "Saliendo de la consola");
+                ews_verbose_to(con->p[1], LOG_LEVEL_INFO, "Saliendo de la consola");
                 break;
             }
             // TODO: ews_cli_command
