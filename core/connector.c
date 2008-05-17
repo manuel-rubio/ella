@@ -189,7 +189,6 @@ static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* cl
     struct timeval t;
     fd_set rfds;
 
-    // TODO: estudiar si es mejor select(), poll() o epoll()
     t.tv_sec = 0;
     t.tv_usec = 100;
     FD_ZERO(&rfds);
