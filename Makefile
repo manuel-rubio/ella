@@ -27,3 +27,4 @@ clean:
 	$(MAKE) -C common clean
 	$(MAKE) -C core clean
 	$(MAKE) -C modules clean
+	rm -f ews.ctl

@@ -1,4 +1,4 @@
-all: ../ewsd
+all: ../ewsd ../ews
 
 clean:
 	rm -f ../ewsd *.o
@@ -15,8 +15,14 @@ console.o: console.c $(INC)
 modules.o: modules.c $(INC)
 	$(GCC) -c -o modules.o modules.c
 
-main.o: main.c $(INC)
-	$(GCC) -c -o main.o main.c
+ewsd.o: ewsd.c $(INC)
+	$(GCC) -c -o ewsd.o ewsd.c
 
-../ewsd: configurator.o connector.o modules.o main.o console.o ../libews0.so
-	$(GCC) -ldl -pthread -o ../ewsd ../libews0.so configurator.o connector.o modules.o main.o console.o
+ews.o: ews.c $(INC)
+	$(GCC) -c -o ews.o ews.c
+
+../ews: ews.o
+	$(GCC) -pthread -o ../ews ews.o
+
+../ewsd: configurator.o connector.o modules.o ewsd.o console.o ../libews0.so
+	$(GCC) -ldl -pthread -o ../ewsd ../libews0.so configurator.o connector.o modules.o ewsd.o console.o
