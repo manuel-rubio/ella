@@ -6,14 +6,17 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <poll.h>
+#include <rpc/rpc.h>
 
 #define SOCK_PATH "echo_socket"
 
-void* cli( void *socket ) {
+static void* cli( void *socket ) {
     int s2 = (int)socket;
     char str[100];
     int done, n;
 
+    pthread_detach(pthread_self());
     printf("Connected.\n");
 
     done = 0;
@@ -38,8 +41,15 @@ void* cli( void *socket ) {
 int main(void) {
     int s, s2, t, len;
     struct sockaddr_un local, remote;
+    pthread_attr_t attr;
+    pthread_t pth;
+    void *thread_result;
+    struct pollfd fds[1];
 
-    if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    if ((s = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("socket");
         exit(1);
     }
@@ -60,14 +70,26 @@ int main(void) {
 
     for(;;) {
         printf("Waiting for a connection...\n");
+        fds[0].fd = s;
+        fds[0].events = POLLIN;
+        s2 = poll(fds, 1, -1);
+        printf("INFO: recibida petición de conexión por socket de consola.\n");
+        pthread_testcancel();
+        if (s2 < 0) {
+            if (errno != EINTR)
+                printf("WARNING: Accept returned %d: %s\n", s, strerror(errno));
+            continue;
+        }
         t = sizeof(remote);
         if ((s2 = accept(s, (struct sockaddr *)&remote, &t)) == -1) {
             perror("accept");
             exit(1);
         }
 
-        pthread_create(NULL, NULL, cli, (void *)s2);
+        pthread_create(&pth, &attr, cli, (void *)s2);
+        //pthread_join(pth, &thread_result);
     }
+    pthread_attr_destroy(&attr);
     pthread_exit(NULL);
     return 0;
 }
