@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <poll.h>
 #include <rpc/rpc.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "configurator.h"
