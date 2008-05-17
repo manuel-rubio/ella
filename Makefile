@@ -18,7 +18,12 @@ INC := ../include/configurator.h \
 
 all: ewsd
 
-ewsd: common core modules
+ewsd: common core modules core/ewsd.c
+	$(MAKE) -C common
+	$(MAKE) -C core
+	$(MAKE) -C modules
+
+ews: common core modules core/ews.c
 	$(MAKE) -C common
 	$(MAKE) -C core
 	$(MAKE) -C modules
