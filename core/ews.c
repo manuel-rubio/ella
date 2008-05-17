@@ -17,6 +17,8 @@ int main(void) {
     fd_set rfds;
     struct timeval t;
     static int exitEWS = 0;
+    int ok = 0;
+    int flags;
 
     if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("socket");
@@ -43,6 +45,9 @@ int main(void) {
     printf("CLI> ");
     fflush(stdout);
 
+    flags = fcntl(s, F_GETFL);
+    fcntl(s, F_SETFL, flags | O_NONBLOCK);
+
     while (!exitEWS) {
         t.tv_sec = 0;
         t.tv_usec = 500;
@@ -53,11 +58,13 @@ int main(void) {
         select(s+1, &rfds, NULL, NULL, &t);
 
         if (FD_ISSET(s, &rfds)) {
-            len = recv(s, str, sizeof(str), 0);
-            if (len > 0) {
+            ok = 0;
+            while ((len = recv(s, str, sizeof(str), 0)) > 0) {
                 str[len] = '\0';
                 printf("\r%s", str);
-            } else {
+                ok = 1;
+            }
+            if (!ok) {
                 if (len < 0) {
                     perror("recv");
                 } else {
@@ -74,8 +81,6 @@ int main(void) {
                 perror("send");
                 exit(1);
             }
-/*            printf("\rCLI> ");
-            fflush(stdout);*/
         }
     }
     close(s);
