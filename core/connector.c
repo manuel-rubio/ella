@@ -160,12 +160,16 @@ static void* ews_connector_client_launch( void* ptr_br ) {
 
 static int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
     int fd;
+    int reuse_addr = 1;
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
         ews_verbose(LOG_LEVEL_ERROR, "al iniciar el servidor (socket)");
         bindThreadExit = 1;
         return -1;
     }
+
+    /* Para poder hacer re-bind hacia el socket sin problemas con TIME_WAIT */
+    setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof(reuse_addr));
 
     server->sin_family = AF_INET;
     server->sin_port = htons(port);
