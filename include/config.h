@@ -11,3 +11,5 @@
 #define __MODULES_DIR       "modules"
 
 #define __CONSOLE_SOCKET    "ews.ctl"
+
+#define __VERBOSE_STDOUT

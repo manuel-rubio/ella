@@ -76,12 +76,14 @@ void ews_verbose( log_t type, const char *format, ... ) {
     vsnprintf(buffer + len, sizeof(buffer) - len, format, ap);
     va_end(ap);
 
-    // TODO: habrá que direccionar esto a fichero
     ews_chomp(buffer);
     strcat(buffer, "\n");
+#if defined __VERBOSE_STDOUT
     printf("%s", buffer);
+#endif
 
     // TODO: redireccionar a módulos de tipo log
+
     for (i=0; i<sizeof(logger_fds); i++) {
         if (logger_fds[i] > 0) {
             fdprint(logger_fds[i], buffer);
