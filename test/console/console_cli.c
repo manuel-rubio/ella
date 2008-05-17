@@ -6,7 +6,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-//#define SOCK_PATH "../../ews.ctl"
 #define SOCK_PATH "echo_socket"
 
 int main(void)
@@ -31,10 +30,6 @@ int main(void)
     }
 
     printf("Connected.\n");
-
-//     t=recv(s, str, 100, 0);
-//     str[t] = '\0';
-//     printf("< %s\n", str);
 
     while(printf("> "), fgets(str, 100, stdin), !feof(stdin)) {
         if (send(s, str, strlen(str), 0) == -1) {
