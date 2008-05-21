@@ -169,7 +169,7 @@ static int ews_server_start( struct sockaddr_in *server, char *host, int port, i
     }
 
     /* Para poder hacer re-bind hacia el socket sin problemas con TIME_WAIT */
-    setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof(reuse_addr));
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof(reuse_addr));
 
     server->sin_family = AF_INET;
     server->sin_port = htons(port);
