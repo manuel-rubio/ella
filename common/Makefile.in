@@ -4,25 +4,28 @@ clean:
 	$(RM) -f libews0.so *.o
 
 configurator.o: configurator.c $(INC)
-	$(CC) -c -o configurator.o configurator.c
+	$(CC) $(CFLAGS) -c -o configurator.o configurator.c
 
 connector.o: connector.c $(INC)
-	$(CC) -c -o connector.o connector.c
+	$(CC) $(CFLAGS) -c -o connector.o connector.c
 
 header.o: header.c $(INC)
-	$(CC) -c -o header.o header.c
+	$(CC) $(CFLAGS) -c -o header.o header.c
 
 logger.o: logger.c $(INC)
-	$(CC) -c -o logger.o logger.c
+	$(CC) $(CFLAGS) -c -o logger.o logger.c
 
 memory.o: memory.c $(INC)
-	$(CC) -c -o memory.o memory.c
+	$(CC) $(CFLAGS) -c -o memory.o memory.c
 
 string.o: string.c $(INC)
-	$(CC) -c -o string.o string.c
+	$(CC) $(CFLAGS) -c -o string.o string.c
 
 date.o: date.c $(INC)
-	$(CC) -c -o date.o date.c
+	$(CC) $(CFLAGS) -c -o date.o date.c
 
 libews0.so: configurator.o connector.o header.o memory.o string.o logger.o date.o
-	$(CC) -shared -Wl,-soname,libews0.so -o libews0.so configurator.o connector.o header.o memory.o string.o logger.o date.o -lc
+	$(CC) $(CFLAGS) $(LIBS) -shared -Wl,-soname,libews0.so -o libews0.so configurator.o connector.o header.o memory.o string.o logger.o date.o -lc
+
+install: all
+	cp libews0.so @libdir@

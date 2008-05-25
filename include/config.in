@@ -15,7 +15,7 @@
 /* modules dir */
 #undef EWS_MODULES_DIR
 
-/* stdout is possible? */
+/* config method system static in INI files */
 #undef EWS_VERBOSE_STDOUT
 
 /* Define to 1 if you have the <ctype.h> header file. */

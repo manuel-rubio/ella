@@ -1,9 +1,15 @@
 export MODULES
 export INC
+export prefix
+export exec_prefix
+export CFLAGS
+export LIBS
 
 CC = @CC@
 CFLAGS = @CFLAGS@ @dependencias_CFLAGS@
 LIBS = @LIBS@ @dependencias_LIBS@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
 
 MODULES = libdumb.so \
           libhttp10.so \
@@ -36,7 +42,15 @@ clean:
 	rm -f ews.ctl
 
 distclean: clean
-	rm -f config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h
+	rm -f config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h include/*~
 
 develclean: distclean
 	rm -rf aclocal* autom4* configure
+
+install: all
+	$(MAKE) -C common install
+	$(MAKE) -C main install
+	$(MAKE) -C modules install
+	[ -d @sysconfdir@/ews ] || mkdir -p @sysconfdir@/ews
+	[ -f @sysconfdir@/ews/http.ini ] || cp etc/ews/http.ini @sysconfdir@/ews
+	[ -d @localstatedir@/run/ews ] || mkdir -p @localstatedir@/run/ews
