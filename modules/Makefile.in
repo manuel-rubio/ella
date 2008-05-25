@@ -1,0 +1,22 @@
+all: $(MODULES) ../common/libews0.so
+
+clean:
+	rm -f *.so *.o
+
+libdumb.so: dumb.o ../common/libews0.so $(INC)
+	$(CC) -shared -Wl,-soname,libdumb.so -o libdumb.so dumb.o ../common/libews0.so -lc
+
+dumb.o: dumb.c
+	$(CC) -c -fPIC -o dumb.o dumb.c
+
+libhttp10.so: http10.o ../common/libews0.so $(INC)
+	$(CC) -shared -Wl,-soname,libhttp10.so -o libhttp10.so http10.o ../common/libews0.so -lc
+
+http10.o: http10.c
+	$(CC) -c -fPIC -o http10.o http10.c
+
+libmime.so: mime.o ../common/libews0.so $(INC)
+	$(CC) -shared -Wl,-soname,libmime.so -o libmime.so mime.o ../common/libews0.so -lc
+
+mime.o: mime.c
+	$(CC) -c -fPIC -o mime.o mime.c

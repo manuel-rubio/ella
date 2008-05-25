@@ -1,0 +1,31 @@
+all: ewsd ews
+
+clean:
+	rm -f ewsd ews *.o
+
+configurator.o: configurator.c $(INC)
+	$(CC) -c -o configurator.o configurator.c
+
+connector.o: connector.c $(INC)
+	$(CC) -c -o connector.o connector.c
+
+console.o: console.c $(INC)
+	$(CC) -c -o console.o console.c
+
+cli.o: cli.c $(INC)
+	$(CC) -c -o cli.o cli.c
+
+modules.o: modules.c $(INC)
+	$(CC) -c -o modules.o modules.c
+
+ewsd.o: ewsd.c $(INC)
+	$(CC) -c -o ewsd.o ewsd.c
+
+ews.o: ews.c $(INC)
+	$(CC) -c -o ews.o ews.c
+
+ews: ews.o
+	$(CC) -pthread -o ews ews.o
+
+ewsd: configurator.o connector.o modules.o ewsd.o console.o cli.o ../common/libews0.so
+	$(CC) -ldl -pthread -o ewsd ../common/libews0.so configurator.o connector.o modules.o ewsd.o console.o cli.o

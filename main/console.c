@@ -35,7 +35,7 @@ static void *console(void *vconsole) {
 
     if (gethostname(hostname, sizeof(hostname)-1))
         strncpy(hostname, "<Unknown>", sizeof(hostname));
-    snprintf(response, sizeof(response), "%s/%.1f", hostname, EWS_VERSION);
+    snprintf(response, sizeof(response), "%s/%.1f", hostname, PACKAGE_VERSION);
     fdprint(con->fd, response);
     while (!bindThreadExit) {
         FD_ZERO(&rfds);
@@ -173,7 +173,7 @@ int console_make_socket(void) {
     for (x = 0; x < EWS_MAX_CONNECTS; x++)
         consoles[x].fd = -1;
     ews_cli_init();
-    unlink(__CONSOLE_SOCKET);
+    unlink(EWS_CONSOLE_SOCKET);
     ews_socket = socket(PF_LOCAL, SOCK_STREAM, 0);
     if (ews_socket < 0) {
         ews_verbose(LOG_LEVEL_WARN, "Unable to create control socket: %s", strerror(errno));
@@ -181,17 +181,17 @@ int console_make_socket(void) {
     }
     bzero(&sunaddr, sizeof(sunaddr));
     sunaddr.sun_family = AF_LOCAL;
-    strncpy(sunaddr.sun_path, __CONSOLE_SOCKET, sizeof(sunaddr.sun_path));
+    strncpy(sunaddr.sun_path, EWS_CONSOLE_SOCKET, sizeof(sunaddr.sun_path));
     res = bind(ews_socket, (struct sockaddr *)&sunaddr, sizeof(sunaddr));
     if (res) {
-        ews_verbose(LOG_LEVEL_WARN, "Unable to bind socket to %s: %s", __CONSOLE_SOCKET, strerror(errno));
+        ews_verbose(LOG_LEVEL_WARN, "Unable to bind socket to %s: %s", EWS_CONSOLE_SOCKET, strerror(errno));
         close(ews_socket);
         ews_socket = -1;
         return -1;
     }
     res = listen(ews_socket, 2);
     if (res < 0) {
-        ews_verbose(LOG_LEVEL_WARN, "Unable to listen on socket %s: %s", __CONSOLE_SOCKET, strerror(errno));
+        ews_verbose(LOG_LEVEL_WARN, "Unable to listen on socket %s: %s", EWS_CONSOLE_SOCKET, strerror(errno));
         close(ews_socket);
         ews_socket = -1;
         return -1;

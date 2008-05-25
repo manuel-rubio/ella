@@ -4,7 +4,7 @@
 
 configFuncs ews_get_initial_conf() {
     configFuncs cf;
-#if defined __CONFIG_STATIC
+#if defined EWS_CONFIG_STATIC
     // en caso de especificar de forma estática el sistema de configuración,
     // no se tendrán en cuenta los módulos de configuración.
     cf.name = "INI";
@@ -29,7 +29,7 @@ configBlock* ews_ini_read() {
     configBlock *cb = NULL, *pcb = NULL;
     configDetail *pcd = NULL;
 
-    f = fopen(__CONFIG_DIR "/http.ini", "rt");
+    f = fopen(EWS_CONFIG_DIR "/http.ini", "rt");
     if (f != NULL) {
         do {
             fgets(buffer, sizeof(buffer), f);

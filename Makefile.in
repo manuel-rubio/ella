@@ -1,0 +1,42 @@
+export MODULES
+export INC
+
+CC = @CC@
+CFLAGS = @CFLAGS@ @dependencias_CFLAGS@
+LIBS = @LIBS@ @dependencias_LIBS@
+
+MODULES = libdumb.so \
+          libhttp10.so \
+          libmime.so
+
+INC = ../include/configurator.h \
+      ../include/config.h \
+      ../include/connector.h \
+      ../include/header.h \
+      ../include/logger.h \
+      ../include/memory.h \
+      ../include/string.h
+
+all: ewsd
+
+ewsd: common main modules main/ewsd.c
+	$(MAKE) -C common
+	$(MAKE) -C main
+	$(MAKE) -C modules
+
+ews: common main modules main/ews.c
+	$(MAKE) -C common
+	$(MAKE) -C main
+	$(MAKE) -C modules
+
+clean:
+	$(MAKE) -C common clean
+	$(MAKE) -C main clean
+	$(MAKE) -C modules clean
+	rm -f ews.ctl
+
+distclean: clean
+	rm -f config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h
+
+develclean: distclean
+	rm -rf aclocal* autom4* configure

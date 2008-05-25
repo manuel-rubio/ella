@@ -26,7 +26,7 @@ int main(void) {
     }
 
     remote.sun_family = AF_UNIX;
-    strcpy(remote.sun_path, __CONSOLE_SOCKET);
+    strcpy(remote.sun_path, EWS_CONSOLE_SOCKET);
     len = strlen(remote.sun_path) + sizeof(remote.sun_family);
     if (connect(s, (struct sockaddr *)&remote, len) == -1) {
         perror("connect");
