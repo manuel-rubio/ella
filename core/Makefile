@@ -1,7 +1,7 @@
 all: ../ewsd ../ews
 
 clean:
-	rm -f ../ewsd *.o
+	rm -f ../ewsd ../ews *.o
 
 configurator.o: configurator.c $(INC)
 	$(GCC) -c -o configurator.o configurator.c

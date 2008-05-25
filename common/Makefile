@@ -21,5 +21,8 @@ memory.o: memory.c $(INC)
 string.o: string.c $(INC)
 	$(GCC) -c -o string.o string.c
 
-../libews0.so: configurator.o connector.o header.o memory.o string.o logger.o
-	$(GCC) -shared -Wl,-soname,libews0.so -o ../libews0.so configurator.o connector.o header.o memory.o string.o logger.o -lc
+date.o: date.c $(INC)
+	$(GCC) -c -o date.o date.c
+
+../libews0.so: configurator.o connector.o header.o memory.o string.o logger.o date.o
+	$(GCC) -shared -Wl,-soname,libews0.so -o ../libews0.so configurator.o connector.o header.o memory.o string.o logger.o date.o -lc
