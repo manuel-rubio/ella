@@ -25,7 +25,7 @@ char *page404 = "\
 <h1>Not found</h1>\n\
 <p>The requested URL %s was not found on this server.</p>\n\
 <hr>\n\
-<address>Ella Web Server/0.1</address>\n\
+<address>ews/0.1</address>\n\
 </body></html>";
 
 char *page501 = "\
@@ -36,7 +36,7 @@ char *page501 = "\
 <h1>Method not implemented</h1>\n\
 <p>The request method isn't implemented.</p>\n\
 <hr>\n\
-<address>Ella Web Server/0.1</address>\n\
+<address>ews/0.1</address>\n\
 </body></html>";
 
 
