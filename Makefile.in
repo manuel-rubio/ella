@@ -49,7 +49,7 @@ develclean: distclean
 
 dist: clean
 	svn2cl -i --group-by-day
-	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz ella-src/{main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README,THANKS}
+	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz ella-src/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README,THANKS}
 	$(RM) ChangeLog
 
 install: all
