@@ -42,8 +42,15 @@ clean:
 distclean: clean
 	rm -f config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h include/*~
 
+maintainer-clean: develclean
+
 develclean: distclean
 	rm -rf aclocal* autom4* configure
+
+dist: clean
+	svn2cl -i --group-by-day
+	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz ella-src/{main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README,THANKS}
+	$(RM) ChangeLog
 
 install: all
 	$(MAKE) -C common install

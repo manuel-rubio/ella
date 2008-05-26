@@ -1,4 +1,4 @@
-AC_INIT(ews, 0.1)
+AC_INIT(ews, 0.1, bombadil@bosqueviejo.net)
 
 AC_CONFIG_HEADER(include/config.h:include/config.in)
 
