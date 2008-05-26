@@ -83,7 +83,7 @@ void ews_verbose( log_t type, const char *format, ... ) {
 
     ews_chomp(buffer);
     strcat(buffer, "\n");
-#if defined __VERBOSE_STDOUT
+#if defined EWS_VERBOSE_STDOUT
     printf("%s", buffer);
 #endif
 
@@ -124,7 +124,7 @@ void ews_verbose_to( int pipe, log_t type, const char *format, ... ) {
 
     ews_chomp(buffer);
     strcat(buffer, "\n");
-#if defined __VERBOSE_STDOUT
+#if defined EWS_VERBOSE_STDOUT
     printf("%s", buffer);
 #endif
 
