@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <dirent.h>
 
 #include "../include/modules.h"
 #include "../include/header.h"
@@ -12,6 +13,7 @@
 #include "../include/date.h"
 
 #define BUFFER_SIZE 1024
+#define PAGE_SIZE   2097152
 
 #define METHOD_GET     1
 #define METHOD_POST    2
@@ -35,6 +37,25 @@ char *page501 = "\
 </head><body>\n\
 <h1>Method not implemented</h1>\n\
 <p>The request method isn't implemented.</p>\n\
+<hr>\n\
+<address>ews/0.1</address>\n\
+</body></html>";
+
+char *autoindex_header = "\
+<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
+<html><head>\n\
+<title>Index of %s</title>\n\
+</head><body>\n\
+<h1>Index of %s</h1>\n\
+<hr>\n\
+<center><table>\n\
+<tr><th>Name</th><th>Last modified</th><th>Size</th></tr>\n\
+<tr><td colspan=\"3\"><a href=\"%s\">Parent Dir</a></td></tr>\n";
+
+char *autoindex_entry = "<tr><td><a href=\"%s\">%s</a></td><td>%s</td><td align=\"right\">%s</td></tr>\n";
+
+char *autoindex_footer = "\
+</table></center>\n\
 <hr>\n\
 <address>ews/0.1</address>\n\
 </body></html>";
@@ -69,11 +90,9 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     char *host_name = ews_get_header_value(rh, "Host", 0);
     char *modified = ews_get_header_value(rh, "If-Modified-Since", 0);
     char *path;
-    char buffer[BUFFER_SIZE], date[80];
+    char buffer[BUFFER_SIZE] = { 0 }, date[80] = { 0 };
     int i, j, f, method = 0;
-
-    bzero(buffer, BUFFER_SIZE);
-    bzero(date, 80);
+    char page[PAGE_SIZE] = { 0 };
 
     if (strcmp(br->request->request, "GET") == 0) {
         method = METHOD_GET;
@@ -101,12 +120,19 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         return MODULE_RETURN_OK;
     }
     if (!http10_find_file(buffer, rh, hl)) { // 404 - Not found
-        ews_verbose(LOG_LEVEL_ERROR, "fichero %s no encontrado.", buffer);
-        http10_error_page(404, "Not found", page404, rh, rs, method);
-        return MODULE_RETURN_OK;
+        // Try autoindex
+        if (!http10_autoindex(page, rh, hl)) { // 404 - Not found
+            ews_verbose(LOG_LEVEL_ERROR, "fichero %s no encontrado.", buffer);
+            http10_error_page(404, "Not found", page404, rh, rs, method);
+            return MODULE_RETURN_OK;
+        } else {
+            ews_verbose(LOG_LEVEL_INFO, "enviando página autoindex");
+            modified = NULL; // doesn't use cache in autoindex
+        }
+    } else {
+        ews_verbose(LOG_LEVEL_INFO, "enviando fichero %s", buffer);
     }
 
-    ews_verbose(LOG_LEVEL_INFO, "enviando fichero %s", buffer);
     strcpy(rs->version, "1.0");
     rs->headers = ews_new_header("Server", "ews/0.1", 0);
     hh = rs->headers;
@@ -122,12 +148,68 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         strcpy(rs->message, "OK");
         hh->next = ews_new_header("Last-Modified", date, 0);
     }
-    if (method != METHOD_HEAD && rs->code == 200) {
+    if (page[0] != 0 && rs->code == 200) {
+        ews_set_response_content(rs, HEADER_CONTENT_STRING, page);
+    } else if (method != METHOD_HEAD && rs->code == 200) {
         ews_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
     }
 
     // TODO: implementar la gestión de cabeceras según el RFC1945
     return MODULE_RETURN_PROC_STOP;
+}
+
+int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
+    char *path = ews_get_detail_value(hl->details, "path", 0);
+    char *autoindex = ews_get_detail_value(hl->details, "autoindex", 0);
+    DIR *d;
+    struct dirent *dp;
+    struct stat st;
+    struct tm *ft;
+    char linea[BUFFER_SIZE] = { 0 };
+    char file[BUFFER_SIZE] = { 0 };
+    char file_uri[BUFFER_SIZE] = { 0 };
+    char dir[BUFFER_SIZE] = { 0 };
+    char date[50] = { 0 };
+    char size[32] = { 0 };
+
+    bzero(page, PAGE_SIZE);
+
+    if (strcmp(autoindex, "on") == 0) {
+        sprintf(dir, "%s/%s", path, rh->uri + (strlen(hl->base_uri)));
+        ews_verbose(LOG_LEVEL_INFO, "Directorio para autoindex: %s", dir);
+        d = opendir(dir);
+        if (d == NULL)
+            return 0;
+        // TODO: configurar el parent dir
+        sprintf(page, autoindex_header, rh->uri, rh->uri, "");
+        for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
+            if (strcmp(dp->d_name, ".") == 0) {
+                // Nothing to do (self dir)
+            } else if (strcmp(dp->d_name, "..") == 0) {
+                // Nothing to do (parent dir)
+            } else {
+                sprintf(file, "%s/%s", path, dp->d_name);
+                sprintf(file_uri, "%s/%s", rh->uri, dp->d_name);
+                stat(file, &st);
+                ft = gmtime(&st.st_mtime);
+                sprintf(date, "%02d/%02d/%02d %02d:%02d:%02d",
+                    ft->tm_mday, ft->tm_mon + 1, ft->tm_year + 1900,
+                    ft->tm_hour, ft->tm_min, ft->tm_sec
+                );
+                if (dp->d_type == DT_REG) {
+                    sprintf(size, "%d", st.st_size);
+                } else {
+                    strcpy(size, "-");
+                }
+                sprintf(linea, autoindex_entry, file_uri, dp->d_name, date, size);
+                strcat(page, linea);
+            }
+        }
+        strcat(page, autoindex_footer);
+        closedir(d);
+        return 1;
+    }
+    return 0;
 }
 
 int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
