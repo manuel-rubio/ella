@@ -1,7 +1,7 @@
 all: $(MODULES) ../common/libews0.so
 
 clean:
-	$(RM) -f *.so *.o
+	$(RM) *.so *.o
 
 libdumb.so: dumb.o ../common/libews0.so $(INC)
 	$(CC) $(CFLAGS) $(LIBS) -shared -Wl,-soname,libdumb.so -o libdumb.so dumb.o ../common/libews0.so -lc
@@ -24,3 +24,6 @@ mime.o: mime.c
 install: $(MODULES)
 	[ -d @libdir@/ews/modules ] || mkdir -p @libdir@/ews/modules
 	cp $(MODULES) @libdir@/ews/modules
+
+uninstall:
+	[ -d @libdir@/ews/modules ] && $(RM) -r @libdir@/ews/modules

@@ -1,7 +1,7 @@
 all: libews0.so
 
 clean:
-	$(RM) -f libews0.so *.o
+	$(RM) libews0.so *.o
 
 configurator.o: configurator.c $(INC)
 	$(CC) $(CFLAGS) -c -o configurator.o configurator.c
@@ -29,3 +29,6 @@ libews0.so: configurator.o connector.o header.o memory.o string.o logger.o date.
 
 install: all
 	cp libews0.so @libdir@
+
+uninstall:
+	$(RM) @libdir@/libews0.so
