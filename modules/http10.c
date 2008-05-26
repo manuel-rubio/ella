@@ -67,6 +67,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     hostLocation *hl = NULL;
     headerHTTP *hh = NULL;
     char *host_name = ews_get_header_value(rh, "Host", 0);
+    char *modified = ews_get_header_value(rh, "If-Modified-Since", 0);
     char *path;
     char buffer[BUFFER_SIZE], date[80];
     int i, j, f, method = 0;
@@ -113,7 +114,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     hh->next = ews_new_header("Date", date, 0);
     set_file_date(date, buffer);
     hh = hh->next;
-    if (compare_date(date, ews_get_header_value(rh, "If-Modified-Since", 0)) >= 0) {
+    if (modified != NULL && compare_date(date, modified) >= 0) {
         rs->code = 304;
         strcpy(rs->message, "Not Modified");
     } else {
