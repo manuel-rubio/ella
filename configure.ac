@@ -34,8 +34,8 @@ AC_ARG_ENABLE(conf-static,
     EWS_CONFIG_STATIC=no,
     AC_DEFINE(EWS_CONFIG_STATIC,,[config method system static in INI files]))
 
-AC_ARG_ENABLE(stdout-verbose,
-    AC_HELP_STRING([--enable-stdout-verbose],
+AC_ARG_ENABLE(verbose-stdout,
+    AC_HELP_STRING([--enable-verbose-stdout],
         [verbose to stdout in daemon execution]),
     AC_DEFINE(EWS_VERBOSE_STDOUT,,[config method system static in INI files]),
     EWS_VERBOSE_STDOUT=no )
