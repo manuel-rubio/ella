@@ -5,6 +5,7 @@
 #include "../include/modules.h"
 #include "../include/header.h"
 #include "../include/connector.h"
+#include "../include/logger.h"
 
 struct Mime_Types {
     char mime[80];
@@ -39,6 +40,7 @@ char* mime_find_type( char *file ) {
             return mt->mime;
         }
     }
+    return NULL;
 }
 
 int mime_run( struct Bind_Request *br, responseHTTP *rs ) {
