@@ -2,18 +2,19 @@
 
 #include "../include/ella.h"
 
-moduleTAD* ews_modules_load( configBlock *cb ) {
+moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
     int  indexes, i;
     char *module = NULL,
          lib[80] = { 0 },
          *autoload = NULL;
     moduleTAD *pmt = NULL, *mt = NULL, *tmt = NULL;
-    void (*init_module)( moduleTAD* ) = NULL;
+    void (*init_module)( moduleTAD*, cliCommand** ) = NULL;
     configBlock *pcb = NULL, *cb_modules = NULL;
 
     cb_modules = ews_get_block(cb, "modules", NULL);
     autoload = ews_get_detail_value(cb_modules->details, "autoload", 0);
     if (autoload != NULL && strcmp(autoload, "yes") == 0) {
+        // TODO: implementar autocarga de módulos
         ews_verbose(LOG_LEVEL_INFO, "AutoCarga: sí (no implementado aún)");
     } else {
         ews_verbose(LOG_LEVEL_INFO, "AutoCarga: no");
@@ -64,7 +65,7 @@ moduleTAD* ews_modules_load( configBlock *cb ) {
             } else {
                 pcb = ews_get_block(cb, module, NULL);
                 pmt->details = (pcb != NULL) ? pcb->details : NULL;
-                init_module(pmt);
+                init_module(pmt, cc);
                 if (pmt->load != NULL) {
                     pmt->load();
                 }

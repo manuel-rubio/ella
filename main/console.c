@@ -162,7 +162,7 @@ static void *console_launch(void *unused) {
     return NULL;
 }
 
-int console_make_socket(void) {
+int console_make_socket( cliCommand **cc ) {
     struct sockaddr_un sunaddr;
     int res;
     int x;
@@ -172,7 +172,7 @@ int console_make_socket(void) {
 
     for (x = 0; x < EWS_MAX_CONNECTS; x++)
         consoles[x].fd = -1;
-    ews_cli_init();
+    ews_cli_init(cc);
     unlink(EWS_CONSOLE_SOCKET);
     ews_socket = socket(PF_LOCAL, SOCK_STREAM, 0);
     if (ews_socket < 0) {
@@ -196,7 +196,7 @@ int console_make_socket(void) {
         ews_socket = -1;
         return -1;
     }
-//     ast_register_verbose(network_verboser); // TODO: hacer la parte de envío de logs a consola.
+
     ews_verbose(LOG_LEVEL_INFO, "lanzado hilo para consola");
     pthread_attr_init(&lattr);
     pthread_attr_setstacksize(&lattr, EWS_STACKSIZE);

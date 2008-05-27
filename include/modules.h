@@ -7,6 +7,7 @@
 #include "header.h"
 #include "configurator.h"
 #include "memory.h"
+#include "cli.h"
 
 /**
  *  Tipos de módulos que puede haber, y en orden de prioridad.
@@ -64,9 +65,10 @@ typedef struct Module moduleTAD;
  *  será retornada.
  *
  *  @param cb puntero a configBlock de cabecera.
+ *  @param cc puntero a cabecera de cliCommands.
  *  @return una lista enlazada de moduleTAD.
  */
-moduleTAD* ews_modules_load( configBlock *cb );
+moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc );
 
 /**
  *  Reordena los módulos por tipo y prioridad.

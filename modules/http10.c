@@ -6,11 +6,7 @@
 #include <time.h>
 #include <dirent.h>
 
-#include "../include/modules.h"
-#include "../include/header.h"
-#include "../include/connector.h"
-#include "../include/configurator.h"
-#include "../include/date.h"
+#include "../include/ella.h"
 
 #define BUFFER_SIZE 1024
 #define PAGE_SIZE   2097152
@@ -249,7 +245,14 @@ int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
     return 0;
 }
 
-void http10_init( moduleTAD *module ) {
+int http10_cli_info( int pipe, char *params ) {
+    char buffer[80];
+    http10_get_status(buffer);
+    ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
+    return 1;
+}
+
+void http10_init( moduleTAD *module, cliCommand **cc ) {
     strcpy(module->name, "http10");
     module->type = MODULE_TYPE_PROC;
     module->priority = 50;
@@ -259,4 +262,6 @@ void http10_init( moduleTAD *module ) {
     module->reload = NULL;
     module->get_status = http10_get_status;
     module->run = http10_run;
+
+    ews_cli_add_command(cc, "http10-info", "info about HTTP 1.0 module", NULL, http10_cli_info);
 }

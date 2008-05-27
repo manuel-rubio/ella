@@ -1,7 +1,7 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#if !defined __TORNASAUCE_H
-#define __TORNASAUCE_H
+#if !defined __EWS_H
+#define __EWS_H
 
 #include <signal.h>
 #include <poll.h>
@@ -15,6 +15,7 @@
 #include "header.h"
 #include "modules.h"
 #include "memory.h"
+#include "cli.h"
 
 extern char bindThreadExit;  //!< interruptor para mantener la ejecución o no.
 
@@ -84,11 +85,12 @@ static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* cl
 
 /**
  *  Lanza el sistema de consola.
+ *
+ *  @param cc puntero a cabeza de lista de comandos cargados.
  */
-int console_make_socket(void);
+int console_make_socket( struct cli_command **cc );
 
-void ews_cli_init();
+void ews_cli_init( struct cli_command **cc );
 int ews_cli_command( int pipe, char *request );
-int ews_cli_add_command( char *name, char *description, char *long_description, int (*cli_command)( int, char * ) );
 
 #endif

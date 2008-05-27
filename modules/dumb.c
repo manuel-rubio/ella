@@ -44,7 +44,7 @@ int dumb_run( struct Bind_Request *br, responseHTTP *rs ) {
     return MODULE_RETURN_STOP;
 }
 
-void dumb_init( moduleTAD *module ) {
+void dumb_init( moduleTAD *module, cliCommand **cc ) {
     strcpy(module->name, "dumb");
     module->type = MODULE_TYPE_PROC;
     module->priority = 75;

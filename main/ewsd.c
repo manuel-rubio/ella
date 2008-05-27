@@ -10,6 +10,7 @@ int main() {
     configFuncs cf;
     configBlock *cb = NULL;
     moduleTAD *modules = NULL;
+    cliCommand *commands = NULL;
     bindConnect *bc = NULL, *pbc = NULL;
     int rc, status;
 
@@ -17,7 +18,7 @@ int main() {
     cf = ews_get_initial_conf();
     cb = cf.read();
 
-    modules = ews_modules_load(cb);
+    modules = ews_modules_load(cb, &commands);
     bc = ews_connector_parse_bind(cb, modules);
 
     signal(SIGTERM, stop_ews);
@@ -32,7 +33,7 @@ int main() {
         }
     }
 
-    if (console_make_socket() < 0) {
+    if (console_make_socket(&commands) < 0) {
         ews_verbose(LOG_LEVEL_ERROR, "in console launch");
     }
 
@@ -44,6 +45,7 @@ int main() {
     }
 
     ews_modules_free(modules);
+    ews_cli_free(&commands);
     ews_free_blocks(cb);
     ews_connector_bind_free(bc);
     ews_memory_stats();
