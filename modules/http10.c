@@ -45,10 +45,10 @@ char *autoindex_header = "\
 <h1>Index of %s</h1>\n\
 <hr>\n\
 <center><table>\n\
-<tr><th>Name</th><th>Last modified</th><th>Size</th></tr>\n\
-<tr><td colspan=\"3\"><a href=\"%s\">Parent Dir</a></td></tr>\n";
+<tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>\n\
+<tr><td colspan=\"4\"><a href=\"%s\">Parent Dir</a></td></tr>\n";
 
-char *autoindex_entry = "<tr><td><a href=\"%s\">%s</a></td><td>%s</td><td align=\"right\">%s</td></tr>\n";
+char *autoindex_entry = "<tr><td>%s</td><td><a href=\"%s\">%s</a></td><td>%s</td><td align=\"right\">%s</td></tr>\n";
 
 char *autoindex_footer = "\
 </table></center>\n\
@@ -184,7 +184,7 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
             } else if (strcmp(dp->d_name, "..") == 0) {
                 // Nothing to do (parent dir)
             } else {
-                sprintf(file, "%s/%s", path, dp->d_name);
+                sprintf(file, "%s/%s", dir, dp->d_name);
                 sprintf(file_uri, "%s/%s", rh->uri, dp->d_name);
                 stat(file, &st);
                 ft = gmtime(&st.st_mtime);
@@ -197,7 +197,7 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
                 } else {
                     strcpy(size, "-");
                 }
-                sprintf(linea, autoindex_entry, file_uri, dp->d_name, date, size);
+                sprintf(linea, autoindex_entry, (dp->d_type==DT_DIR)?"[DIR]":(dp->d_type==DT_LNK)?"[LNK]":"", file_uri, dp->d_name, date, size);
                 strcat(page, linea);
             }
         }
