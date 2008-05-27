@@ -49,7 +49,7 @@ develclean: distclean
 
 dist: clean
 	svn2cl -i --group-by-day
-	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz ella-src/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README,THANKS}
+	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz ella-src/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README,THANKS}
 	$(RM) ChangeLog
 
 install: all
@@ -65,4 +65,4 @@ uninstall:
 	$(MAKE) -C main uninstall
 	$(MAKE) -C modules uninstall
 	[ -d @sysconfdir@/ews ] && $(RM) -r @sysconfdir@/ews
-	[ -d @localstatedir@/run/ews ] || $(RM) -r @localstatedir@/run/ews
+	[ -d @localstatedir@/run/ews ] && $(RM) -r @localstatedir@/run/ews

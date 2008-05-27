@@ -26,4 +26,4 @@ install: $(MODULES)
 	cp $(MODULES) @libdir@/ews/modules
 
 uninstall:
-	[ -d @libdir@/ews/modules ] && $(RM) -r @libdir@/ews/modules
+	[ -d @libdir@/ews/modules ] && $(RM) -r @libdir@/ews
