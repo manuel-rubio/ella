@@ -88,9 +88,16 @@ struct Bind_Request {
     pthread_t thread;          //!< hilo para la ejecución del cliente.
     struct sockaddr_in client; //!< datos de cliente.
     int fd_client;             //!< descriptor de fichero para socket.
+    int conn_next_status;      //!< define si hay o no que cerrar la conexión.
+    int conn_timeout;          //!< tiempo de espera en caso de "keepalive".
 };
 
 typedef struct Bind_Request bindRequest;
+
+enum {
+    EWS_CON_CLOSE,       //!< cerrar la conexión
+    EWS_CON_KEEPALIVE    //!< mantener abierta
+};
 
 /**
  *  Rellena una estructura de conexión con los datos de configuración.
