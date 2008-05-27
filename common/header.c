@@ -42,7 +42,7 @@ void ews_set_response_content( responseHTTP *rs, int type, void *s ) {
         if (type == HEADER_CONTENT_FILE) {
             stat((char *)s, &st);
             sprintf(size, "%ld", st.st_size);
-            ews_verbose(LOG_LEVEL_INFO, "fichero %s de %d bytes", (char *)s, st.st_size);
+            ews_verbose(LOG_LEVEL_INFO, "%s file has %d bytes", (char *)s, st.st_size);
         } else {
             // HEADER_CONTENT_STRING
             sprintf(size, "%d", strlen(s));
@@ -201,7 +201,7 @@ char* ews_gen_response( responseHTTP *rs ) {
     s = (char *)ews_malloc(size);
     sprintf(s, "HTTP/%s %d %s\r\n", rs->version, rs->code, rs->message);
     for (ph = rs->headers; ph!=NULL; ph=ph->next) {
-        // TODO: hacer la concatenación de los valores por los índices
+        // TODO: do values concatenation order by indexes
         sprintf(buffer, "%s: %s\r\n", ph->key, ph->value);
         if (strlen(buffer) + strlen(s) > size) {
             size += 8192;

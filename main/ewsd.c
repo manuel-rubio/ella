@@ -17,6 +17,7 @@ int main() {
     logger_init();
     cf = ews_get_initial_conf();
     cb = cf.read();
+    logger_config(ews_get_block(cb, "logger", NULL));
 
     modules = ews_modules_load(cb, &commands);
     bc = ews_connector_parse_bind(cb, modules);
@@ -29,7 +30,7 @@ int main() {
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
         rc = pthread_create(&pbc->thread, NULL, ews_connector_launch, (void *)pbc);
         if (rc) {
-            ews_verbose(LOG_LEVEL_ERROR, "al crear hilo: %d", rc);
+            ews_verbose(LOG_LEVEL_ERROR, "in thread creation: %d", rc);
         }
     }
 
@@ -39,9 +40,9 @@ int main() {
 
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
         if (pthread_join(pbc->thread, (void **) &status)) {
-            ews_verbose(LOG_LEVEL_ERROR, "no se pudo realizar 'join' en hilos.");
+            ews_verbose(LOG_LEVEL_ERROR, "can't do 'join' in threads");
         }
-        ews_verbose(LOG_LEVEL_INFO, "el hilo terminó con el estado %d.", status);
+        ews_verbose(LOG_LEVEL_INFO, "thread exit with %d status.", status);
     }
 
     ews_modules_free(modules);

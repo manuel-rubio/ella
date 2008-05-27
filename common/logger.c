@@ -4,7 +4,7 @@
 
 #define EWS_LOGGER_MAX_FDS 128
 
-static int debug_level = LOG_LEVEL_DEBUG;
+static int log_level = LOG_LEVEL_DEBUG;
 static char dateformat[256] = "%d/%m/%Y %H:%M:%S";
 
 static int logger_fds[EWS_LOGGER_MAX_FDS];
@@ -14,14 +14,6 @@ char *log_names[] = {
     "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
 };
 
-void set_date_format( const char *s ) {
-    strcpy(dateformat, s);
-}
-
-void set_debug_level( int type ) {
-    debug_level = type;
-}
-
 void logger_init() {
     int i;
     pthread_mutex_lock(&logger_fds_mutex);
@@ -29,6 +21,27 @@ void logger_init() {
         logger_fds[i] = -1;
     }
     pthread_mutex_unlock(&logger_fds_mutex);
+}
+
+void logger_config( configBlock *cb ) {
+    char *tmp;
+    int level;
+
+    if (cb == NULL || cb->details == NULL)
+        return;
+
+    tmp = ews_get_detail_value(cb->details, "dateformat", 0);
+    if (tmp != NULL) {
+        strcpy(dateformat, tmp);
+    }
+    tmp = ews_get_detail_value(cb->details, "loglevel", 0);
+    if (tmp != NULL) {
+        for (level = 0; level < 5 || (strcmp(log_names[level], tmp) == 0); level++)
+            ;
+        if (level < 5) {
+            log_level = level;
+        }
+    }
 }
 
 int logger_register( int fd ) {
@@ -69,7 +82,7 @@ void ews_verbose( log_t type, const char *format, ... ) {
     int       len,
               i;
 
-    if (type < debug_level)
+    if (type < log_level)
         return;
 
     time(&t);
@@ -110,7 +123,7 @@ void ews_verbose_to( int pipe, log_t type, const char *format, ... ) {
     int       len,
               i;
 
-    if (type < debug_level)
+    if (type < log_level)
         return;
 
     time(&t);

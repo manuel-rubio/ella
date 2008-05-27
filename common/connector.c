@@ -94,7 +94,7 @@ void ews_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHo
         vh->aliases = NULL;
         vh->next = NULL;
 
-        // configuramos los alias para el virtual host
+        // configuring alias for virtual host
         if (aliases != NULL) {
             indexes = ews_get_detail_values(aliases->details, vh->host_name);
             for (i=0; i<indexes; i++) {

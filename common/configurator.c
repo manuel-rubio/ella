@@ -56,24 +56,34 @@ configBlock* ews_get_block( configBlock *cb, char *name, char *lastname ) {
                 return cb;
         }
     }
+    if (lastname) {
+        ews_verbose(LOG_LEVEL_DEBUG, "block [%s:%s] not found", name, lastname);
+    } else {
+        ews_verbose(LOG_LEVEL_DEBUG, "block [%s] not found", name);
+    }
     return NULL;
 }
 
 char* ews_get_detail_value( configDetail *details, char *key, int index ) {
     configDetail *cd;
-    if (details == NULL)
-        return NULL;
+    if (details == NULL) {
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
+        return 0;
+    }
     for (cd=details; cd != NULL; cd = cd->next)
         if (strcmp(cd->key, key) == 0 && cd->index == index)
             return cd->value;
+    ews_verbose(LOG_LEVEL_DEBUG, "detail not found: %s[%d]", key, index);
     return NULL;
 }
 
 char* ews_get_detail_key( configDetail *details, char *value, int index ) {
     configDetail *cd;
     int count = 0;
-    if (details == NULL)
-        return NULL;
+    if (details == NULL) {
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
+        return 0;
+    }
     for (cd=details; cd != NULL; cd = cd->next) {
         if (strcmp(cd->value, value) == 0) {
             if (count == index)
@@ -81,14 +91,17 @@ char* ews_get_detail_key( configDetail *details, char *value, int index ) {
             count++;
         }
     }
+    ews_verbose(LOG_LEVEL_DEBUG, "key for value [%s] in index [%d] not found", value, index);
     return NULL;
 }
 
 int ews_get_detail_values( configDetail *details, char *value ) {
     configDetail *cd;
     int indexes = 0;
-    if (details == NULL)
+    if (details == NULL) {
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
         return 0;
+    }
     for (cd=details; cd != NULL; cd = cd->next)
         if (strcmp(cd->value, value) == 0)
             indexes++;
@@ -98,8 +111,10 @@ int ews_get_detail_values( configDetail *details, char *value ) {
 int ews_get_detail_indexes( configDetail *details, char *key ) {
     configDetail *cd;
     int indexes = 0;
-    if (details == NULL)
+    if (details == NULL) {
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
         return 0;
+    }
     for (cd=details; cd != NULL; cd = cd->next)
         if (strcmp(cd->key, key) == 0)
             indexes++;
@@ -110,8 +125,10 @@ void ews_get_bindhost( configBlock *cb, char *key, int index, char *s ) {
     char *host = ews_get_detail_value(cb->details, key, index);
     int i, capture;
 
-    if (host == NULL)
+    if (host == NULL) {
+        ews_verbose(LOG_LEVEL_DEBUG, "host not found! in [%s:%s]", cb->name, cb->lastname);
         return;
+    }
     for (i=0; host[i]!='\0' && host[i]!=':'; i++)
         s[i] = host[i];
     s[i] = '\0';
@@ -122,8 +139,10 @@ int ews_get_bindport( configBlock *cb, char *key, int index ) {
     char s[10];
     int i, j, capture;
 
-    if (host == NULL)
+    if (host == NULL) {
+        ews_verbose(LOG_LEVEL_DEBUG, "host not found! in [%s:%s]", cb->name, cb->lastname);
         return;
+    }
     for (i=0, j=0, capture=0; host[i]!='\0'; i++) {
         if (capture)
             s[j++] = host[i];

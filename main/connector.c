@@ -2,7 +2,7 @@
 
 #include "../include/ella.h"
 
-/* TODO: definimos los clientes máximos a 10, temporalmente */
+// TODO: get this data from config file
 #define MAX_CLIENTS 10
 
 char bindThreadExit = 0;
@@ -15,7 +15,7 @@ void* ews_connector_launch( void* ptr_bc ) {
     int rc;
 
     bc = (bindConnect *)ptr_bc;
-    ews_verbose(LOG_LEVEL_INFO, "Lanzando conexión: %s:%d", bc->host, bc->port);
+    ews_verbose(LOG_LEVEL_INFO, "Launching connection: %s:%d", bc->host, bc->port);
     bzero(&server, sizeof(server));
     fd_server = ews_server_start(&server, bc->host, bc->port, MAX_CLIENTS);
     if (fd_server > 0) {
@@ -40,10 +40,10 @@ void* ews_connector_launch( void* ptr_bc ) {
 
         rc = pthread_create(&br->thread, NULL, ews_connector_client_launch, (void *)br);
         if (rc) {
-            ews_verbose(LOG_LEVEL_ERROR, "al crear hilo: %d", rc);
+            ews_verbose(LOG_LEVEL_ERROR, "in thread creation: %d", rc);
         }
     }
-    ews_verbose(LOG_LEVEL_INFO, "saliendo del programa");
+    ews_verbose(LOG_LEVEL_INFO, "program exit");
     pthread_exit(NULL);
 }
 
@@ -93,7 +93,7 @@ static void* ews_connector_client_launch( void* ptr_br ) {
     int mod_proc = 1, mod_sec = 1, mod_head = 1;
 
     br = (bindRequest *)ptr_br;
-    ews_verbose(LOG_LEVEL_INFO, "Conexión desde: %s", inet_ntoa((br->client).sin_addr));
+    ews_verbose(LOG_LEVEL_INFO, "Connection from: %s", inet_ntoa((br->client).sin_addr));
 
     rs = (responseHTTP *)ews_malloc(sizeof(responseHTTP));
 
@@ -116,7 +116,7 @@ static void* ews_connector_client_launch( void* ptr_br ) {
                 }
 
                 for (pmt = br->bc->modules; pmt!=NULL; pmt=pmt->next) {
-                    ews_verbose(LOG_LEVEL_INFO, "ejecutando módulo %s", pmt->name);
+                    ews_verbose(LOG_LEVEL_INFO, "running %s module", pmt->name);
                     if (pmt->run != NULL) {
                         if (pmt->type == MODULE_TYPE_SEC && !mod_sec)
                             continue;
@@ -127,23 +127,23 @@ static void* ews_connector_client_launch( void* ptr_br ) {
                         res = pmt->run(br, rs);
                         switch (res) {
                             case MODULE_RETURN_FAIL:
-                                ews_verbose(LOG_LEVEL_ERROR, "módulo %s tuvo un error de ejecución", pmt->name);
+                                ews_verbose(LOG_LEVEL_ERROR, "%s module have a running error", pmt->name);
                                 break;
                             case MODULE_RETURN_PROC_STOP:
-                                ews_verbose(LOG_LEVEL_INFO, "módulo %s pide parada de procesamiento en PROC", pmt->name);
+                                ews_verbose(LOG_LEVEL_INFO, "%s module request process PROC stop", pmt->name);
                                 mod_proc = 0;
                                 break;
                             case MODULE_RETURN_SEC_STOP:
-                                ews_verbose(LOG_LEVEL_INFO, "módulo %s pide parada de procesamiento en SEC", pmt->name);
+                                ews_verbose(LOG_LEVEL_INFO, "%s module request process SEC stop", pmt->name);
                                 mod_sec = 0;
                                 break;
                             case MODULE_RETURN_STOP:
-                                ews_verbose(LOG_LEVEL_INFO, "módulo %s requiere parada de procesamiento", pmt->name);
-                                pmt = NULL; /* terminamos el bucle for. */
+                                ews_verbose(LOG_LEVEL_INFO, "%s module request process stop", pmt->name);
+                                pmt = NULL; /* end "for" loop. */
                                 break;
                         }
                     } else {
-                        ews_verbose(LOG_LEVEL_ERROR, "método 'run' del módulo %s no definido", pmt->name);
+                        ews_verbose(LOG_LEVEL_ERROR, "'run' method from %s module not defined", pmt->name);
                     }
                 }
                 buffer = ews_gen_response(rs);
@@ -156,18 +156,18 @@ static void* ews_connector_client_launch( void* ptr_br ) {
                     case HEADER_CONTENT_FILE:
                         f = open(rs->content, O_RDONLY);
                         if (f == -1) {
-                            ews_verbose(LOG_LEVEL_ERROR, "fichero no se pudo abrir (%d).", errno);
+                            ews_verbose(LOG_LEVEL_ERROR, "can't open file (%d).", errno);
                         } else {
                             while (bucle && (bf_size = read(f, bf, 1024))) {
                                 if (bf_size == -1) {
-                                    ews_verbose(LOG_LEVEL_ERROR, "error durante lectura del fichero %s.", rs->content);
+                                    ews_verbose(LOG_LEVEL_ERROR, "error while read file %s.", rs->content);
                                     bucle = 0;
                                 } else {
                                     send(br->fd_client, bf, bf_size, 0);
                                 }
                             }
                             if (bucle) {
-                                ews_verbose(LOG_LEVEL_INFO, "Fichero %s enviado correctamente", rs->content);
+                                ews_verbose(LOG_LEVEL_INFO, "%s file send successfully", rs->content);
                             }
                             close(f);
                         }
@@ -178,7 +178,7 @@ static void* ews_connector_client_launch( void* ptr_br ) {
 
     // cerramos todo antes de salir
     ews_free_response(rs);
-    ews_verbose(LOG_LEVEL_INFO, "finalizado procesamiento desde: %s", inet_ntoa((br->client).sin_addr));
+    ews_verbose(LOG_LEVEL_INFO, "finish process from: %s", inet_ntoa((br->client).sin_addr));
     shutdown(br->fd_client, SHUT_RD);
     close(br->fd_client);
     ews_connector_bindrequest_free(br);
@@ -190,7 +190,7 @@ static int ews_server_start( struct sockaddr_in *server, char *host, int port, i
     int reuse_addr = 1;
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
-        ews_verbose(LOG_LEVEL_ERROR, "al iniciar el servidor (socket)");
+        ews_verbose(LOG_LEVEL_ERROR, "in init server (socket)");
         bindThreadExit = 1;
         return -1;
     }
@@ -204,12 +204,12 @@ static int ews_server_start( struct sockaddr_in *server, char *host, int port, i
     bzero(&(server->sin_zero),8);
 
     if (bind(fd,(struct sockaddr*)server, sizeof(struct sockaddr))==-1) {
-        ews_verbose(LOG_LEVEL_ERROR, "el puerto %d está ocupado", port);
+        ews_verbose(LOG_LEVEL_ERROR, "port %d is busy", port);
         exit(-1);
     }
 
     if (listen(fd, max_clients) == -1) {
-        ews_verbose(LOG_LEVEL_ERROR, "no es posible hacer 'listen'");
+        ews_verbose(LOG_LEVEL_ERROR, "can't do 'listen'");
         exit(-1);
     }
     return fd;
@@ -231,7 +231,7 @@ static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* cl
         if (errno == EWOULDBLOCK || errno == EAGAIN) {
             return fd;
         }
-        ews_verbose(LOG_LEVEL_ERROR, "imposible aceptar conexión entrante");
+        ews_verbose(LOG_LEVEL_ERROR, "can't accept incoming connection");
         exit(-1);
     }
     return fd;

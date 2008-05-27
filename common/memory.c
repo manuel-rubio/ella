@@ -60,14 +60,14 @@ void ews_free( void *ptr, const char *name ) {
         ews_memory_data[MAX_MEM_ALLOCS-1][1] = 0;
         ews_memory_ptr --;
     } else {
-        ews_verbose(LOG_LEVEL_WARN, "%s intento de liberar memoria no reservada (%d)", name, (int)ptr);
+        ews_verbose(LOG_LEVEL_WARN, "%s try to free not allocate memory (%d)", name, (int)ptr);
     }
 
     pthread_mutex_unlock(&memory_allocation);
 }
 
 void ews_free_all( void ) {
-    long freed, freed_size, size;
+    long freed = 0, freed_size = 0, size = 0;
     int i;
 
     pthread_mutex_lock(&memory_allocation);
@@ -85,7 +85,7 @@ void ews_free_all( void ) {
     }
     ews_memory_ptr = 0;
     pthread_mutex_unlock(&memory_allocation);
-    ews_verbose(LOG_LEVEL_INFO, "liberadas %d reservas y %ld bytes", freed, freed_size);
+    ews_verbose(LOG_LEVEL_INFO, "%ld allocations freed for %ld bytes", freed, freed_size);
 }
 
 void ews_memory_print_units( char *buffer, long units ) {
@@ -102,21 +102,21 @@ void ews_memory_stats( void ) {
     char buffer[256];
     pthread_mutex_lock(&memory_allocation);
 
-    strcpy(buffer, "Memoria reservada: ");
+    strcpy(buffer, "Allocated memory: ");
     ews_memory_print_units(buffer + strlen(buffer), ews_memory_allocated);
     ews_verbose(LOG_LEVEL_INFO, buffer);
 
-    strcpy(buffer, "Memoria liberada: ");
+    strcpy(buffer, "Freed memory: ");
     ews_memory_print_units(buffer + strlen(buffer), ews_memory_freed);
     ews_verbose(LOG_LEVEL_INFO, buffer);
 
-    strcpy(buffer, "Descuadre (memoria perdida): ");
+    strcpy(buffer, "Lost memory: ");
     ews_memory_print_units(buffer + strlen(buffer), ews_memory);
     ews_verbose(LOG_LEVEL_INFO, buffer);
 
-    ews_verbose(LOG_LEVEL_INFO, "Máximo número de reservas simultáneas: %d", ews_max_simult_allocs);
+    ews_verbose(LOG_LEVEL_INFO, "Max. simultaneous allocations: %d", ews_max_simult_allocs);
 
-    strcpy(buffer, "Máxima cantidad de memory en uso: ");
+    strcpy(buffer, "Max. memory in use: ");
     ews_memory_print_units(buffer + strlen(buffer), ews_max_memory_in_use);
     ews_verbose(LOG_LEVEL_INFO, buffer);
 

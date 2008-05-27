@@ -1,35 +1,40 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
+#if !defined __EWS_STRING_H
+#define __EWS_STRING_H
+
 #include <string.h>
 
 /**
- *  Elimina espacios en blanco por la derecha.
+ *  Erase right blanks.
  *
- *  @param s cadena a modificar.
- *  @return puntero a la misma cadena.
+ *  @param s string to trim.
+ *  @return pointer to same string.
  */
 char* ews_rtrim( char* s );
 
 /**
- *  Elimina espacios en blanco por la izquierda.
+ *  Erase left blanks.
  *
- *  @param s cadena a modificar.
- *  @return puntero a la misma cadena.
+ *  @param s string to trim.
+ *  @return pointer to same string.
  */
 char* ews_ltrim( char* s );
 
 /**
- *  Elimina espacios en blanco por la derecha e izquierda.
+ *  Erase both right and left blanks.
  *
- *  @param s cadena a modificar.
- *  @return puntero a la misma cadena.
+ *  @param s string to trim.
+ *  @return pointer to same string.
  */
 char* ews_trim( char* s );
 
 /**
- *  Elimina el retorno de carro (\\n y \\r) del final de la cadena.
+ *  Erase string end return (\\n y \\r).
  *
- *  @param s cadena a modificar.
- *  @return puntero a la misma cadena.
+ *  @param s string to chop.
+ *  @return pointer to same string.
  */
 char* ews_chomp( char *s );
+
+#endif

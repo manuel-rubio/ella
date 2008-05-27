@@ -16,7 +16,7 @@ int ews_cli_help( int pipe, char *params ) {
         len = strlen(buffer);
     }
     ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
-    // TODO: hacer ayuda en profundidad (long_description)
+    // TODO: do help in deep (long_description)
     return 1;
 }
 
@@ -28,12 +28,12 @@ int ews_cli_shutdown( int pipe, char *params ) {
 void ews_cli_init( cliCommand **cc ) {
     if (commands == NULL)
         commands = cc;
-    ews_verbose(LOG_LEVEL_DEBUG, "inicializando CLI para console");
+    ews_verbose(LOG_LEVEL_DEBUG, "CLI init for console");
     ews_cli_add_command(commands, "quit", "close console session.", NULL, NULL);
     ews_cli_add_command(commands, "exit", "close console session.", NULL, NULL);
     ews_cli_add_command(commands, "help", "use help with another topic to see more information.", NULL, ews_cli_help);
     ews_cli_add_command(commands, "shutdown", "shutdown ews", NULL, ews_cli_shutdown);
-    ews_verbose(LOG_LEVEL_DEBUG, "terminada inicialización de CLI");
+    ews_verbose(LOG_LEVEL_DEBUG, "end CLI init");
 }
 
 int ews_cli_command( int pipe, char *request ) {

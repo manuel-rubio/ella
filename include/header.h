@@ -16,41 +16,32 @@
 #include "logger.h"
 
 /**
- *  Estructura de cabecera.
- *
- *  Contendrá las cabeceras HTTP separadas entre la clave,
- *  su valor y, en caso que sean valores separados por comas,
- *  habrá varios con índices que indicarán su orden.
+ *  Header structure.
  */
 struct header {
-    char key[100];    //!< nombre de la cabecera.
-    char value[1024]; //!< valor de la cabecera.
-    int index;        //!< índice, en caso de datos multivaluados.
+    char key[100];    //!< header name.
+    char value[1024]; //!< header value.
+    int index;        //!< index, in multivaluated case.
     struct header *next;
 };
 
 typedef struct header headerHTTP;
 
 /**
- *  Estructura de solicitud.
- *
- *  Contendrá las cabeceras, URI solicitada y la versión de HTTP,
- *  así como el contenido, en caso de una petición POST.
+ *  Request structure.
  */
 struct request {
-    char request[5];        //!< solicitud: GET, POST o HEAD.
-    char uri[1024];         //!< URI de solicitud.
-    char version[4];        //!< versión de HTTP: 1.0 ó 1.1.
-    struct header *headers; //!< cabeceras.
-    char *content;          //!< contenido en caso de PUT o POST.
+    char request[5];        //!< request: GET, POST o HEAD.
+    char uri[1024];         //!< requested URI.
+    char version[4];        //!< HTTP version: 1.0 or 1.1.
+    struct header *headers;
+    char *content;          //!< in PUT or POST case.
 };
 
 typedef struct request requestHTTP;
 
 /**
- *  Tipos de Contenidos.
- *
- *  El puntero genérico puede ofrecer estos tipos de contenidos distintos.
+ *  Content types.
  */
 enum {
     HEADER_CONTENT_NONE,
@@ -65,34 +56,28 @@ enum {
  *  las cabeceras y el contenido, o página a retornar.
  */
 struct response {
-    int code;               //!< código de error (200, 3xx, 4xx, 5xx...)
-    char message[50];       //!< mensaje.
-    char version[4];        //!< versión de HTTP: 1.0 ó 1.1.
-    struct header *headers; //!< cabeceras.
-    void *content;          //!< contenido a retornar
-    int content_type;       //!< tipo de contenido que se retorna.
+    int code;               //!< error code (200, 3xx, 4xx, 5xx...)
+    char message[50];
+    char version[4];        //!< HTTP version: 1.0 or 1.1.
+    struct header *headers;
+    void *content;
+    int content_type;
 };
 
 typedef struct response responseHTTP;
 
 /**
- *  Crea una estructura de solicitud.
+ *  Builds a request structure.
  *
- *  Pasados los parámetros de solicitud, uri y versión,
- *  crea una estructura de solicitud.
- *
- *  @param request solicitud (GET, PUT o POST).
- *  @param uri uri de solicitud.
- *  @param version la versión de HTTP: 1.0 ó 1.1.
- *  @return estructura requestHTTP nueva o NULL.
+ *  @param request request (GET, PUT o POST).
+ *  @param uri request uri.
+ *  @param version HTTP version: 1.0 or 1.1.
+ *  @return new requestHTTP structure or NULL.
  */
 requestHTTP* ews_new_request( char *request, char *uri, char *version );
 
 /**
  *  Crea una estructura de respuesta.
- *
- *  Pasados los parámetros de código, mensaje y versión,
- *  crea una estructura de respuesta.
  *
  *  @param code código de respuesta.
  *  @param message mensaje de respuesta.
@@ -104,9 +89,6 @@ responseHTTP* ews_new_response( int code, char *message, char *version );
 /**
  *  Crea una estructura de cabecera.
  *
- *  Pasados los parámetros de clave, valor e índica,
- *  crea una estructura de cabecera.
- *
  *  @param key clave de la cabecera.
  *  @param value valor de la cabecera.
  *  @param index índice en caso de dato multivaluado.
@@ -116,9 +98,6 @@ headerHTTP* ews_new_header( char *key, char *value, int index );
 
 /**
  *  Configura en la respuesta el contenido.
- *
- *  Pasada la estructura de respuesta HTTP, anexiona el contenido
- *  y agrega una cabecera de tipo Content-Length.
  *
  *  @param rs estructura de respuesta HTTP.
  *  @param s contenido a anexionar.

@@ -12,11 +12,10 @@ int ews_cli_add_command( cliCommand **cc, char *name, char *description, char *l
     new_cc->long_description = long_description;
     new_cc->cli_command = cli_command;
     new_cc->next = NULL;
-    ews_verbose(LOG_LEVEL_INFO, "registro de [%s] ([%d]->[%d] commands)", name, cc, *cc);
 
     if ((*cc) == NULL) {
         *cc = new_cc;
-        ews_verbose(LOG_LEVEL_INFO, "asignado y retornando");
+        ews_verbose(LOG_LEVEL_INFO, "added command: %s", name);
         return 1;
     }
     for (pcc=*cc; pcc->next!=NULL; pcc=pcc->next)
@@ -31,6 +30,7 @@ int ews_cli_del_command( cliCommand **cc, char *name ) {
         pcc = (*cc);
         (*cc) = (*cc)->next;
         ews_free(pcc, "ews_cli_del_command");
+        ews_verbose(LOG_LEVEL_INFO, "deleted command: %s", name);
         return 1;
     }
     for (pcc=*cc; pcc->next!=NULL; pcc=pcc->next) {
@@ -38,6 +38,7 @@ int ews_cli_del_command( cliCommand **cc, char *name ) {
             tmp_cc = pcc->next;
             pcc->next = tmp_cc->next;
             ews_free(tmp_cc, "ews_cli_del_command");
+            ews_verbose(LOG_LEVEL_INFO, "deleted command: %s", name);
             return 1;
         }
     }
@@ -54,4 +55,3 @@ void ews_cli_free( cliCommand **c ) {
     ews_free(*c, "ews_cli_free");
     *c = NULL;
 }
-

@@ -52,6 +52,7 @@ void set_file_date( char *s, char *file ) {
     );
 }
 
+// TODO: read only rfc-1125 dates, it isn't standard as rfc-1945
 int compare_date( char *date1, char *date2 ) {
     int dia1, dia2, mes1, mes2, agno1, agno2;
     int hora1, hora2, min1, min2, seg1, seg2;

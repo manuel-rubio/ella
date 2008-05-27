@@ -19,171 +19,148 @@
 #include "memory.h"
 
 /**
- *  Estructura de alias de máquinas y/o dominios.
- *
- *  Lista enlazada para nombres de alias, que se enlazará
- *  dentro de la estructura Virtual Host.
+ *  Hosts and/or domains alias structure.
  */
 struct Host_Alias {
-    char alias[80];  //!< nombre del alias.
+    char alias[80];  //!< alias name.
     struct Host_Alias* next;
 };
 
 typedef struct Host_Alias hostAlias;
 
 /**
- *  Estructura de localización o URI para una máquina.
- *
- *  Lista enlazada para nombres de localizaciones, que se
- *  enlazará dentro de la estructura Virtual Host.
+ *  Host localization or URI structure.
  */
 struct Host_Location {
-    char base_uri[512];    //!< base URI para la máquina.
-    configDetail* details; //!< detalles de configuración.
+    char base_uri[512];
+    configDetail* details;
     struct Host_Location* next;
 };
 
 typedef struct Host_Location hostLocation;
 
 /**
- *  Estructura de máquina virtual.
- *
- *  Lista enlazada para máquinas virtuales, que se enlazará
- *  dentro de Bind Connect.
+ *  Virtual host structure.
  */
 struct Virtual_Host {
-    char host_name[80];              //!< nombre de la máquina.
-    struct Host_Location* locations; //!< localizaciones.
-    struct Host_Alias* aliases;      //!< aliases.
+    char host_name[80];
+    struct Host_Location* locations;
+    struct Host_Alias* aliases;
     struct Virtual_Host* next;
 };
 
 typedef struct Virtual_Host virtualHost;
 
 /**
- *  Estructura de conexiones.
- *
- *  Lista enlazada con las conexiones especificas que se
- *  detallan en la estructura.
+ *  Connections structure.
  */
 struct Bind_Connect {
-    char host[80];               //!< IP en la que escuchar peticiones.
-    int port;                    //!< puerto en el que escuchar peticiones.
-    pthread_t thread;            //!< hilo del servidor.
-    struct Module* modules;      //!< modulos a ejecutar en cada petición.
-    struct Virtual_Host* vhosts; //!< nombre de las máquinas virtuales.
+    char host[80];               //!< IP address to bind requests.
+    int port;                    //!< port to bind requests.
+    pthread_t thread;            //!< server thread.
+    struct Module* modules;
+    struct Virtual_Host* vhosts;
     struct Bind_Connect* next;
 };
 
 typedef struct Bind_Connect bindConnect;
 
 /**
- *  Estructura de peticiones.
- *
- *  Se usará para pasar la información sobre la petición recibida.
+ *  Requests structure.
  */
 struct Bind_Request {
-    bindConnect* bc;           //!< una estructura de conexión.
-    requestHTTP* request;      //!< las cabeceras de la solicitud.
-    pthread_t thread;          //!< hilo para la ejecución del cliente.
-    struct sockaddr_in client; //!< datos de cliente.
-    int fd_client;             //!< descriptor de fichero para socket.
-    int conn_next_status;      //!< define si hay o no que cerrar la conexión.
-    int conn_timeout;          //!< tiempo de espera en caso de "keepalive".
+    bindConnect* bc;
+    requestHTTP* request;
+    pthread_t thread;          //!< client thread.
+    struct sockaddr_in client; //!< client data.
+    int fd_client;
+    int conn_next_status;      //!< to know if connection will be closed.
+    int conn_timeout;          //!< time to wait in "keep-alive" case.
 };
 
 typedef struct Bind_Request bindRequest;
 
 enum {
-    EWS_CON_CLOSE,       //!< cerrar la conexión
-    EWS_CON_KEEPALIVE    //!< mantener abierta
+    EWS_CON_CLOSE,       //!< close connection
+    EWS_CON_KEEPALIVE    //!< keep connection open (alive)
 };
 
 /**
- *  Rellena una estructura de conexión con los datos de configuración.
+ *  Parse config blocks to build a bindConnection.
  *
- *  Toma todos los datos de configBlock relacionados con la conexión que
- *  se procesa y los almacena, junto con los módulos (modules) en la
- *  estructura de conexión.
- *
- *  @param cb puntero a una estructura de conexión.
- *  @param modules puntero a moduleTAD de cabecera.
- *  @return una estructura de tipo conexión (bindConnect) o NULL.
+ *  @param cb head pointer to configBlock.
+ *  @param modules head pointer to moduleTAD.
+ *  @return a bindConnect structure or NULL.
  */
 bindConnect* ews_connector_parse_bind( configBlock *cb, moduleTAD *modules );
 
 /**
- *  Retorna una estructura de máquina virtual por nombre.
+ *  Returns a virtual host structure searching for name.
  *
- *  Busca una estructura de máquina virtual por nombre.
- *
- *  @param vh puntero a virtualHost de cabecera.
- *  @param name nombre de la máquina virtual a buscar.
- *  @return puntero a virtualHost encontrado o NULL.
+ *  @param vh head pointer to virtualHost.
+ *  @param name virtual host name to search.
+ *  @return pointer to virtualHost or NULL.
  */
 virtualHost* ews_connector_find_vhost( virtualHost *vh, char *name );
 
 /**
- *  Retorna una estructura de localización para una URL dada.
+ *  Returns a host location structure searching for URL.
  *
- *  @param vh puntero a virtualHost de cabecera.
- *  @param loc ruta a buscar entre los localizations.
- *  @return puntero a hostLocation encontrado o NULL.
+ *  @param vh head pointer to virtualHost.
+ *  @param loc path to search.
+ *  @return pointer to hostLocation or NULL.
  */
 hostLocation* ews_connector_find_location( hostLocation *vh, char *loc );
 
 /**
- *  Rellena una estructura de máquina virtual.
+ *  Fills an virtual host structure.
  *
- *  Toma los datos de una estructura de configBlock relacionados con
- *  una máquina virtual.
- *
- *  @param cb puntero a configBlock a cabecera.
- *  @param aliases puntero a configBlock de aliases.
- *  @param pvh puntero a puntero de virtualHost (puntero pasado por referencia)
+ *  @param cb head pointer to configBlock.
+ *  @param aliases pointer to aliases configBlock.
+ *  @param pvh pointer to pointer to virtualHost (pointer by reference)
  */
 void ews_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHost **pvh );
 
 /**
- *  Rellena locations de una estructura de máquina virtual.
+ *  Fills virtual host locations.
  *
- *  @param cb puntero a configBlock, donde están las configuraciones.
- *  @param vh puntero a virtualHost, donde crear las locations.
+ *  @param cb pointer to configBlock, where are configurations.
+ *  @param vh pointer to virtualHost, where build locations.
  */
 void ews_connector_parse_location( configBlock* cb, virtualHost* vh );
 
 /**
- *  Libera una estructura de conexión.
+ *  Free all bind connection structures.
  *
- *  @param bc puntero bindConnect de cabecera a liberar.
+ *  @param bc head pointer to bindConnect.
  */
 void ews_connector_bind_free( bindConnect* bc );
 
 /**
- *  Libera una estructura de conexión en petición.
+ *  Free bind request structure.
  *
- *  @param br puntero bindRequest a liberar.
+ *  @param br pointer to bindRequest.
  */
 void ews_connector_bindrequest_free( bindRequest* br );
 
 /**
- *  Libera una estructura de máquinas virtuales.
+ *  Free virtual host structure.
  *
- *  @param vh puntero virtualHost de cabecera a liberar.
+ *  @param vh pointer to virtualHost.
  */
 void ews_connector_vhost_free( virtualHost* vh );
 
 /**
- *  Libera una estructura de localizaciones.
+ *  Free all localizations structures.
  *
- *  @param hl puntero hostLocation de cabecera a liberar.
+ *  @param hl head pointer to hostLocation.
  */
 void ews_connector_location_free( hostLocation* hl );
 
 /**
- *  Libera una estructura de aliases.
+ *  Free all aliases structures.
  *
- *  @param ha puntero hostAlias de cabecera a liberar.
+ *  @param ha head pointer to hostAlias.
  */
 void ews_connector_alias_free( hostAlias* ha );
 

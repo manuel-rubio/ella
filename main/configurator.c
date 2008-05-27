@@ -5,12 +5,10 @@
 configFuncs ews_get_initial_conf() {
     configFuncs cf;
 #if defined EWS_CONFIG_STATIC
-    // en caso de especificar de forma estática el sistema de configuración,
-    // no se tendrán en cuenta los módulos de configuración.
     cf.name = "INI";
     cf.read = ews_ini_read;
 #else
-    // TODO: sistema de carga de ficheros de configuración dinámica.
+    // TODO: load system to dynamic configuration.
 #endif
     return cf;
 }
@@ -65,7 +63,7 @@ configBlock* ews_ini_read() {
                 } else if ((buffer[0] >= 'A' && buffer[0] <= 'Z') || (buffer[0] >= 'a' && buffer[0] <= 'z') || buffer[0] == '_') {
                     // clave
                     if (pcb == NULL) {
-                        ews_verbose(LOG_LEVEL_ERROR, "fichero de configuración, detalle fuera de bloque.");
+                        ews_verbose(LOG_LEVEL_ERROR, "config file, detail out of block.");
                         exit(1);
                     }
                     if (pcb->details == NULL) {
