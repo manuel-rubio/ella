@@ -10,17 +10,17 @@
 #include "cli.h"
 
 /**
- *  Tipos de módulos que puede haber, y en orden de prioridad.
+ *  Module types, in priority order.
  */
 enum {
-    MODULE_TYPE_SEC,  /*!< módulos de seguridad (prioritarios). */
-    MODULE_TYPE_PROC, /*!< módulos de procesado de peticiones (http 1.0, http 1.1...) */
-    MODULE_TYPE_HEAD, /*!< módulos de proceso de cabecera de respuesta (mime, encriptación SSL...) */
-    MODULE_TYPE_LOG   /*!< módulos de anotaciones y estadísticas */
+    MODULE_TYPE_SEC,  /*!< security modules (highest priority). */
+    MODULE_TYPE_PROC, /*!< request process modules (http 1.0, http 1.1...) */
+    MODULE_TYPE_HEAD, /*!< response header process modules (mime, SSL encrypt...) */
+    MODULE_TYPE_LOG   /*!< log and stadistics modules */
 };
 
 /**
- *  Tipos de retornos para la función "run".
+ *  Return types for "run" functions.
  */
 enum {
     MODULE_RETURN_OK,
@@ -34,53 +34,52 @@ enum {
 struct Bind_Request;
 
 /**
- *  Estructura de Módulos.
+ *  Modules structure.
  *
- *  Se carga un módulo externo (en forma de librería) y se anexionan los
- *  métodos para usarse en procesamiento automático.
+ *  Loads an extern module (in library fashion) and append methods to use in
+ *  automatic process.
  */
 struct Module {
-    char name[80];    //!< nombre del módulo.
-    int  type;        //!< tipo del módulo.
-    int  priority;    //!< prioridad de ejecución del módulo (0-99)
+    char name[80];    //!< module name.
+    int  type;        //!< module type.
+    int  priority;    //!< module run priority (0-99)
 
-    void (*load)();   //!< ejecuta en la carga del módulo.
-    void (*unload)(); //!< ejecuta en la descarga del módulo.
-    void (*reload)(); //!< para la recarga del módulo.
-    void (*get_status)( char * ); //!< retorna el estado del módulo.
-    int (*run)( struct Bind_Request *, responseHTTP * ); //!< ejecuta el módulo.
+    void (*load)();   //!< run in module load.
+    void (*unload)(); //!< run in module unload.
+    void (*reload)(); //!< run in module reload.
+    void (*get_status)( char * ); //!< return module status.
+    int (*run)( struct Bind_Request *, responseHTTP * ); //!< run the module.
 
-    void *handle;          //!< manejador de la librería cargada.
-    configDetail *details; //!< lista enlazada de todos los detalles.
+    void *handle;          //!< loaded library handler.
+    configDetail *details; //!< config details for module.
     struct Module *next;
 };
 
 typedef struct Module moduleTAD;
 
 /**
- *  Carga los módulos de la configuración.
+ *  Loads modules listed in configuration.
  *
- *  Toma los módulos a cargar a través de un configBlock y va
- *  cargando uno a uno cada módulo en una lista enlazada que
- *  será retornada.
+ *  Gets modules to load throught a configBlock and load them
+ *  in a dynamic list to return at function exit.
  *
- *  @param cb puntero a configBlock de cabecera.
- *  @param cc puntero a cabecera de cliCommands.
- *  @return una lista enlazada de moduleTAD.
+ *  @param cb head pointer to configBlock.
+ *  @param cc head pointer to cliCommands.
+ *  @return dynamic list moduleTAD.
  */
 moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc );
 
 /**
- *  Reordena los módulos por tipo y prioridad.
+ *  Sort modules by type and priority.
  *
- *  @param modules lista de módulos a ordenar.
+ *  @param modules dynamic list for sort.
  */
 moduleTAD* ews_modules_sort( moduleTAD *modules );
 
 /**
- *  Libera los recursos reservador de la carga de módulos.
+ *  Free all resources allocated in modules load.
  *
- *  @param modules puntero a moduleTAD de cabecera.
+ *  @param modules head pointer to moduleTAD.
  */
 void ews_modules_free( moduleTAD *modules );
 

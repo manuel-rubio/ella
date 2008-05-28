@@ -77,86 +77,86 @@ typedef struct response responseHTTP;
 requestHTTP* ews_new_request( char *request, char *uri, char *version );
 
 /**
- *  Crea una estructura de respuesta.
+ *  Builds a response structure.
  *
- *  @param code código de respuesta.
- *  @param message mensaje de respuesta.
- *  @param version la versión HTTP: 1.0 ó 1.1.
- *  @return estructura responseHTTP nueva o NULL.
+ *  @param code response code.
+ *  @param message response message.
+ *  @param version HTTP version: 1.0 ó 1.1.
+ *  @return new responseHTTP structure or NULL.
  */
 responseHTTP* ews_new_response( int code, char *message, char *version );
 
 /**
- *  Crea una estructura de cabecera.
+ *  Builds a header structure.
  *
- *  @param key clave de la cabecera.
- *  @param value valor de la cabecera.
- *  @param index índice en caso de dato multivaluado.
- *  @return estructura header nueva o NULL.
+ *  @param key header key.
+ *  @param value header value.
+ *  @param index in multivaluated case, index for value.
+ *  @return new header structure or NULL.
  */
 headerHTTP* ews_new_header( char *key, char *value, int index );
 
 /**
- *  Configura en la respuesta el contenido.
+ *  Configure content in request.
  *
- *  @param rs estructura de respuesta HTTP.
- *  @param s contenido a anexionar.
+ *  @param rs HTTP request structure.
+ *  @param s content to append.
  */
 void ews_set_response_content( responseHTTP *rs, int type, void *s );
 
 /**
- *  Libera una solicitud y sus cabeceras.
+ *  Free a request and its headers.
  *
- *  @param rh estructura de solicitud a liberar.
+ *  @param rh request structure to freed.
  */
 void ews_free_request( requestHTTP *rh );
 
 /**
- *  Libera una respuesta y sus cabeceras.
+ *  Free a response strcutre and its headers.
  *
- *  @param rs estructura de respuesta a liberar.
+ *  @param rs response structure to freed.
  */
 void ews_free_response( responseHTTP *rs );
 
 /**
- *  Libera una lista de cabeceras.
+ *  Free a headers list.
  *
- *  @param h puntero a headerHTTP de cabecera a liberar.
+ *  @param h header pointer to headerHTTP for free.
  */
 void ews_free_header( headerHTTP *h );
 
 /**
- *  Toma el valor dado el nombre e índice de una cabecera.
+ *  Gets given value, name and index from a header.
  *
- *  @param rh puntero a estructura de solicitud.
- *  @param key clave a buscar.
- *  @param index índice del valor a rescatar.
- *  @return valor de la cabecera en forma de cadena de caracteres.
+ *  @param rh pointer to request structure.
+ *  @param key key to search.
+ *  @param index value index to search.
+ *  @return string with header value.
  */
 char* ews_get_header_value( requestHTTP *rh, char *key, int index );
 
 /**
- *  Toma el número de valores que hay bajo una clave.
+ *  Gets values account for a key.
  *
- *  @param rh puntero a estructura de solicitud.
- *  @param key clave para el conteo.
- *  @return número de elementos con la misma clave, encontrados.
+ *  @param rh pointer to request structure.
+ *  @param key key for accounting.
+ *  @return elements number with the same key found.
  */
 int ews_get_header_indexes( requestHTTP *rh, char *key );
 
 /**
- *  Convierte un texto de solicitud en una estructura de solicitud.
+ *  Convert a request text into request structure.
  *
- *  @param s cadena de solicitud.
- *  @return estructura requestHTTP con el contenido convertido.
+ *  @param s request string.
+ *  @return requestHTTP structure with converted content.
  */
 requestHTTP* ews_parse_request( char *s );
 
 /**
- *  Convierte una estructura de respuesta en texto.
+ *  Convert a response structure into response text.
  *
- *  @param rs estructura de tipo respuesta.
- *  @return cadena de texto con el contenido de la estructura.
+ *  @param rs response structure.
+ *  @return string with converted content.
  */
 char* ews_gen_response( responseHTTP *rs );
 
