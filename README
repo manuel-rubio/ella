@@ -1,0 +1,16 @@
+
+To install Ella Web Server you only need execute:
+
+./configure
+make
+make install
+
+For more information about params for configure, see INSTALL.
+
+You can find information about Ella Web Server at:
+
+Spanish:
+http://project.bosqueviejo.net/ella
+
+English:
+http://project.bosqueviejo.net/ella/wiki/WikiStart-en
