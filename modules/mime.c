@@ -27,7 +27,6 @@ char* mime_find_type( char *file ) {
     char *extension;
     int i, z;
 
-    ews_verbose(LOG_LEVEL_INFO, "fichero %s", file);
     z = strlen(file);
     for (i=z; i>0 && file[i]!='.'; i--)
         ;
@@ -36,10 +35,11 @@ char* mime_find_type( char *file ) {
     i++;
     for (mt=mime_types; mt!=NULL; mt=mt->next) {
         if (strcmp(file+i, mt->extension) == 0) {
-            ews_verbose(LOG_LEVEL_INFO, "encontrada [%s] para [%s].", mt->extension, file);
+            ews_verbose(LOG_LEVEL_INFO, "found [%s] for [%s]", mt->extension, file);
             return mt->mime;
         }
     }
+    ews_verbose(LOG_LEVEL_INFO, "not found mime type for [%s]", file);
     return NULL;
 }
 
@@ -74,7 +74,7 @@ void mime_load( void ) {
 
     f = fopen(mime_file, "rt");
     if (!f) {
-        ews_verbose(LOG_LEVEL_ERROR, "fichero de tipos %s no se ha encontrado o no se puede abrir.", mime_file);
+        ews_verbose(LOG_LEVEL_ERROR, "types file %s not found or can't be opened.", mime_file);
         return;
     }
     while (fgets(buffer, sizeof(buffer), f)) {

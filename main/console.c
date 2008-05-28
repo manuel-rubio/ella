@@ -56,18 +56,18 @@ static void *console(void *vconsole) {
             for (i=0; request[i]!='\0'; i++)
                 request[i] = tolower(request[i]);
             if (strncmp("quit", request, 4) == 0 || strncmp("exit", request, 4) == 0) {
-                ews_verbose_to(con->p[1], LOG_LEVEL_INFO, "Saliendo de la consola");
+                ews_verbose_to(con->p[1], LOG_LEVEL_INFO, "Exit from the console");
                 break;
             }
             switch (ews_cli_command(con->p[1], request)) {
                 case -1:
-                    ews_verbose_to(con->p[1], LOG_LEVEL_ERROR, "Ha sucedido un error al ejecutar %s", request);
+                    ews_verbose_to(con->p[1], LOG_LEVEL_ERROR, "while running %s", request);
                     break;
                 case 0:
-                    ews_verbose_to(con->p[1], LOG_LEVEL_WARN, "La aplicación no terminó de forma correcta");
+                    ews_verbose_to(con->p[1], LOG_LEVEL_WARN, "application exists incorrect");
                     break;
                 default:
-                    ews_verbose_to(con->p[1], LOG_LEVEL_DEBUG, "La aplicación termino correctamente");
+                    ews_verbose_to(con->p[1], LOG_LEVEL_DEBUG, "application exists successfully");
             }
         }
         if (FD_ISSET(con->p[0], &rfds)) {
@@ -121,7 +121,7 @@ static void *console_launch(void *unused) {
 
         len = sizeof(sunaddr);
         s = accept(ews_socket, (struct sockaddr *)&sunaddr, &len);
-        ews_verbose(LOG_LEVEL_INFO, "recibida petición de conexión por socket de consola.");
+        ews_verbose(LOG_LEVEL_INFO, "received connection request via console socket.");
         if (s < 0) {
             if (errno != EINTR)
                 ews_verbose(LOG_LEVEL_WARN, "Accept returned %d: %s", s, strerror(errno));
@@ -197,7 +197,7 @@ int console_make_socket( cliCommand **cc ) {
         return -1;
     }
 
-    ews_verbose(LOG_LEVEL_INFO, "lanzado hilo para consola");
+    ews_verbose(LOG_LEVEL_INFO, "console thread launched");
     pthread_attr_init(&lattr);
     pthread_attr_setstacksize(&lattr, EWS_STACKSIZE);
     pthread_create(&lthread, NULL, console_launch, NULL);

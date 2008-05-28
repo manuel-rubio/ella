@@ -14,15 +14,15 @@ int dumb_run( struct Bind_Request *br, responseHTTP *rs ) {
     char *pagina = "\
 <html>\n\
 <head>\n\
-    <title>Tornasauce</title>\n\
+    <title>Ella Web Server</title>\n\
 </head>\n\
 <body>\n\
-    <h1>Tornasauce</h1>\n\
+    <h1>Ella Web Server</h1>\n\
     <hr />\n\
-    <p>Servidor de Bosque Viejo</p>\n\
+    <p>Ella web server in dumb test.</p>\n\
     <hr />\n\
     <form method=\"post\">\n\
-    <input type=\"text\" name=\"hola\" />\n\
+    <input type=\"text\" name=\"hi\" />\n\
     <input type=\"submit\" />\n\
     </form>\n\
 </body>\n\
@@ -33,7 +33,7 @@ int dumb_run( struct Bind_Request *br, responseHTTP *rs ) {
     strcpy(rs->version, "1.0");
     rs->headers = ews_new_header("Date", "Sun, 16 Mar 2008 19:55:06 GMT", 0);
     hh = rs->headers;
-    hh->next = ews_new_header("Server", "Ella Web Server/0.1", 0);
+    hh->next = ews_new_header("Server", "ews/0.1", 0);
     hh = hh->next;
     hh->next = ews_new_header("Last-Modified", "Thu, 03 Jan 2008 11:30:47 GMT", 0);
     hh = hh->next;

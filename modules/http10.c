@@ -58,11 +58,10 @@ char *autoindex_footer = "\
 
 
 void http10_get_status( char *s ) {
-    // TODO: especificar en "s" el estado del módulo
     strcpy(s, "HTTP 1.0 - RFC1945 - Process module without dynamic information.");
 }
 
-// TODO: estos mensajes deben de ser páginas en directorios
+// TODO: this messages should be webs in dirs
 void http10_error_page( int code, char *message, char *page, requestHTTP *rh, responseHTTP *rs, int method ) {
     char buffer[BUFFER_SIZE];
 
@@ -106,27 +105,27 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         vh = ews_connector_find_vhost((virtualHost *)br->bc->vhosts, host_name);
     }
     if (host_name == NULL || vh == NULL) {
-        // tomamos default, el primer vhost que haya
+        // gets default, the first vhost
         vh = (virtualHost *)br->bc->vhosts;
     }
     hl = ews_connector_find_location(vh->locations, rh->uri);
     if (hl == NULL) { // 404 - Not found
-        ews_verbose(LOG_LEVEL_ERROR, "location no casa con ninguna de las configuradas.");
+        ews_verbose(LOG_LEVEL_ERROR, "location mismatch with configurations.");
         http10_error_page(404, "Not found", page404, rh, rs, method);
         return MODULE_RETURN_OK;
     }
     if (!http10_find_file(buffer, rh, hl)) { // 404 - Not found
         // Try autoindex
         if (!http10_autoindex(page, rh, hl)) { // 404 - Not found
-            ews_verbose(LOG_LEVEL_ERROR, "fichero %s no encontrado.", buffer);
+            ews_verbose(LOG_LEVEL_ERROR, "file %s not found.", buffer);
             http10_error_page(404, "Not found", page404, rh, rs, method);
             return MODULE_RETURN_OK;
         } else {
-            ews_verbose(LOG_LEVEL_INFO, "enviando página autoindex");
+            ews_verbose(LOG_LEVEL_INFO, "sending autoindex page");
             modified = NULL; // doesn't use cache in autoindex
         }
     } else {
-        ews_verbose(LOG_LEVEL_INFO, "enviando fichero %s", buffer);
+        ews_verbose(LOG_LEVEL_INFO, "sending file [%s]", buffer);
     }
 
     strcpy(rs->version, "1.0");
@@ -150,7 +149,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         ews_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
     }
 
-    // TODO: implementar la gestión de cabeceras según el RFC1945
+    // TODO: compliant RFC1945
     return MODULE_RETURN_PROC_STOP;
 }
 
@@ -172,11 +171,11 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
 
     if (strcmp(autoindex, "on") == 0) {
         sprintf(dir, "%s/%s", path, rh->uri + (strlen(hl->base_uri)));
-        ews_verbose(LOG_LEVEL_INFO, "Directorio para autoindex: %s", dir);
+        ews_verbose(LOG_LEVEL_INFO, "Directory for autoindex: %s", dir);
         d = opendir(dir);
         if (d == NULL)
             return 0;
-        // TODO: configurar el parent dir
+        // TODO: parent dir configuration
         sprintf(page, autoindex_header, rh->uri, rh->uri, "");
         for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
             if (strcmp(dp->d_name, ".") == 0) {

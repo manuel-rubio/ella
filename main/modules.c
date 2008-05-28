@@ -14,17 +14,17 @@ moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
     cb_modules = ews_get_block(cb, "modules", NULL);
     autoload = ews_get_detail_value(cb_modules->details, "autoload", 0);
     if (autoload != NULL && strcmp(autoload, "yes") == 0) {
-        // TODO: implementar autocarga de módulos
-        ews_verbose(LOG_LEVEL_INFO, "AutoCarga: sí (no implementado aún)");
+        // TODO: autoloader to implement
+        ews_verbose(LOG_LEVEL_INFO, "AutoLoad: yes (not yet implemented)");
     } else {
-        ews_verbose(LOG_LEVEL_INFO, "AutoCarga: no");
+        ews_verbose(LOG_LEVEL_INFO, "AutoLoad: no");
     }
 
     indexes = ews_get_detail_indexes(cb_modules->details, "load");
     for (i=0; i<indexes; i++) {
         module = ews_get_detail_value(cb_modules->details, "load", i);
         sprintf(lib, EWS_MODULES_DIR "/lib%s.so", module);
-        ews_verbose(LOG_LEVEL_DEBUG, "probando a cargar %s.", lib);
+        ews_verbose(LOG_LEVEL_DEBUG, "try to load: %s.", lib);
         if (mt == NULL) {
             mt = (moduleTAD *)ews_malloc(sizeof(moduleTAD));
             pmt = mt;
@@ -35,14 +35,14 @@ moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
         pmt->next = NULL;
         pmt->handle = dlopen(lib, RTLD_LAZY);
         if (pmt->handle == 0) {
-            ews_verbose(LOG_LEVEL_ERROR, "en carga de %s: %s", module, dlerror());
+            ews_verbose(LOG_LEVEL_ERROR, "loading [%s]: %s", module, dlerror());
             if (mt->next == NULL) {
-                ews_free(mt, "ews_modules_load (error en carga 1)");
+                ews_free(mt, "ews_modules_load (load error)");
                 pmt = mt = NULL;
             } else {
                 for (tmt=mt; tmt->next!=pmt; tmt=tmt->next)
                     ;
-                ews_free(tmt->next, "ews_modules_load (error en carga 2)");
+                ews_free(tmt->next, "ews_modules_load (load error)");
                 tmt->next = NULL;
                 pmt = tmt;
             }
@@ -50,15 +50,15 @@ moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
             sprintf(lib, "%s_init", module);
             init_module = dlsym(pmt->handle, lib);
             if (init_module == NULL) {
-                ews_verbose(LOG_LEVEL_ERROR, "en ejecución de %s_init: %s", module, dlerror());
+                ews_verbose(LOG_LEVEL_ERROR, "running [%s_init]: %s", module, dlerror());
                 dlclose(pmt->handle);
                 if (mt->next == NULL) {
-                    ews_free(mt, "ews_modules_load (error en ejecución 1)");
+                    ews_free(mt, "ews_modules_load (load error)");
                     pmt = mt = NULL;
                 } else {
                     for (tmt=mt; tmt->next!=pmt; tmt=tmt->next)
                         ;
-                    ews_free(tmt->next, "ews_modules_load (error en ejecución 2)");
+                    ews_free(tmt->next, "ews_modules_load (load error)");
                     tmt->next = NULL;
                     pmt = tmt;
                 }
@@ -69,16 +69,16 @@ moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
                 if (pmt->load != NULL) {
                     pmt->load();
                 }
-                ews_verbose(LOG_LEVEL_INFO, "cargado módulo: %s", module);
+                ews_verbose(LOG_LEVEL_INFO, "module loaded: %s", module);
             }
         }
     }
 
-    ews_verbose(LOG_LEVEL_INFO, "NoLoad (no implementado aún)");
+    ews_verbose(LOG_LEVEL_INFO, "NoLoad (not yet implemented)");
     indexes = ews_get_detail_indexes(cb_modules->details, "noload");
     for (i=0; i<indexes; i++) {
-        // TODO: este no tiene sentido, a menos que se tenga "autoload"
-        ews_verbose(LOG_LEVEL_INFO, "Ignorando módulo %s", ews_get_detail_value(cb_modules->details, "unload", i));
+        // TODO: needs autoload implementation to do it
+        ews_verbose(LOG_LEVEL_INFO, "Module ignored [%s]", ews_get_detail_value(cb_modules->details, "unload", i));
     }
 
     if (mt != NULL) {
@@ -128,7 +128,7 @@ void ews_modules_free( moduleTAD *modules ) {
     if (modules->unload != NULL)
         modules->unload();
 
-    ews_verbose(LOG_LEVEL_INFO, "liberando módulo %s.", modules->name);
+    ews_verbose(LOG_LEVEL_INFO, "module free [%s].", modules->name);
 
     // Los detalles se liberan con los bloques
     modules->details = NULL;

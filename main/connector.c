@@ -98,10 +98,10 @@ static void* ews_connector_client_launch( void* ptr_br ) {
     rs = (responseHTTP *)ews_malloc(sizeof(responseHTTP));
 
     if (br->bc == NULL) {
-        ews_verbose(LOG_LEVEL_FATAL, "No hay BindConnect en BindRequest para atender la petición");
+        ews_verbose(LOG_LEVEL_FATAL, "Haven't BindConnect in BindRequest to attend the request");
     } else {
         if (br->bc->modules == NULL) {
-            ews_verbose(LOG_LEVEL_FATAL, "No hay ModuleTAD en BindConnect de BindRequest para atender la petición");
+            ews_verbose(LOG_LEVEL_FATAL, "Haven't ModuleTAD in BindConnect from BindRequest to attend the request");
         } else {
             do {
                 rs->code = 0;
