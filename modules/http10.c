@@ -57,7 +57,7 @@ char *autoindex_header = "\
 <hr>\n\
 <center><table>\n\
 <tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>\n\
-<tr><td colspan=\"4\"><a href=\"%s\">Parent Dir</a></td></tr>\n";
+<tr><td></td><td colspan=\"3\"><a href=\"%s\">Parent Dir</a></td></tr>\n";
 
 char *autoindex_entry = "<tr><td>%s</td><td><a href=\"%s\">%s</a></td><td>%s</td><td align=\"right\">%s</td></tr>\n";
 
@@ -231,6 +231,7 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
     char dir[BUFFER_SIZE] = { 0 };
     char date[50] = { 0 };
     char size[32] = { 0 };
+    char parent_dir[128] = { 0 };
 
     bzero(page, PAGE_SIZE);
 
@@ -244,8 +245,9 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
         d = opendir(dir);
         if (d == NULL)
             return 404;
-        // TODO: parent dir configuration
-        sprintf(page, autoindex_header, rh->uri, rh->uri, "");
+        sprintf(parent_dir, "%s/..", rh->uri);
+        http10_rewrite_uri(parent_dir);
+        sprintf(page, autoindex_header, rh->uri, rh->uri, parent_dir);
         for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
             if (strcmp(dp->d_name, ".") == 0) {
                 // Nothing to do (self dir)
