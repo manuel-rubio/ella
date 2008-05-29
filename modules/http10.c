@@ -88,55 +88,6 @@ void http10_error_page( int code, char *message, char *page, requestHTTP *rh, re
     }
 }
 
-void http10_rewrite_uri( char *uri_orig ) {
-    char *data[128] = { 0 };
-    char uri[512] = { 0 };
-    int i, j, size;
-
-    strcpy(uri, uri_orig);
-    data[0] = uri;
-    for (i=0, j=1; uri[i]!='\0'; i++) {
-        if (uri[i] == '/') {
-            uri[i] = 0;
-            data[j++] = uri + i + 1;
-        }
-    }
-
-    size = j;
-
-    for (j=0; j<size; j++) {
-        if (strcmp(data[j], "..") == 0) {
-            if (j>1 || (j==1 && data[0][0]!='\0')) {
-                for (i=j-1; i<size-1; i++) {
-                    data[i] = data[i+2];
-                }
-                size -= 2;
-                j -= 2;
-            } else { // j == 0
-                for (i=j; i<size-1; i++) {
-                    data[i] = data[i+1];
-                }
-                size --;
-                j --;
-            }
-        }
-    }
-
-    if (size == 0 || (size == 1 && data[0][0] == 0)) {
-        if (uri_orig[0] == '/') {
-            uri_orig[1] = 0;
-        } else {
-            uri_orig[0] = 0;
-        }
-    } else {
-        strcpy(uri_orig, data[0]);
-        for (i=1; i<size; i++) {
-            strcat(uri_orig, "/");
-            strcat(uri_orig, data[i]);
-        }
-    }
-}
-
 int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     requestHTTP *rh = br->request;
     virtualHost *vh = NULL;
@@ -237,7 +188,6 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
 
     if (strcmp(autoindex, "on") == 0) {
         sprintf(dir, "%s/%s", path, rh->uri + (strlen(hl->base_uri)));
-        http10_rewrite_uri(dir);
         if (strncmp(path, dir, strlen(path)) != 0) { // 403 Forbidden
             return 403;
         }
@@ -246,7 +196,6 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
         if (d == NULL)
             return 404;
         sprintf(parent_dir, "%s/..", rh->uri);
-        http10_rewrite_uri(parent_dir);
         sprintf(page, autoindex_header, rh->uri, rh->uri, parent_dir);
         for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
             if (strcmp(dp->d_name, ".") == 0) {

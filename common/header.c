@@ -123,6 +123,55 @@ int ews_get_header_indexes( requestHTTP *rh, char *key ) {
     return indexes;
 }
 
+void ews_rewrite_uri( char *uri_orig ) {
+    char *data[128] = { 0 };
+    char uri[512] = { 0 };
+    int i, j, size;
+
+    strcpy(uri, uri_orig);
+    data[0] = uri;
+    for (i=0, j=1; uri[i]!='\0'; i++) {
+        if (uri[i] == '/') {
+            uri[i] = 0;
+            data[j++] = uri + i + 1;
+        }
+    }
+
+    size = j;
+
+    for (j=0; j<size; j++) {
+        if (strcmp(data[j], "..") == 0) {
+            if (j>1 || (j==1 && data[0][0]!='\0')) {
+                for (i=j-1; i<size-1; i++) {
+                    data[i] = data[i+2];
+                }
+                size -= 2;
+                j -= 2;
+            } else { // j == 0
+                for (i=j; i<size-1; i++) {
+                    data[i] = data[i+1];
+                }
+                size --;
+                j --;
+            }
+        }
+    }
+
+    if (size == 0 || (size == 1 && data[0][0] == 0)) {
+        if (uri_orig[0] == '/') {
+            uri_orig[1] = 0;
+        } else {
+            uri_orig[0] = 0;
+        }
+    } else {
+        strcpy(uri_orig, data[0]);
+        for (i=1; i<size; i++) {
+            strcat(uri_orig, "/");
+            strcat(uri_orig, data[i]);
+        }
+    }
+}
+
 requestHTTP* ews_parse_request( char *s ) {
     int i, j, capture;
     requestHTTP *rh = NULL;
@@ -140,6 +189,7 @@ requestHTTP* ews_parse_request( char *s ) {
     for (i = i+1, j=0; s[i]!='\0' && s[i]!=' '; i++, j++)
         rh->uri[j] = s[i];
     rh->uri[j] = '\0';
+    ews_rewrite_uri(rh->uri);
 
     // getting version
     for (i = i+1, j=0, capture=0; s[i]!='\0' && s[i]!='\r' && s[i]!='\n'; i++) {
