@@ -15,6 +15,17 @@
 #define METHOD_POST    2
 #define METHOD_HEAD    3
 
+char *page403 = "\
+<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
+<html><head>\n\
+<title>403 - Forbidden</title>\n\
+</head><body>\n\
+<h1>Forbidden</h1>\n\
+<p>Can't acces to requested URL %s.</p>\n\
+<hr>\n\
+<address>ews/0.1</address>\n\
+</body></html>";
+
 char *page404 = "\
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
 <html><head>\n\
@@ -77,6 +88,55 @@ void http10_error_page( int code, char *message, char *page, requestHTTP *rh, re
     }
 }
 
+void http10_rewrite_uri( char *uri_orig ) {
+    char *data[128] = { 0 };
+    char uri[512] = { 0 };
+    int i, j, size;
+
+    strcpy(uri, uri_orig);
+    data[0] = uri;
+    for (i=0, j=1; uri[i]!='\0'; i++) {
+        if (uri[i] == '/') {
+            uri[i] = 0;
+            data[j++] = uri + i + 1;
+        }
+    }
+
+    size = j;
+
+    for (j=0; j<size; j++) {
+        if (strcmp(data[j], "..") == 0) {
+            if (j>1 || (j==1 && data[0][0]!='\0')) {
+                for (i=j-1; i<size-1; i++) {
+                    data[i] = data[i+2];
+                }
+                size -= 2;
+                j -= 2;
+            } else { // j == 0
+                for (i=j; i<size-1; i++) {
+                    data[i] = data[i+1];
+                }
+                size --;
+                j --;
+            }
+        }
+    }
+
+    if (size == 0 || (size == 1 && data[0][0] == 0)) {
+        if (uri_orig[0] == '/') {
+            uri_orig[1] = 0;
+        } else {
+            uri_orig[0] = 0;
+        }
+    } else {
+        strcpy(uri_orig, data[0]);
+        for (i=1; i<size; i++) {
+            strcat(uri_orig, "/");
+            strcat(uri_orig, data[i]);
+        }
+    }
+}
+
 int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     requestHTTP *rh = br->request;
     virtualHost *vh = NULL;
@@ -116,13 +176,18 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
     if (!http10_find_file(buffer, rh, hl)) { // 404 - Not found
         // Try autoindex
-        if (!http10_autoindex(page, rh, hl)) { // 404 - Not found
-            ews_verbose(LOG_LEVEL_ERROR, "file %s not found.", buffer);
-            http10_error_page(404, "Not found", page404, rh, rs, method);
-            return MODULE_RETURN_OK;
-        } else {
-            ews_verbose(LOG_LEVEL_INFO, "sending autoindex page");
-            modified = NULL; // doesn't use cache in autoindex
+        switch (http10_autoindex(page, rh, hl)) {
+            case 404:
+                ews_verbose(LOG_LEVEL_ERROR, "file %s not found.", buffer);
+                http10_error_page(404, "Not found", page404, rh, rs, method);
+                return MODULE_RETURN_OK;
+            case 403:
+                ews_verbose(LOG_LEVEL_ERROR, "can't acces to %s.", buffer);
+                http10_error_page(403, "Forbidden", page403, rh, rs, method);
+                return MODULE_RETURN_OK;
+            default:
+                ews_verbose(LOG_LEVEL_INFO, "sending autoindex page");
+                modified = NULL; // doesn't use cache in autoindex
         }
     } else {
         ews_verbose(LOG_LEVEL_INFO, "sending file [%s]", buffer);
@@ -171,10 +236,14 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
 
     if (strcmp(autoindex, "on") == 0) {
         sprintf(dir, "%s/%s", path, rh->uri + (strlen(hl->base_uri)));
+        http10_rewrite_uri(dir);
+        if (strncmp(path, dir, strlen(path)) != 0) { // 403 Forbidden
+            return 403;
+        }
         ews_verbose(LOG_LEVEL_INFO, "Directory for autoindex: %s", dir);
         d = opendir(dir);
         if (d == NULL)
-            return 0;
+            return 404;
         // TODO: parent dir configuration
         sprintf(page, autoindex_header, rh->uri, rh->uri, "");
         for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
@@ -202,9 +271,9 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
         }
         strcat(page, autoindex_footer);
         closedir(d);
-        return 1;
+        return 200;
     }
-    return 0;
+    return 403;
 }
 
 int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
