@@ -10,6 +10,7 @@
 #include <pthread.h>
 
 #include "config.h"
+#include "configurator.h"
 #include "string.h"
 
 /**
