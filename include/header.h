@@ -31,7 +31,7 @@ typedef struct header headerHTTP;
  *  Request structure.
  */
 struct request {
-    char request[5];        //!< request: GET, POST o HEAD.
+    char request[10];       //!< request: GET, POST o HEAD.
     char uri[1024];         //!< requested URI.
     char version[4];        //!< HTTP version: 1.0 or 1.1.
     struct header *headers;
