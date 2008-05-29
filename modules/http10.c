@@ -15,58 +15,111 @@
 #define METHOD_POST    2
 #define METHOD_HEAD    3
 
-char *page403 = "\
+static char page403[PAGE_SIZE] = "\
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
 <html><head>\n\
 <title>403 - Forbidden</title>\n\
 </head><body>\n\
 <h1>Forbidden</h1>\n\
-<p>Can't acces to requested URL %s.</p>\n\
+<p>Can't acces to requested URL <!URI>.</p>\n\
 <hr>\n\
-<address>ews/0.1</address>\n\
+<address><!SERVER></address>\n\
 </body></html>";
 
-char *page404 = "\
+static char page404[PAGE_SIZE] = "\
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
 <html><head>\n\
 <title>404 - Not found</title>\n\
 </head><body>\n\
 <h1>Not found</h1>\n\
-<p>The requested URL %s was not found on this server.</p>\n\
+<p>The requested URL <!URI> was not found on this server.</p>\n\
 <hr>\n\
-<address>ews/0.1</address>\n\
+<address><!SERVER></address>\n\
 </body></html>";
 
-char *page501 = "\
+static char page501[PAGE_SIZE] = "\
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
 <html><head>\n\
 <title>501 - Not implemented</title>\n\
 </head><body>\n\
 <h1>Method not implemented</h1>\n\
-<p>The request method isn't implemented.</p>\n\
+<p>The request method (<!METHOD>) isn't implemented.</p>\n\
 <hr>\n\
-<address>ews/0.1</address>\n\
+<address><!SERVER></address>\n\
 </body></html>";
 
-char *autoindex_header = "\
+static char autoindex_page[PAGE_SIZE] = "\
 <!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
 <html><head>\n\
-<title>Index of %s</title>\n\
+<title>Index of <!URI></title>\n\
 </head><body>\n\
-<h1>Index of %s</h1>\n\
+<h1>Index of <!URI></h1>\n\
 <hr>\n\
 <center><table>\n\
 <tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>\n\
-<tr><td></td><td colspan=\"3\"><a href=\"%s\">Parent Dir</a></td></tr>\n";
-
-char *autoindex_entry = "<tr><td>%s</td><td><a href=\"%s\">%s</a></td><td>%s</td><td align=\"right\">%s</td></tr>\n";
-
-char *autoindex_footer = "\
+<tr><td></td><td colspan=\"3\"><a href=\"<!PARENT_DIR>\">Parent Dir</a></td></tr>\n\
+<!>\
+<tr><td><!ICON></td><td><a href=\"<!LINK>\"><!FILE></a></td><td><!DATE></td><td align=\"right\"><!SIZE></td></tr>\n\
+<!>\
 </table></center>\n\
 <hr>\n\
-<address>ews/0.1</address>\n\
+<address><!SERVER></address>\n\
 </body></html>";
 
+static char
+    *autoindex_header,
+    *autoindex_entry,
+    *autoindex_footer;
+
+
+int http10_page_set_var( char *page, char *var, char *val ) {
+    char temp[PAGE_SIZE] = { 0 };
+    char varname[80];
+    char *v;
+
+    sprintf(varname, "<!%s>", var);
+    v = strstr(page, varname);
+    if (v == NULL) {
+        ews_verbose(LOG_LEVEL_WARN, "var %s doesn't exists in page", varname);
+        return 0;
+    }
+    do {
+        v[0] = '\0';
+        v += strlen(varname);
+        strcpy(temp, v);
+        strcat(page, val);
+        strcat(page, temp);
+    } while ((v = strstr(page, varname)) != NULL);
+    return 1;
+}
+
+int http10_autoindex_prepare( char *autoindex ) {
+    if (autoindex == NULL) {
+        autoindex = autoindex_page;
+    } else {
+        // TODO: load autoindex page from a file
+    }
+
+    // setting header
+    autoindex_header = autoindex;
+    // searching for entry
+    autoindex_entry = strstr(autoindex, "<!>");
+    if (autoindex_entry == NULL) {
+        ews_verbose(LOG_LEVEL_ERROR, "autoindex page is incorrect at entry");
+        return 0;
+    }
+    autoindex_entry[0] = '\0';
+    autoindex_entry += 3;
+    // searching for footer
+    autoindex_footer = strstr(autoindex_entry, "<!>");
+    if (autoindex_footer == NULL) {
+        ews_verbose(LOG_LEVEL_ERROR, "autoindex page is incorrect at footer");
+        return 0;
+    }
+    autoindex_footer[0] = '\0';
+    autoindex_footer += 3;
+    return 1;
+}
 
 void http10_get_status( char *s ) {
     strcpy(s, "HTTP 1.0 - RFC1945 - Process module without dynamic information.");
@@ -82,7 +135,10 @@ void http10_error_page( int code, char *message, char *page, requestHTTP *rh, re
     strcpy(rs->message, message);
     strcpy(rs->version, "1.0");
     rs->headers = ews_new_header("Server", "ews/0.1", 0);
-    sprintf(buffer, page, rh->uri);
+    strcpy(buffer, page);
+    http10_page_set_var(buffer, "URI", rh->uri);
+    http10_page_set_var(buffer, "METHOD", rh->request);
+    http10_page_set_var(buffer, "SERVER", "ews/0.1");
     if (method != METHOD_HEAD) {
         ews_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
     }
@@ -196,7 +252,9 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
         if (d == NULL)
             return 404;
         sprintf(parent_dir, "%s/..", rh->uri);
-        sprintf(page, autoindex_header, rh->uri, rh->uri, parent_dir);
+        strcpy(page, autoindex_header);
+        http10_page_set_var(page, "URI", rh->uri);
+        http10_page_set_var(page, "PARENT_DIR", parent_dir);
         for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
             if (strcmp(dp->d_name, ".") == 0) {
                 // Nothing to do (self dir)
@@ -216,11 +274,17 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
                 } else {
                     strcpy(size, "-");
                 }
-                sprintf(linea, autoindex_entry, (dp->d_type==DT_DIR)?"[DIR]":(dp->d_type==DT_LNK)?"[LNK]":"", file_uri, dp->d_name, date, size);
+                strcpy(linea, autoindex_entry);
+                http10_page_set_var(linea, "ICON", (dp->d_type==DT_DIR)?"[DIR]":(dp->d_type==DT_LNK)?"[LNK]":"");
+                http10_page_set_var(linea, "LINK", file_uri);
+                http10_page_set_var(linea, "FILE", dp->d_name);
+                http10_page_set_var(linea, "DATE", date);
+                http10_page_set_var(linea, "SIZE", size);
                 strcat(page, linea);
             }
         }
         strcat(page, autoindex_footer);
+        http10_page_set_var(page, "SERVER", "ews/0.1");
         closedir(d);
         return 200;
     }
@@ -283,4 +347,6 @@ void http10_init( moduleTAD *module, cliCommand **cc ) {
     module->run = http10_run;
 
     ews_cli_add_command(cc, "http10-info", "info about HTTP 1.0 module", NULL, http10_cli_info);
+
+    http10_autoindex_prepare(autoindex_page);
 }
