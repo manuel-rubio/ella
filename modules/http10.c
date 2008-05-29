@@ -15,57 +15,22 @@
 #define METHOD_POST    2
 #define METHOD_HEAD    3
 
-static char page403[PAGE_SIZE] = "\
-<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
-<html><head>\n\
-<title>403 - Forbidden</title>\n\
-</head><body>\n\
-<h1>Forbidden</h1>\n\
-<p>Can't acces to requested URL <!URI>.</p>\n\
-<hr>\n\
-<address><!SERVER></address>\n\
-</body></html>";
+enum {
+    EWS_HTTP_PAGE_403,
+    EWS_HTTP_PAGE_404,
+    EWS_HTTP_PAGE_501,
+    EWS_HTTP_PAGES
+};
 
-static char page404[PAGE_SIZE] = "\
-<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
-<html><head>\n\
-<title>404 - Not found</title>\n\
-</head><body>\n\
-<h1>Not found</h1>\n\
-<p>The requested URL <!URI> was not found on this server.</p>\n\
-<hr>\n\
-<address><!SERVER></address>\n\
-</body></html>";
+static char *page_names[EWS_HTTP_PAGES] = {
+    "error403",
+    "error404",
+    "error501"
+};
+static char pages[EWS_HTTP_PAGES][PAGE_SIZE];
 
-static char page501[PAGE_SIZE] = "\
-<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
-<html><head>\n\
-<title>501 - Not implemented</title>\n\
-</head><body>\n\
-<h1>Method not implemented</h1>\n\
-<p>The request method (<!METHOD>) isn't implemented.</p>\n\
-<hr>\n\
-<address><!SERVER></address>\n\
-</body></html>";
 
-static char autoindex_page[PAGE_SIZE] = "\
-<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n\
-<html><head>\n\
-<title>Index of <!URI></title>\n\
-</head><body>\n\
-<h1>Index of <!URI></h1>\n\
-<hr>\n\
-<center><table>\n\
-<tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>\n\
-<tr><td></td><td colspan=\"3\"><a href=\"<!PARENT_DIR>\">Parent Dir</a></td></tr>\n\
-<!>\
-<tr><td><!ICON></td><td><a href=\"<!LINK>\"><!FILE></a></td><td><!DATE></td><td align=\"right\"><!SIZE></td></tr>\n\
-<!>\
-</table></center>\n\
-<hr>\n\
-<address><!SERVER></address>\n\
-</body></html>";
-
+static char autoindex_page[PAGE_SIZE];
 static char
     *autoindex_header,
     *autoindex_entry,
@@ -94,16 +59,21 @@ int http10_page_set_var( char *page, char *var, char *val ) {
 }
 
 int http10_autoindex_prepare( char *autoindex ) {
-    if (autoindex == NULL) {
-        autoindex = autoindex_page;
-    } else {
-        // TODO: load autoindex page from a file
+    FILE *f;
+
+    if (autoindex != NULL) {
+        if (f = fopen(autoindex, "r")) {
+            fread(autoindex_page, PAGE_SIZE, 1, f);
+            fclose(f);
+        } else {
+            ews_verbose(LOG_LEVEL_WARN, "page %s can't open to load", autoindex);
+        }
     }
 
     // setting header
-    autoindex_header = autoindex;
+    autoindex_header = autoindex_page;
     // searching for entry
-    autoindex_entry = strstr(autoindex, "<!>");
+    autoindex_entry = strstr(autoindex_page, "<!>");
     if (autoindex_entry == NULL) {
         ews_verbose(LOG_LEVEL_ERROR, "autoindex page is incorrect at entry");
         return 0;
@@ -164,7 +134,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         method = METHOD_HEAD;
     } else {
         ews_verbose(LOG_LEVEL_ERROR, "method %s not implemented.", br->request->request);
-        http10_error_page(501, "Not implemented", page501, rh, rs, METHOD_GET);
+        http10_error_page(501, "Not implemented", pages[EWS_HTTP_PAGE_501], rh, rs, METHOD_GET);
         return MODULE_RETURN_OK;
     }
 
@@ -178,7 +148,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     hl = ews_connector_find_location(vh->locations, rh->uri);
     if (hl == NULL) { // 404 - Not found
         ews_verbose(LOG_LEVEL_ERROR, "location mismatch with configurations.");
-        http10_error_page(404, "Not found", page404, rh, rs, method);
+        http10_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
         return MODULE_RETURN_OK;
     }
     if (!http10_find_file(buffer, rh, hl)) { // 404 - Not found
@@ -186,11 +156,11 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         switch (http10_autoindex(page, rh, hl)) {
             case 404:
                 ews_verbose(LOG_LEVEL_ERROR, "file %s not found.", buffer);
-                http10_error_page(404, "Not found", page404, rh, rs, method);
+                http10_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
                 return MODULE_RETURN_OK;
             case 403:
                 ews_verbose(LOG_LEVEL_ERROR, "can't acces to %s.", buffer);
-                http10_error_page(403, "Forbidden", page403, rh, rs, method);
+                http10_error_page(403, "Forbidden", pages[EWS_HTTP_PAGE_403], rh, rs, method);
                 return MODULE_RETURN_OK;
             default:
                 ews_verbose(LOG_LEVEL_INFO, "sending autoindex page");
@@ -336,6 +306,10 @@ int http10_cli_info( int pipe, char *params ) {
 }
 
 void http10_init( moduleTAD *module, cliCommand **cc ) {
+    FILE *f;
+    char *filename;
+    int i;
+
     strcpy(module->name, "http10");
     module->type = MODULE_TYPE_PROC;
     module->priority = 50;
@@ -348,5 +322,17 @@ void http10_init( moduleTAD *module, cliCommand **cc ) {
 
     ews_cli_add_command(cc, "http10-info", "info about HTTP 1.0 module", NULL, http10_cli_info);
 
-    http10_autoindex_prepare(autoindex_page);
+    http10_autoindex_prepare(ews_get_detail_value(module->details, "autoindex_page", 0));
+
+    for (i=0; i<EWS_HTTP_PAGES; i++) {
+        filename = ews_get_detail_value(module->details, page_names[i], 0);
+        if (filename != NULL) {
+            if (f = fopen(filename, "r")) {
+                fread(pages[i], PAGE_SIZE, 1, f);
+                fclose(f);
+            } else {
+                ews_verbose(LOG_LEVEL_WARN, "page %s can't open to load", filename);
+            }
+        }
+    }
 }

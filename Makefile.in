@@ -59,6 +59,8 @@ install: all
 	[ -d @sysconfdir@/ews ] || mkdir -p @sysconfdir@/ews
 	[ -f @sysconfdir@/ews/http.ini ] || cp etc/ews/http.ini @sysconfdir@/ews
 	[ -d @localstatedir@/run/ews ] || mkdir -p @localstatedir@/run/ews
+	[ -d @datadir@/ews/html ] || mkdir -p @datadir@/ews/html
+	cp share/* @datadir@/ews/html
 
 uninstall:
 	$(MAKE) -C common uninstall
@@ -66,3 +68,4 @@ uninstall:
 	$(MAKE) -C modules uninstall
 	[ -d @sysconfdir@/ews ] && $(RM) -r @sysconfdir@/ews
 	[ -d @localstatedir@/run/ews ] && $(RM) -r @localstatedir@/run/ews
+	[ -d @datadir@/ews/html ] && $(RM) -r @datadir@/ews/html

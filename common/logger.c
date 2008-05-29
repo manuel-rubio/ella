@@ -10,7 +10,7 @@ static char dateformat[256] = "%d/%m/%Y %H:%M:%S";
 static int logger_fds[EWS_LOGGER_MAX_FDS];
 static pthread_mutex_t logger_fds_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-char *log_names[] = {
+static char *log_names[] = {
     "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
 };
 
@@ -36,10 +36,11 @@ void logger_config( configBlock *cb ) {
     }
     tmp = ews_get_detail_value(cb->details, "loglevel", 0);
     if (tmp != NULL) {
-        for (level = 0; level < 5 || (strcmp(log_names[level], tmp) == 0); level++)
-            ;
-        if (level < 5) {
-            log_level = level;
+        for (level = 0; level < 5; level++) {
+            if (strcmp(log_names[level], tmp) == 0) {
+                log_level = level;
+                break;
+            }
         }
     }
 }
