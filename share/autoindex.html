@@ -1,19 +1,61 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<?xml version="1.0" charset="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
     <title>Index of <!URI></title>
+    <style>
+        body, p {
+            background-color : #efefef;
+            color : #285ba3;
+            font-family : sans-serif;
+        }
+        #foot {
+            border-top: 1px dotted;
+            border-bottom: 1px dotted;
+            border-color: #285ba3;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        #head th {
+            border-bottom:1px solid;
+            border-color: #285ba3;
+        }
+        a, a:visited {
+            color: #285ba3;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #588bd3;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Index of <!URI></h1>
-    <hr>
     <center>
-        <table>
-            <tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>
-            <tr><td></td><td colspan="3"><a href="<!PARENT_DIR>">Parent Dir</a></td></tr>
-            <!><tr><td><!ICON></td><td><a href="<!LINK>"><!FILE></a></td><td><!DATE></td><td align="right"><!SIZE></td></tr>
-        <!></table>
+        <table width="95%">
+            <tr>
+                <td align="left"><h1>Index of <!URI></h1></td>
+            </tr>
+            <tr>
+                <td id="foot" align="center">
+                    <table width="80%">
+                        <tr id="head"><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>
+                        <tr><td></td><td colspan="3" align="left"><a href="<!PARENT_DIR>">..</a></td></tr>
+                        <!><tr>
+                            <td align="center" width="5%"><!ICON></td>
+                            <td align="left" width="50%"><a href="<!LINK>"><!FILE></a></td>
+                            <td align="center" width="27%"><!DATE></td>
+                            <td align="right" width="18%"><!SIZE><td>
+                        </tr>
+                    <!></table>
+                </td>
+            </tr>
+            <tr>
+                <td align="left"><!SERVER></td>
+            </tr>
+        </table>
     </center>
-    <hr>
-    <address><!SERVER></address>
 </body>
 </html>
