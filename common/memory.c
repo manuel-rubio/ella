@@ -122,3 +122,27 @@ void ews_memory_stats( void ) {
 
     pthread_mutex_unlock(&memory_allocation);
 }
+
+int ews_memory_cli_stats( int pipe, char *params ) {
+    char buffer[512], line[100];
+    pthread_mutex_lock(&memory_allocation);
+
+    strcpy(buffer, "\nAllocated memory: ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_memory_allocated);
+
+    strcat(buffer, "\nFreed memory: ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_memory_freed);
+
+    strcat(buffer, "\nMemory in use: ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_memory);
+
+    sprintf(line, "\nMax. simultaneous allocations: %d", ews_max_simult_allocs);
+    strcat(buffer, line);
+
+    strcat(buffer, "\nMax. memory in use: ");
+    ews_memory_print_units(buffer + strlen(buffer), ews_max_memory_in_use);
+    ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
+
+    pthread_mutex_unlock(&memory_allocation);
+    return 1;
+}
