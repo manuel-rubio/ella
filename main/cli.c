@@ -29,6 +29,7 @@ void ews_cli_init( cliCommand **cc ) {
     if (commands == NULL)
         commands = cc;
     ews_verbose(LOG_LEVEL_DEBUG, "CLI init for console");
+    ews_cli_add_command(commands, "memory-stats", "show memory stadistics", NULL, ews_memory_cli_stats);
     ews_cli_add_command(commands, "quit", "close console session.", NULL, NULL);
     ews_cli_add_command(commands, "exit", "close console session.", NULL, NULL);
     ews_cli_add_command(commands, "help", "use help with another topic to see more information.", NULL, ews_cli_help);

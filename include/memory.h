@@ -38,4 +38,9 @@ void ews_free_all( void );
  */
 void ews_memory_stats( void );
 
+/**
+ *  Show memory stats in a console as LOG_LEVEL_INFO.
+ */
+int ews_memory_cli_stats( int pipe, char *params );
+
 #endif
