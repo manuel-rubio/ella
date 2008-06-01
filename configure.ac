@@ -21,7 +21,7 @@ if test "x${sysconfdir}" = 'x${prefix}/etc'; then
 fi
 
 AC_DEFINE_UNQUOTED(EWS_CONFIG_DIR, "${EWS_SYSCONF_DIR}/ews", [config files placed])
-AC_DEFINE_UNQUOTED(EWS_CONFIG_FILE, "${EWS_SYSCONF_DIR}/ews/method.ini, [config method file])
+AC_DEFINE_UNQUOTED(EWS_CONFIG_FILE, "${EWS_SYSCONF_DIR}/ews/method.ini", [config method file])
 AC_DEFINE_UNQUOTED(EWS_MODULES_DIR, "${EWS_LIB_DIR}/ews/modules", [modules dir])
 AC_DEFINE_UNQUOTED(EWS_CONSOLE_SOCKET, "${EWS_LOCAL_STATE_DIR}/run/ews/ews.ctl", [socket file])
 
@@ -59,6 +59,14 @@ AC_PROG_CC_STDC
 
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdarg.h time.h unistd.h sys/socket.h ctype.h rpc/rpc.h poll.h signal.h pthread.h fcntl.h errno.h netinet/in.h sys/types.h sys/select.h dlfcn.h])
+
+AC_CHECK_LIB(readline, readline,
+    LIBS="$LIBS -lreadline"
+    AC_DEFINE(HAVE_LIBREADLINE, 1, [have readline]),
+    AC_MSG_ERROR(GNU Readline could not be found which is required)
+    exit,
+    $LIBS
+)
 
 AC_SUBST(dependencias_CFLAGS)
 AC_SUBST(dependencias_LIBS)
