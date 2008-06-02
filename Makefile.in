@@ -3,11 +3,15 @@ export INC
 export prefix
 export exec_prefix
 export CFLAGS
-export LIBS
+export LIBS_CONSOLE
+export LIBS_SERVER
+export LIBS_COMMON
 
 CC = @CC@
 CFLAGS = @CFLAGS@ @dependencias_CFLAGS@
-LIBS = @LIBS@ @dependencias_LIBS@
+LIBS_CONSOLE = @LIBS_CONSOLE@ @dependencias_LIBS@
+LIBS_SERVER = -ldl -pthread @LIBS_SERVER@ @dependencias_LIBS@
+LIBS_COMMON = @LIBS_COMMON@ @dependencias_LIBS@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 
@@ -40,7 +44,7 @@ clean:
 	rm -f ews.ctl
 
 distclean: clean
-	rm -f config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h include/*~
+	rm -f config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h include/config.in include/*~
 
 maintainer-clean: develclean
 
@@ -49,7 +53,7 @@ develclean: distclean
 
 dist: clean
 	svn2cl -i --group-by-day
-	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz ella-src/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README,THANKS}
+	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz ella-src/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README}
 	$(RM) ChangeLog
 
 install: all
@@ -68,4 +72,4 @@ uninstall:
 	$(MAKE) -C modules uninstall
 	[ -d @sysconfdir@/ews ] && $(RM) -r @sysconfdir@/ews
 	[ -d @localstatedir@/run/ews ] && $(RM) -r @localstatedir@/run/ews
-	[ -d @datadir@/ews/html ] && $(RM) -r @datadir@/ews/html
+	[ -d @datadir@/ews/html ] && $(RM) -r @datadir@/ews

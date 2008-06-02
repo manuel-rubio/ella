@@ -28,7 +28,7 @@ cli.o: cli.c $(INC)
 	$(CC) $(CFLAGS) -c -o cli.o cli.c
 
 libews0.so: configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o
-	$(CC) $(CFLAGS) $(LIBS) -shared -Wl,-soname,libews0.so -o libews0.so configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o -lc
+	$(CC) $(CFLAGS) $(LIBS_COMMON) -shared -Wl,-soname,libews0.so -o libews0.so configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o -lc
 
 install: all
 	cp libews0.so @libdir@

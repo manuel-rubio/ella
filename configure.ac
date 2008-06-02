@@ -61,13 +61,16 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([stdarg.h time.h unistd.h sys/socket.h ctype.h rpc/rpc.h poll.h signal.h pthread.h fcntl.h errno.h netinet/in.h sys/types.h sys/select.h dlfcn.h])
 
 AC_CHECK_LIB(readline, readline,
-    LIBS="$LIBS -lreadline"
+    LIBS_CONSOLE="$LIBS_CONSOLE -lreadline"
     AC_DEFINE(HAVE_LIBREADLINE, 1, [have readline]),
     AC_MSG_ERROR(GNU Readline could not be found which is required)
     exit,
-    $LIBS
+    $LIBS_CONSOLE
 )
 
+AC_SUBST(LIBS_CONSOLE)
+AC_SUBST(LIBS_COMMON)
+AC_SUBST(LIBS_SERVER)
 AC_SUBST(dependencias_CFLAGS)
 AC_SUBST(dependencias_LIBS)
 AC_SUBST(MODULES)
