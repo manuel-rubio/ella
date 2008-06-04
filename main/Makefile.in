@@ -31,9 +31,9 @@ ewsd: configurator.o connector.o modules.o ewsd.o console.o cli.o ../common/libe
 	$(CC) $(CFLAGS) $(LIBS_SERVER) -o ewsd ../common/libews0.so configurator.o connector.o modules.o ewsd.o console.o cli.o
 
 install: all
-	cp ewsd @bindir@
-	cp ewsc @bindir@
+	cp ewsd @sbindir@
+	cp ewsc @sbindir@
 
 uninstall:
-	$(RM) @bindir@/ewsd
-	$(RM) @bindir@/ewsc
+	$(RM) @sbindir@/ewsd
+	$(RM) @sbindir@/ewsc
