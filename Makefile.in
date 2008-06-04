@@ -73,3 +73,4 @@ uninstall:
 	[ -d @sysconfdir@/ews ] && $(RM) -r @sysconfdir@/ews
 	[ -d @localstatedir@/run/ews ] && $(RM) -r @localstatedir@/run/ews
 	[ -d @datadir@/ews/html ] && $(RM) -r @datadir@/ews
+	[ -f /etc/debian_version ] && $(RM) /etc/init.d/ewsd
