@@ -37,25 +37,43 @@ static char
     *autoindex_footer;
 
 
-int http10_page_set_var( char *page, char *var, char *val ) {
+int http10_page_set_var( char *page, char *var[][10], int size ) {
     char temp[PAGE_SIZE] = { 0 };
     char varname[80];
-    char *v;
+    int i, j, k, x, y, z;
+    int begin;
 
-    sprintf(varname, "<!%s>", var);
-    v = strstr(page, varname);
-    if (v == NULL) {
-        ews_verbose(LOG_LEVEL_WARN, "var %s doesn't exists in page", varname);
-        return 0;
+    strcpy(temp, page);
+    for (i=0, k=0; temp[i]!='\0'; i++, k++) {
+        if (temp[i] == '<' && temp[i+1] == '!') {
+            begin = i;
+            i += 2;
+            for (j=0; (temp[i]>='A' && temp[i]<='Z') || temp[i] == '_'; j++, i++) {
+                varname[j] = temp[i];
+            }
+            varname[j] = '\0';
+            if (temp[i] != '>') {
+                i = begin;
+                page[k] = temp[i];
+                continue;
+            }
+            // search varname
+            for (x=0; x<size; x++) {
+                for (z=0; var[x][0][z]==varname[z] && (varname[z] || var[x][0][z]); z++)
+                    ;
+                if (!varname[z] && !var[x][0][z]) {
+                    for (y=0; var[x][1][y]!='\0'; y++)
+                        page[k+y] = var[x][1][y];
+                    k += (y - 1);
+                    break;
+                }
+            }
+        } else {
+            page[k] = temp[i];
+        }
     }
-    do {
-        v[0] = '\0';
-        v += strlen(varname);
-        strcpy(temp, v);
-        strcat(page, val);
-        strcat(page, temp);
-    } while ((v = strstr(page, varname)) != NULL);
-    return 1;
+    page[k]='\0';
+    return 0;
 }
 
 int http10_autoindex_prepare( char *autoindex ) {
@@ -98,6 +116,7 @@ void http10_get_status( char *s ) {
 // TODO: this messages should be webs in dirs
 void http10_error_page( int code, char *message, char *page, requestHTTP *rh, responseHTTP *rs, int method ) {
     char buffer[BUFFER_SIZE];
+    char *var[][10] = { { "URI", rh->uri }, { "METHOD", rh->request }, { "SERVER", "ews/0.1" } };
 
     bzero(buffer, BUFFER_SIZE);
 
@@ -106,9 +125,7 @@ void http10_error_page( int code, char *message, char *page, requestHTTP *rh, re
     strcpy(rs->version, "1.0");
     rs->headers = ews_new_header("Server", "ews/0.1", 0);
     strcpy(buffer, page);
-    http10_page_set_var(buffer, "URI", rh->uri);
-    http10_page_set_var(buffer, "METHOD", rh->request);
-    http10_page_set_var(buffer, "SERVER", "ews/0.1");
+    http10_page_set_var(buffer, var, 3);
     if (method != METHOD_HEAD) {
         ews_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
     }
@@ -209,6 +226,20 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
     char date[50] = { 0 };
     char size[32] = { 0 };
     char parent_dir[128] = { 0 };
+    char *var_header[][10] = {
+        { "URI", NULL },
+        { "PARENT_DIR", NULL }
+    };
+    char *var_entry[][10] = {
+        { "ICON", NULL },
+        { "LINK", NULL },
+        { "FILE", NULL },
+        { "DATE", NULL },
+        { "SIZE", NULL }
+    };
+    char *var_footer[][10] = {
+        { "SERVER", "ews/0.1" }
+    };
 
     bzero(page, PAGE_SIZE);
 
@@ -223,8 +254,9 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
             return 404;
         sprintf(parent_dir, "%s/..", rh->uri);
         strcpy(page, autoindex_header);
-        http10_page_set_var(page, "URI", rh->uri);
-        http10_page_set_var(page, "PARENT_DIR", parent_dir);
+        var_header[0][1] = rh->uri;
+        var_header[1][1] = parent_dir;
+        http10_page_set_var(page, var_header, 2);
         for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
             if (strcmp(dp->d_name, ".") == 0) {
                 // Nothing to do (self dir)
@@ -239,22 +271,23 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
                     ft->tm_mday, ft->tm_mon + 1, ft->tm_year + 1900,
                     ft->tm_hour, ft->tm_min, ft->tm_sec
                 );
-                if (dp->d_type == DT_REG) {
+                if (S_ISREG(st.st_mode)) {
                     sprintf(size, "%d", st.st_size);
                 } else {
                     strcpy(size, "-");
                 }
                 strcpy(linea, autoindex_entry);
-                http10_page_set_var(linea, "ICON", (dp->d_type==DT_DIR)?"[DIR]":(dp->d_type==DT_LNK)?"[LNK]":"");
-                http10_page_set_var(linea, "LINK", file_uri);
-                http10_page_set_var(linea, "FILE", dp->d_name);
-                http10_page_set_var(linea, "DATE", date);
-                http10_page_set_var(linea, "SIZE", size);
+                var_entry[0][1] = (S_ISDIR(st.st_mode))?"[DIR]":(S_ISLNK(st.st_mode))?"[LNK]":"";
+                var_entry[1][1] = file_uri;
+                var_entry[2][1] = dp->d_name;
+                var_entry[3][1] = date;
+                var_entry[4][1] = size;
+                http10_page_set_var(linea, var_entry, 5);
                 strcat(page, linea);
             }
         }
         strcat(page, autoindex_footer);
-        http10_page_set_var(page, "SERVER", "ews/0.1");
+        http10_page_set_var(page, var_footer, 1);
         closedir(d);
         return 200;
     }
