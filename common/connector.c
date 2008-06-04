@@ -19,6 +19,7 @@ bindConnect* ews_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
                 pbc = bc;
                 ews_get_bindhost(pcb, "bind", 0, pbc->host);
                 pbc->port = ews_get_bindport(pcb, "bind", 0);
+                pbc->proto = ews_get_bindproto(pcb, "proto", 0);
                 pbc->vhosts = NULL;
                 pbc->modules = modules;
                 pbc->next = NULL;

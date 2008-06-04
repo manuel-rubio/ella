@@ -57,6 +57,7 @@ typedef struct Virtual_Host virtualHost;
 struct Bind_Connect {
     char host[80];               //!< IP address to bind requests.
     int port;                    //!< port to bind requests.
+    int proto;                   //!< protocol to bind requests.
     pthread_t thread;            //!< server thread.
     struct Module* modules;
     struct Virtual_Host* vhosts;

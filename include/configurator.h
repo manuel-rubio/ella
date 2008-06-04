@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <netinet/in.h>
 
 #include "config.h"
 #include "string.h"

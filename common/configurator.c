@@ -144,11 +144,32 @@ int ews_get_bindport( configBlock *cb, char *key, int index ) {
         return;
     }
     for (i=0, j=0, capture=0; host[i]!='\0'; i++) {
-        if (capture)
+        if (capture) {
+            if (host[i] == '/') {
+                break;
+            }
             s[j++] = host[i];
-        else if (host[i] == ':')
+        } else if (host[i] == ':') {
             capture = 1;
+        }
     }
     s[j] = '\0';
     return atoi(s);
+}
+
+int ews_get_bindproto( configBlock *cb, char *key, int index ) {
+    char *host = ews_get_detail_value(cb->details, key, index);
+    char *aux;
+    int len = strlen(host) - 3;
+
+    if (len > 0) {
+        aux = host + len;
+        if (strcmp("tcp", aux) == 0) {
+            return IPPROTO_TCP;
+        } else if (strcmp("udp", aux) == 0) {
+            return IPPROTO_UDP;
+        }
+    }
+    // TCP is default behaviour
+    return IPPROTO_TCP;
 }
