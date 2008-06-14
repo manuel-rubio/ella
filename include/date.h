@@ -7,6 +7,12 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+enum {
+    EWS_DATE_RFC1123,
+    EWS_DATE_RFC1036,
+    EWS_DATE_ANSIC
+};
+
 /**
  *  Set current date in RFC-1125 format.
  *

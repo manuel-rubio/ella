@@ -52,8 +52,69 @@ void set_file_date( char *s, char *file ) {
     );
 }
 
-// TODO: read only rfc-1125 dates, it isn't standard as rfc-1945
-int compare_date( char *date1, char *date2 ) {
+int detect_date( const char *date ) {
+    int i;
+    if (date[3] == ',')
+        return EWS_DATE_RFC1123;
+    for (i=0; date[i]!='\0'; i++)
+        if (date[i] == ',')
+            return EWS_DATE_RFC1036;
+    return EWS_DATE_ANSIC;
+}
+
+int convert_from_rfc1036( char *date_std, char *from_date ) {
+    int i, year, offset = 0;
+
+    strcpy(date_std, from_date);
+    for (i=0; date_std[i]!='\0'; i++)
+        if (date_std[i] == ',')
+            offset = i;
+    if (offset <= 0)
+        return -1;
+    for (i=0; i<8; i++)
+        date_std[3+i] = from_date[offset+i];
+    date_std[7] = ' ';
+    date_std[11] = ' ';
+    year = (from_date[offset + 9] - '0') * 10;
+    year += (from_date[offset + 10] - '0');
+    if (year > 50) {
+        date_std[12] = '1';
+        date_std[13] = '9';
+    } else {
+        date_std[12] = '2';
+        date_std[13] = '0';
+    }
+    for (i=0; i<15; i++)
+        date_std[14 + i] = from_date[offset + 9 + i];
+    date_std[29] = '\0';
+    return 0;
+}
+
+int convert_from_ansic( char *date_std, char *from_date ) {
+    int i;
+
+    strcpy(date_std, from_date);
+    date_std[3] = ',';
+    date_std[4] = ' ';
+    date_std[5] = (from_date[8] == ' ') ? '0' : from_date[8];
+    date_std[6] = from_date[9];
+    date_std[7] = ' ';
+    for (i=0; i<4; i++) {
+        date_std[8+i] = from_date[4+i];
+        date_std[12+i] = from_date[20+i];
+    }
+    date_std[16] = ' ';
+    for (i=0; i<8; i++)
+        date_std[17+i] = from_date[11+i];
+    date_std[25] = ' ';
+    date_std[26] = 'G';
+    date_std[27] = 'M';
+    date_std[28] = 'T';
+    date_std[29] = '\0';
+    return 0;
+}
+
+int compare_date( char *d1, char *d2 ) {
     int dia1, dia2, mes1, mes2, agno1, agno2;
     int hora1, hora2, min1, min2, seg1, seg2;
     int gmt1, gmt2;
@@ -64,11 +125,36 @@ int compare_date( char *date1, char *date2 ) {
         "May", "Jun", "Jul", "Aug",
         "Sep", "Oct", "Nov", "Dec"
     };
+    char date1[50];
+    char date2[50];
 
-    if (date1 == NULL)
+    if (d1 == NULL)
         return -1;
-    if (date2 == NULL)
+    if (d2 == NULL)
         return 1;
+
+    switch (detect_date(d1)) {
+        case EWS_DATE_RFC1036:
+            convert_from_rfc1036(date1, d1);
+            break;
+        case EWS_DATE_ANSIC:
+            convert_from_ansic(date1, d1);
+            break;
+        default:
+            strcpy(date1, d1);
+    }
+
+    switch (detect_date(d2)) {
+        case EWS_DATE_RFC1036:
+            convert_from_rfc1036(date2, d2);
+            break;
+        case EWS_DATE_ANSIC:
+            convert_from_ansic(date2, d2);
+            break;
+        default:
+            strcpy(date2, d2);
+    }
+
     agno1 = ((date1[12] - '0') * 1000) + ((date1[13] - '0') * 100) + ((date1[14] - '0') * 10) + (date1[15] - '0');
     agno2 = ((date2[12] - '0') * 1000) + ((date2[13] - '0') * 100) + ((date2[14] - '0') * 10) + (date2[15] - '0');
     if (agno1 > agno2)
