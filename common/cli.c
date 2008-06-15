@@ -1,6 +1,5 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/cli.h"
 #include "../include/ella.h"
 
 int ews_cli_add_command( cliCommand **cc, char *name, char *description, char *long_description, int (*cli_command)( int, char * ) ) {
