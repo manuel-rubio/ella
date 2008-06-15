@@ -7,6 +7,9 @@
 #include <poll.h>
 #include <rpc/rpc.h>
 #include <ctype.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "config.h"
 #include "configurator.h"
@@ -16,6 +19,8 @@
 #include "modules.h"
 #include "memory.h"
 #include "cli.h"
+#include "date.h"
+#include "logger.h"
 
 extern char bindThreadExit;  //!< switch to keep server running.
 
@@ -46,7 +51,7 @@ void* ews_connector_launch( void* ptr_bc );
  *
  *  @param ptr_br pointer to a bindRequest structure.
  */
-static void* ews_connector_client_launch( void* ptr_br );
+void* ews_connector_client_launch( void* ptr_br );
 
 /**
  *  Inits a server in a specific IP address and port.
@@ -56,7 +61,7 @@ static void* ews_connector_client_launch( void* ptr_br );
  *  @param port port to listen connections.
  *  @param max_clients max simultaneous clients.
  */
-static int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients );
+int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients );
 
 /**
  *  Receive a request from a socket.
@@ -65,7 +70,7 @@ static int ews_server_start( struct sockaddr_in *server, char *host, int port, i
  *  @param client client data structure.
  *  @param sfd server file descriptor (socket).
  */
-static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
+int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd );
 
 /**
  *  Console system launch.

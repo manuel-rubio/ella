@@ -132,7 +132,7 @@ int ews_get_detail_values( configDetail *details, char *value );
 int ews_get_detail_indexes( configDetail *details, char *key );
 
 /**
- *  Gets IP address value from a string like 0.0.0.0:80.
+ *  Gets IP address value from a string like 0.0.0.0:80/tcp.
  *
  *  @param cb pointer to a specific configBlock.
  *  @param key key name to get IP address.
@@ -142,7 +142,7 @@ int ews_get_detail_indexes( configDetail *details, char *key );
 void ews_get_bindhost( configBlock *cb, char *key, int index, char *s );
 
 /**
- *  Gets port value from a string like 0.0.0.0:80.
+ *  Gets port value from a string like 0.0.0.0:80/tcp.
  *
  *  @param cb pointer to a specific configBlock.
  *  @param key key name to get IP address.
@@ -150,5 +150,15 @@ void ews_get_bindhost( configBlock *cb, char *key, int index, char *s );
  *  @return number port.
  */
 int ews_get_bindport( configBlock *cb, char *key, int index );
+
+/**
+ *  Gets protocol value from a string like 0.0.0.0:80/tcp.
+ *
+ *  @param cb pointer to a specific configBlock.
+ *  @param key key name to get IP address.
+ *  @param index value index to get IP address.
+ *  @return number port.
+ */
+int ews_get_bindproto( configBlock *cb, char *key, int index );
 
 #endif

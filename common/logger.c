@@ -23,7 +23,7 @@ void logger_init() {
     pthread_mutex_unlock(&logger_fds_mutex);
 }
 
-void logger_config( configBlock *cb ) {
+void logger_config( struct Config_Block *cb ) {
     char *tmp;
     int level;
 
@@ -121,8 +121,7 @@ void ews_verbose_to( int pipe, log_t type, const char *format, ... ) {
     va_list   ap;
     time_t    t;
     struct tm tm;
-    int       len,
-              i;
+    int       len;
 
     if (type < log_level)
         return;

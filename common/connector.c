@@ -84,7 +84,7 @@ hostLocation* ews_connector_find_location( hostLocation *hl, char *loc ) {
 }
 
 void ews_connector_parse_vhost( configBlock *cb, configBlock *aliases, virtualHost **pvh ) {
-    hostAlias     *pha;
+    hostAlias     *pha = NULL;
     int           indexes, i;
     virtualHost   *vh = *pvh;
 

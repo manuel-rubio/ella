@@ -24,7 +24,6 @@ void mime_get_status( char *s ) {
 
 char* mime_find_type( char *file ) {
     struct Mime_Types *mt;
-    char *extension;
     int i, z;
 
     z = strlen(file);

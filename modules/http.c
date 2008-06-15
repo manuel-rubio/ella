@@ -36,8 +36,45 @@ static char
     *autoindex_entry,
     *autoindex_footer;
 
+pthread_mutex_t
+    http_pages_mutex = PTHREAD_MUTEX_INITIALIZER;
+int
+    http_pages_200 = 0,
+    http_pages_304 = 0,
+    http_pages_403 = 0,
+    http_pages_404 = 0,
+    http_pages_501 = 0;
 
-int http10_page_set_var( char *page, char *var[][10], int size ) {
+void http_get_status( char *s );
+int http_page_set_var( char *page, char *var[][10], int size );
+int http_autoindex_prepare( char *autoindex );
+void http_error_page( int code, char *message, char *page, requestHTTP *rh, responseHTTP *rs, int method );
+int http_run( struct Bind_Request *br, responseHTTP *rs );
+int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl );
+int http_find_file( char *buffer, requestHTTP *rh, hostLocation *hl );
+int http_cli_info( int pipe, char *params );
+void http_init( moduleTAD *module, cliCommand **cc );
+
+
+void http_get_status( char *s ) {
+    pthread_mutex_lock(&http_pages_mutex);
+    sprintf(s, "\nHTTP 1.0 - RFC1945\n\n\
+Pages sent: %6d\n\
+       200: %6d\n\
+       304: %6d\n\
+       403: %6d\n\
+       404: %6d\n\
+       501: %6d\n",
+    http_pages_200 + http_pages_304 + http_pages_403 + http_pages_404 + http_pages_501,
+    http_pages_200,
+    http_pages_304,
+    http_pages_403,
+    http_pages_404,
+    http_pages_501);
+    pthread_mutex_unlock(&http_pages_mutex);
+}
+
+int http_page_set_var( char *page, char *var[][10], int size ) {
     char temp[PAGE_SIZE] = { 0 };
     char varname[80];
     int i, j, k, x, y, z;
@@ -76,11 +113,11 @@ int http10_page_set_var( char *page, char *var[][10], int size ) {
     return 0;
 }
 
-int http10_autoindex_prepare( char *autoindex ) {
+int http_autoindex_prepare( char *autoindex ) {
     FILE *f;
 
     if (autoindex != NULL) {
-        if (f = fopen(autoindex, "r")) {
+        if ((f = fopen(autoindex, "r"))) {
             fread(autoindex_page, PAGE_SIZE, 1, f);
             fclose(f);
         } else {
@@ -109,12 +146,7 @@ int http10_autoindex_prepare( char *autoindex ) {
     return 1;
 }
 
-void http10_get_status( char *s ) {
-    strcpy(s, "HTTP 1.0 - RFC1945 - Process module without dynamic information.");
-}
-
-// TODO: this messages should be webs in dirs
-void http10_error_page( int code, char *message, char *page, requestHTTP *rh, responseHTTP *rs, int method ) {
+void http_error_page( int code, char *message, char *page, requestHTTP *rh, responseHTTP *rs, int method ) {
     char buffer[BUFFER_SIZE];
     char *var[][10] = { { "URI", rh->uri }, { "METHOD", rh->request }, { "SERVER", "ews/0.1" } };
 
@@ -125,22 +157,30 @@ void http10_error_page( int code, char *message, char *page, requestHTTP *rh, re
     strcpy(rs->version, "1.0");
     rs->headers = ews_new_header("Server", "ews/0.1", 0);
     strcpy(buffer, page);
-    http10_page_set_var(buffer, var, 3);
+    http_page_set_var(buffer, var, 3);
     if (method != METHOD_HEAD) {
         ews_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
     }
+    pthread_mutex_lock(&http_pages_mutex);
+    switch (code) {
+        case 403: http_pages_403++; break;
+        case 404: http_pages_404++; break;
+        case 501: http_pages_501++; break;
+        default:
+            ews_verbose(LOG_LEVEL_ERROR, "unknown code! %d", code);
+    }
+    pthread_mutex_unlock(&http_pages_mutex);
 }
 
-int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
+int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     requestHTTP *rh = br->request;
     virtualHost *vh = NULL;
     hostLocation *hl = NULL;
     headerHTTP *hh = NULL;
     char *host_name = ews_get_header_value(rh, "Host", 0);
     char *modified = ews_get_header_value(rh, "If-Modified-Since", 0);
-    char *path;
     char buffer[BUFFER_SIZE] = { 0 }, date[80] = { 0 };
-    int i, j, f, method = 0;
+    int method = 0;
     char page[PAGE_SIZE] = { 0 };
 
     if (strcmp(br->request->request, "GET") == 0) {
@@ -151,7 +191,7 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         method = METHOD_HEAD;
     } else {
         ews_verbose(LOG_LEVEL_ERROR, "method %s not implemented.", br->request->request);
-        http10_error_page(501, "Not implemented", pages[EWS_HTTP_PAGE_501], rh, rs, METHOD_GET);
+        http_error_page(501, "Not implemented", pages[EWS_HTTP_PAGE_501], rh, rs, METHOD_GET);
         return MODULE_RETURN_OK;
     }
 
@@ -165,19 +205,19 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
     hl = ews_connector_find_location(vh->locations, rh->uri);
     if (hl == NULL) { // 404 - Not found
         ews_verbose(LOG_LEVEL_ERROR, "location mismatch with configurations.");
-        http10_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
+        http_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
         return MODULE_RETURN_OK;
     }
-    if (!http10_find_file(buffer, rh, hl)) { // 404 - Not found
+    if (!http_find_file(buffer, rh, hl)) { // 404 - Not found
         // Try autoindex
-        switch (http10_autoindex(page, rh, hl)) {
+        switch (http_autoindex(page, rh, hl)) {
             case 404:
                 ews_verbose(LOG_LEVEL_ERROR, "file %s not found.", buffer);
-                http10_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
+                http_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
                 return MODULE_RETURN_OK;
             case 403:
                 ews_verbose(LOG_LEVEL_ERROR, "can't acces to %s.", buffer);
-                http10_error_page(403, "Forbidden", pages[EWS_HTTP_PAGE_403], rh, rs, method);
+                http_error_page(403, "Forbidden", pages[EWS_HTTP_PAGE_403], rh, rs, method);
                 return MODULE_RETURN_OK;
             default:
                 ews_verbose(LOG_LEVEL_INFO, "sending autoindex page");
@@ -208,11 +248,19 @@ int http10_run( struct Bind_Request *br, responseHTTP *rs ) {
         ews_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
     }
 
-    // TODO: compliant RFC1945
+    pthread_mutex_lock(&http_pages_mutex);
+    switch (rs->code) {
+        case 200: http_pages_200++; break;
+        case 304: http_pages_304++; break;
+        default:
+            ews_verbose(LOG_LEVEL_ERROR, "unknown code! %d", rs->code);
+    }
+    pthread_mutex_unlock(&http_pages_mutex);
+
     return MODULE_RETURN_PROC_STOP;
 }
 
-int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
+int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
     char *path = ews_get_detail_value(hl->details, "path", 0);
     char *autoindex = ews_get_detail_value(hl->details, "autoindex", 0);
     DIR *d;
@@ -256,7 +304,7 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
         strcpy(page, autoindex_header);
         var_header[0][1] = rh->uri;
         var_header[1][1] = parent_dir;
-        http10_page_set_var(page, var_header, 2);
+        http_page_set_var(page, var_header, 2);
         for (dp = readdir(d); dp != NULL; dp = readdir(d)) {
             if (strcmp(dp->d_name, ".") == 0) {
                 // Nothing to do (self dir)
@@ -272,7 +320,7 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
                     ft->tm_hour, ft->tm_min, ft->tm_sec
                 );
                 if (S_ISREG(st.st_mode)) {
-                    sprintf(size, "%d", st.st_size);
+                    sprintf(size, "%d", (int)st.st_size);
                 } else {
                     strcpy(size, "-");
                 }
@@ -282,19 +330,19 @@ int http10_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
                 var_entry[2][1] = dp->d_name;
                 var_entry[3][1] = date;
                 var_entry[4][1] = size;
-                http10_page_set_var(linea, var_entry, 5);
+                http_page_set_var(linea, var_entry, 5);
                 strcat(page, linea);
             }
         }
         strcat(page, autoindex_footer);
-        http10_page_set_var(page, var_footer, 1);
+        http_page_set_var(page, var_footer, 1);
         closedir(d);
         return 200;
     }
     return 403;
 }
 
-int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
+int http_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
     char *path = ews_get_detail_value(hl->details, "path", 0);
     int indexes = ews_get_detail_indexes(hl->details, "index");
     char *index;
@@ -331,36 +379,49 @@ int http10_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
     return 0;
 }
 
-int http10_cli_info( int pipe, char *params ) {
-    char buffer[80];
-    http10_get_status(buffer);
-    ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
+int http_cli_info( int pipe, char *params ) {
+    char buffer[BUFFER_SIZE];
+    if (params != NULL) {
+        if (strncmp(params, "reset", strlen(params)) == 0) {
+            pthread_mutex_lock(&http_pages_mutex);
+            http_pages_200 = 0;
+            http_pages_304 = 0;
+            http_pages_403 = 0;
+            http_pages_404 = 0;
+            http_pages_501 = 0;
+            pthread_mutex_unlock(&http_pages_mutex);
+            ews_verbose_to(pipe, LOG_LEVEL_INFO, "reset complete.");
+        }
+    } else {
+        http_get_status(buffer);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
+    }
     return 1;
 }
 
-void http10_init( moduleTAD *module, cliCommand **cc ) {
+void http_init( moduleTAD *module, cliCommand **cc ) {
     FILE *f;
     char *filename;
     int i;
 
-    strcpy(module->name, "http10");
+    strcpy(module->name, "http");
     module->type = MODULE_TYPE_PROC;
     module->priority = 50;
 
     module->load = NULL;
     module->unload = NULL;
     module->reload = NULL;
-    module->get_status = http10_get_status;
-    module->run = http10_run;
+    module->get_status = http_get_status;
+    module->run = http_run;
 
-    ews_cli_add_command(cc, "http10-info", "info about HTTP 1.0 module", NULL, http10_cli_info);
+    ews_cli_add_command(cc, "http-info", "info about HTTP 1.0 module", NULL, http_cli_info);
 
-    http10_autoindex_prepare(ews_get_detail_value(module->details, "autoindex_page", 0));
+    http_autoindex_prepare(ews_get_detail_value(module->details, "autoindex_page", 0));
 
     for (i=0; i<EWS_HTTP_PAGES; i++) {
         filename = ews_get_detail_value(module->details, page_names[i], 0);
         if (filename != NULL) {
-            if (f = fopen(filename, "r")) {
+            if ((f = fopen(filename, "r"))) {
                 fread(pages[i], PAGE_SIZE, 1, f);
                 fclose(f);
             } else {

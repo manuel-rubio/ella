@@ -15,7 +15,7 @@ void* ews_connector_launch( void* ptr_bc ) {
     int rc;
 
     bc = (bindConnect *)ptr_bc;
-    ews_verbose(LOG_LEVEL_INFO, "Launching connection: %s:%d", bc->host, bc->port);
+    ews_verbose(LOG_LEVEL_INFO, "Listening at %s:%d", bc->host, bc->port);
     bzero(&server, sizeof(server));
     fd_server = ews_server_start(&server, bc->host, bc->port, MAX_CLIENTS);
     if (fd_server > 0) {
@@ -40,14 +40,14 @@ void* ews_connector_launch( void* ptr_bc ) {
 
         rc = pthread_create(&br->thread, NULL, ews_connector_client_launch, (void *)br);
         if (rc) {
-            ews_verbose(LOG_LEVEL_ERROR, "in thread creation: %d", rc);
+            ews_verbose(LOG_LEVEL_ERROR, "thread creation failed: %d", rc);
         }
     }
     ews_verbose(LOG_LEVEL_INFO, "program exit");
     pthread_exit(NULL);
 }
 
-static int ews_server_read( bindRequest *br, int timeout ) {
+int ews_server_read( bindRequest *br, int timeout ) {
     char request[8192], buffer[2048];
     int i, count = 0, res;
     struct timeval t;
@@ -84,7 +84,7 @@ static int ews_server_read( bindRequest *br, int timeout ) {
     return 1;
 }
 
-static void* ews_connector_client_launch( void* ptr_br ) {
+void* ews_connector_client_launch( void* ptr_br ) {
     bindRequest *br;
     responseHTTP *rs;
     moduleTAD *pmt;
@@ -185,17 +185,17 @@ static void* ews_connector_client_launch( void* ptr_br ) {
     pthread_exit(NULL);
 }
 
-static int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
+int ews_server_start( struct sockaddr_in *server, char *host, int port, int max_clients ) {
     int fd;
     int reuse_addr = 1;
 
     if ((fd=socket(AF_INET, SOCK_STREAM, 0)) == -1 ) {
-        ews_verbose(LOG_LEVEL_ERROR, "in init server (socket)");
+        ews_verbose(LOG_LEVEL_ERROR, "in init server (socket) for %s:%d", host, port);
         bindThreadExit = 1;
         return -1;
     }
 
-    /* Para poder hacer re-bind hacia el socket sin problemas con TIME_WAIT */
+    /* To re-bind the socket without TIME_WAIT problems */
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof(reuse_addr));
 
     server->sin_family = AF_INET;
@@ -215,10 +215,11 @@ static int ews_server_start( struct sockaddr_in *server, char *host, int port, i
     return fd;
 }
 
-static int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
-    int sin_size, fd;
+int ews_server_accept( struct sockaddr_in* server, struct sockaddr_in* client, int sfd ) {
+    int fd;
     struct timeval t;
     fd_set rfds;
+    socklen_t sin_size;
 
     t.tv_sec = 0;
     t.tv_usec = 100;

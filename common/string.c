@@ -22,7 +22,7 @@ char* ews_rtrim( char *s ) {
 }
 
 char* ews_ltrim( char *s ) {
-    int i, j, k=0;
+    int i, j;
     for (j=0; s[j]!='\0' && s[j]==32; j++)
         ;
     if (j == 0)

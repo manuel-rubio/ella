@@ -35,7 +35,7 @@ static void *console(void *vconsole) {
 
     if (gethostname(hostname, sizeof(hostname)-1))
         strncpy(hostname, "<Unknown>", sizeof(hostname));
-    snprintf(response, sizeof(response), "%s/%.1f", hostname, PACKAGE_VERSION);
+    snprintf(response, sizeof(response), "%s/%s", hostname, PACKAGE_VERSION);
     fdprint(con->fd, response);
     while (!bindThreadExit) {
         FD_ZERO(&rfds);
@@ -166,8 +166,6 @@ int console_make_socket( cliCommand **cc ) {
     struct sockaddr_un sunaddr;
     int res;
     int x;
-    uid_t uid = -1;
-    gid_t gid = -1;
     pthread_attr_t lattr;
 
     for (x = 0; x < EWS_MAX_CONNECTS; x++)
@@ -201,37 +199,6 @@ int console_make_socket( cliCommand **cc ) {
     pthread_attr_init(&lattr);
     pthread_attr_setstacksize(&lattr, EWS_STACKSIZE);
     pthread_create(&lthread, NULL, console_launch, NULL);
-
-// TODO: configurar permisos para el fichero socket de la consola.
-//     if (!ast_strlen_zero(ast_config_AST_CTL_OWNER)) {
-//         struct passwd *pw;
-//         if ((pw = getpwnam(ast_config_AST_CTL_OWNER)) == NULL) {
-//             ast_log(LOG_WARNING, "Unable to find uid of user %s\n", ast_config_AST_CTL_OWNER);
-//         } else {
-//             uid = pw->pw_uid;
-//         }
-//     }
-//
-//     if (!ast_strlen_zero(ast_config_AST_CTL_GROUP)) {
-//         struct group *grp;
-//         if ((grp = getgrnam(ast_config_AST_CTL_GROUP)) == NULL) {
-//             ast_log(LOG_WARNING, "Unable to find gid of group %s\n", ast_config_AST_CTL_GROUP);
-//         } else {
-//             gid = grp->gr_gid;
-//         }
-//     }
-//
-//     if (chown(ast_config_AST_SOCKET, uid, gid) < 0)
-//         ast_log(LOG_WARNING, "Unable to change ownership of %s: %s\n", ast_config_AST_SOCKET, strerror(errno));
-//
-//     if (!ast_strlen_zero(ast_config_AST_CTL_PERMISSIONS)) {
-//         int p1;
-//         mode_t p;
-//         sscanf(ast_config_AST_CTL_PERMISSIONS, "%o", &p1);
-//         p = p1;
-//         if ((chmod(ast_config_AST_SOCKET, p)) < 0)
-//             ast_log(LOG_WARNING, "Unable to change file permissions of %s: %s\n", ast_config_AST_SOCKET, strerror(errno));
-//     }
 
     return 0;
 }

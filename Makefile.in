@@ -8,7 +8,7 @@ export LIBS_SERVER
 export LIBS_COMMON
 
 CC = @CC@
-CFLAGS = @CFLAGS@ @dependencias_CFLAGS@
+CFLAGS = @CFLAGS@ @dependencias_CFLAGS@ -Wall
 LIBS_CONSOLE = @LIBS_CONSOLE@ @dependencias_LIBS@
 LIBS_SERVER = -ldl -pthread @LIBS_SERVER@ @dependencias_LIBS@
 LIBS_COMMON = @LIBS_COMMON@ @dependencias_LIBS@

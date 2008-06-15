@@ -13,7 +13,7 @@
 int main(void) {
     int s, len, i;
     struct sockaddr_un remote;
-    char str[4096], *aux;
+    char str[4096], *aux = "0.1";
     fd_set rfds;
     struct timeval t;
     static int exitEWS = 0;

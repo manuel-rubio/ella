@@ -3,6 +3,7 @@
 #if !defined __DATE_H
 #define __DATE_H
 
+#include <string.h>
 #include <time.h>
 #include <stdio.h>
 #include <sys/stat.h>

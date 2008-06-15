@@ -18,11 +18,8 @@ configFuncs ews_get_initial_conf() {
 configBlock* ews_ini_read() {
     FILE *f;
     char buffer[1024] = { 0 },
-         clave[512] = { 0 },
-         valor[512] = { 0 },
          key[STRING_SIZE] = { 0 };
-    int  bs = 0,
-         i, j, index,
+    int  i, j, index,
          name_flag = 0;
     configBlock *cb = NULL, *pcb = NULL;
     configDetail *pcd = NULL;

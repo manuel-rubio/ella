@@ -8,7 +8,7 @@ long ews_memory_freed = 0;
 long ews_memory = 0;
 
 int ews_memory_ptr = 0;
-int ews_memory_data[MAX_MEM_ALLOCS][2] = { 0 };
+int ews_memory_data[MAX_MEM_ALLOCS][2] = { { 0 } };
 
 int ews_max_simult_allocs = 0;
 long ews_max_memory_in_use = 0;

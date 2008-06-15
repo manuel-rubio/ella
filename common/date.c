@@ -115,7 +115,7 @@ int convert_from_ansic( char *date_std, char *from_date ) {
 }
 
 int compare_date( char *d1, char *d2 ) {
-    int dia1, dia2, mes1, mes2, agno1, agno2;
+    int dia1, dia2, mes1 = 0, mes2 = 0, agno1, agno2;
     int hora1, hora2, min1, min2, seg1, seg2;
     int gmt1, gmt2;
     int i;

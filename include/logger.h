@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <pthread.h>
+#include <unistd.h>
 
 #include "config.h"
 #include "configurator.h"
@@ -56,6 +57,19 @@ void set_date_format( const char *s );
  *  @param type minimum type to will be showed.
  */
 void set_log_level( int type );
+
+/**
+ *  Init logger structures.
+ */
+void logger_init();
+
+/**
+ *  Setting logger throught config blocks.
+ *
+ *  @param cb config blocks for logger configuration.
+ */
+struct Config_Block;
+void logger_config( struct Config_Block *cb );
 
 /**
  *  Register a logger.

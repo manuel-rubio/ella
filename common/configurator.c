@@ -67,7 +67,7 @@ configBlock* ews_get_block( configBlock *cb, char *name, char *lastname ) {
 char* ews_get_detail_value( configDetail *details, char *key, int index ) {
     configDetail *cd;
     if (details == NULL) {
-        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found! (calling for %s[%d])", key, index);
         return 0;
     }
     for (cd=details; cd != NULL; cd = cd->next)
@@ -81,7 +81,7 @@ char* ews_get_detail_key( configDetail *details, char *value, int index ) {
     configDetail *cd;
     int count = 0;
     if (details == NULL) {
-        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found! (calling for value %s in %d order)", value, index);
         return 0;
     }
     for (cd=details; cd != NULL; cd = cd->next) {
@@ -99,7 +99,7 @@ int ews_get_detail_values( configDetail *details, char *value ) {
     configDetail *cd;
     int indexes = 0;
     if (details == NULL) {
-        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found! (calling for count values [%s])", value);
         return 0;
     }
     for (cd=details; cd != NULL; cd = cd->next)
@@ -112,7 +112,7 @@ int ews_get_detail_indexes( configDetail *details, char *key ) {
     configDetail *cd;
     int indexes = 0;
     if (details == NULL) {
-        ews_verbose(LOG_LEVEL_DEBUG, "details not found!");
+        ews_verbose(LOG_LEVEL_DEBUG, "details not found! (calling for count keys [%s])", key);
         return 0;
     }
     for (cd=details; cd != NULL; cd = cd->next)
@@ -123,7 +123,7 @@ int ews_get_detail_indexes( configDetail *details, char *key ) {
 
 void ews_get_bindhost( configBlock *cb, char *key, int index, char *s ) {
     char *host = ews_get_detail_value(cb->details, key, index);
-    int i, capture;
+    int i;
 
     if (host == NULL) {
         ews_verbose(LOG_LEVEL_DEBUG, "host not found! in [%s:%s]", cb->name, cb->lastname);
@@ -140,8 +140,8 @@ int ews_get_bindport( configBlock *cb, char *key, int index ) {
     int i, j, capture;
 
     if (host == NULL) {
-        ews_verbose(LOG_LEVEL_DEBUG, "host not found! in [%s:%s]", cb->name, cb->lastname);
-        return;
+        ews_verbose(LOG_LEVEL_DEBUG, "port not found! in [%s:%s]", cb->name, cb->lastname);
+        return -1;
     }
     for (i=0, j=0, capture=0; host[i]!='\0'; i++) {
         if (capture) {
@@ -162,18 +162,19 @@ int ews_get_bindproto( configBlock *cb, char *key, int index ) {
     char *aux;
     int len;
 
-    if (host != NULL) {
-        len = strlen(host) - 3;
-        if (len > 0) {
-            aux = host + len;
-            if (strcmp("tcp", aux) == 0) {
-                return IPPROTO_TCP;
-            } else if (strcmp("udp", aux) == 0) {
-                return IPPROTO_UDP;
-            }
-        }
-        // TCP is default behaviour
-        return IPPROTO_TCP;
+    if (host == NULL) {
+        ews_verbose(LOG_LEVEL_DEBUG, "protocol not found! in [%s:%s]", cb->name, cb->lastname);
+        return -1;
     }
-    return -1;
+    len = strlen(host) - 3;
+    if (len > 0) {
+        aux = host + len;
+        if (strcmp("tcp", aux) == 0) {
+            return IPPROTO_TCP;
+        } else if (strcmp("udp", aux) == 0) {
+            return IPPROTO_UDP;
+        }
+    }
+    // TCP is default behaviour
+    return IPPROTO_TCP;
 }

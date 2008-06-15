@@ -12,7 +12,7 @@ int main() {
     moduleTAD *modules = NULL;
     cliCommand *commands = NULL;
     bindConnect *bc = NULL, *pbc = NULL;
-    int rc, status;
+    int rc;
 
     logger_init();
     cf = ews_get_initial_conf();
@@ -35,14 +35,13 @@ int main() {
     }
 
     if (console_make_socket(&commands) < 0) {
-        ews_verbose(LOG_LEVEL_ERROR, "in console launch");
+        ews_verbose(LOG_LEVEL_ERROR, "console launch failed");
     }
 
     for (pbc = bc; pbc != NULL; pbc = pbc->next) {
-        if (pthread_join(pbc->thread, (void **) &status)) {
+        if (pthread_join(pbc->thread, NULL)) {
             ews_verbose(LOG_LEVEL_ERROR, "can't do 'join' in threads");
         }
-        ews_verbose(LOG_LEVEL_INFO, "thread exit with %d status.", status);
     }
 
     ews_modules_free(modules);
