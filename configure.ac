@@ -46,9 +46,9 @@ AC_ARG_WITH(dumb,
     AC_HELP_STRING([--with-dumb], [compiles dumb module]),
     MODULES="libdumb.so ${MODULES}")
 
-AC_ARG_WITH(http10,
-    AC_HELP_STRING([--without-http10], [doesn't compile http10 module]),,
-    MODULES="libhttp10.so ${MODULES}")
+AC_ARG_WITH(http,
+    AC_HELP_STRING([--without-http], [doesn't compile http module]),,
+    MODULES="libhttp.so ${MODULES}")
 
 AC_ARG_WITH(mime,
     AC_HELP_STRING([--without-mime], [doesn't compile mime module]),,

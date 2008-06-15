@@ -9,11 +9,11 @@ libdumb.so: dumb.o ../common/libews0.so $(INC)
 dumb.o: dumb.c
 	$(CC) $(CFLAGS) -c -fPIC -o dumb.o dumb.c
 
-libhttp10.so: http10.o ../common/libews0.so $(INC)
-	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libhttp10.so -o libhttp10.so http10.o ../common/libews0.so -lc
+libhttp.so: http.o ../common/libews0.so $(INC)
+	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libhttp.so -o libhttp.so http.o ../common/libews0.so -lc
 
-http10.o: http10.c
-	$(CC) $(CFLAGS) -c -fPIC -o http10.o http10.c
+http.o: http.c
+	$(CC) $(CFLAGS) -c -fPIC -o http.o http.c
 
 libmime.so: mime.o ../common/libews0.so $(INC)
 	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libmime.so -o libmime.so mime.o ../common/libews0.so -lc
