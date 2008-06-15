@@ -14,18 +14,20 @@ int main(void) {
     int s, len, i;
     struct sockaddr_un remote;
     char str[4096], *aux = "0.1";
+    char *ptr = NULL;
     fd_set rfds;
     struct timeval t;
     static int exitEWS = 0;
     int ok = 0;
     int flags;
+    int size = 0;
 
-    if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    if ((s = socket(AF_LOCAL, SOCK_STREAM, 0)) == -1) {
         perror("socket");
         exit(1);
     }
 
-    remote.sun_family = AF_UNIX;
+    remote.sun_family = AF_LOCAL;
     strcpy(remote.sun_path, EWS_CONSOLE_SOCKET);
     len = strlen(remote.sun_path) + sizeof(remote.sun_family);
     if (connect(s, (struct sockaddr *)&remote, len) == -1) {
@@ -59,10 +61,16 @@ int main(void) {
 
         if (FD_ISSET(s, &rfds)) {
             ok = 0;
-            while ((len = recv(s, str, sizeof(str), 0)) > 0) {
-                str[len] = '\0';
-                printf("\r%s", str);
+            while ((len = recv(s, str, sizeof(str) - 1, 0)) > 0) {
+                ptr = str;
+                size = 0;
+                do {
+                    printf("\r%s", ptr);
+                    size += strlen(ptr) + 1;
+                    ptr = str + size;
+                } while (size < len);
                 ok = 1;
+                bzero(str, sizeof(str));
             }
             if (!ok) {
                 if (len < 0) {
@@ -70,7 +78,7 @@ int main(void) {
                 } else {
                     printf("Server closed connection\n");
                 }
-                exit(1);
+                break;
             }
             printf("\rCLI> ");
             fflush(stdout);
@@ -81,6 +89,7 @@ int main(void) {
                 perror("send");
                 exit(1);
             }
+            printf("\rCLI> ");
         }
     }
     close(s);

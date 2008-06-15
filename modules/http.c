@@ -380,7 +380,6 @@ int http_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
 }
 
 int http_cli_info( int pipe, char *params ) {
-    char buffer[BUFFER_SIZE];
     if (params != NULL) {
         if (strncmp(params, "reset", strlen(params)) == 0) {
             pthread_mutex_lock(&http_pages_mutex);
@@ -393,8 +392,17 @@ int http_cli_info( int pipe, char *params ) {
             ews_verbose_to(pipe, LOG_LEVEL_INFO, "reset complete.");
         }
     } else {
-        http_get_status(buffer);
-        ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
+        pthread_mutex_lock(&http_pages_mutex);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "HTTP 1.0 - RFC1945");
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "Pages sent: %6d",
+            http_pages_200 + http_pages_304 + http_pages_403 +
+            http_pages_404 + http_pages_501);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "       200: %6d", http_pages_200);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "       304: %6d", http_pages_304);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "       403: %6d", http_pages_403);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "       404: %6d", http_pages_404);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "       501: %6d", http_pages_501);
+        pthread_mutex_unlock(&http_pages_mutex);
     }
     return 1;
 }
@@ -414,7 +422,9 @@ void http_init( moduleTAD *module, cliCommand **cc ) {
     module->get_status = http_get_status;
     module->run = http_run;
 
-    ews_cli_add_command(cc, "http-info", "info about HTTP 1.0 module", NULL, http_cli_info);
+    ews_cli_add_command(cc, "http-info", "info about HTTP 1.0 module", "\n\
+Sintaxis: http-info [reset]\n\
+Description: show stats for incoming requests and outgoing type responses.\n", http_cli_info);
 
     http_autoindex_prepare(ews_get_detail_value(module->details, "autoindex_page", 0));
 

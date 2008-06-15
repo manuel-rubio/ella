@@ -136,19 +136,21 @@ int ews_memory_cli_stats( int pipe, char *params ) {
             ews_verbose_to(pipe, LOG_LEVEL_INFO, "memory reset complete.");
         }
     } else {
-        strcpy(buffer, "\nAllocated memory: ");
+        strcpy(buffer, "Allocated memory: ");
         ews_memory_print_units(buffer + strlen(buffer), ews_memory_allocated);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
 
-        strcat(buffer, "\nFreed memory: ");
+        strcpy(buffer, "Freed memory: ");
         ews_memory_print_units(buffer + strlen(buffer), ews_memory_freed);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
 
-        strcat(buffer, "\nMemory in use: ");
+        strcpy(buffer, "Lost memory: ");
         ews_memory_print_units(buffer + strlen(buffer), ews_memory);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
 
-        sprintf(line, "\nMax. simultaneous allocations: %d", ews_max_simult_allocs);
-        strcat(buffer, line);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "Max. simultaneous allocations: %d", ews_max_simult_allocs);
 
-        strcat(buffer, "\nMax. memory in use: ");
+        strcpy(buffer, "Max. memory in use: ");
         ews_memory_print_units(buffer + strlen(buffer), ews_max_memory_in_use);
         ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
     }

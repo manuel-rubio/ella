@@ -60,6 +60,8 @@ static void *console(void *vconsole) {
                 break;
             }
             switch (ews_cli_command(con->p[1], request)) {
+                case -2: // press enter without command
+                    break;
                 case -1:
                     ews_verbose_to(con->p[1], LOG_LEVEL_ERROR, "while running %s", request);
                     break;
