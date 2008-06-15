@@ -18,6 +18,7 @@
 enum {
     EWS_HTTP_PAGE_403,
     EWS_HTTP_PAGE_404,
+    EWS_HTTP_PAGE_500,
     EWS_HTTP_PAGE_501,
     EWS_HTTP_PAGES
 };
@@ -25,6 +26,7 @@ enum {
 static char *page_names[EWS_HTTP_PAGES] = {
     "error403",
     "error404",
+    "error500",
     "error501"
 };
 static char pages[EWS_HTTP_PAGES][PAGE_SIZE];
@@ -43,6 +45,7 @@ int
     http_pages_304 = 0,
     http_pages_403 = 0,
     http_pages_404 = 0,
+    http_pages_500 = 0,
     http_pages_501 = 0;
 
 void http_get_status( char *s );
@@ -64,12 +67,14 @@ Pages sent: %6d\n\
        304: %6d\n\
        403: %6d\n\
        404: %6d\n\
+       500: %6d\n\
        501: %6d\n",
-    http_pages_200 + http_pages_304 + http_pages_403 + http_pages_404 + http_pages_501,
+    http_pages_200 + http_pages_304 + http_pages_403 + http_pages_404 + + http_pages_500 + http_pages_501,
     http_pages_200,
     http_pages_304,
     http_pages_403,
     http_pages_404,
+    http_pages_500,
     http_pages_501);
     pthread_mutex_unlock(&http_pages_mutex);
 }
@@ -165,6 +170,7 @@ void http_error_page( int code, char *message, char *page, requestHTTP *rh, resp
     switch (code) {
         case 403: http_pages_403++; break;
         case 404: http_pages_404++; break;
+        case 500: http_pages_500++; break;
         case 501: http_pages_501++; break;
         default:
             ews_verbose(LOG_LEVEL_ERROR, "unknown code! %d", code);
@@ -218,6 +224,10 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
             case 403:
                 ews_verbose(LOG_LEVEL_ERROR, "can't acces to %s.", buffer);
                 http_error_page(403, "Forbidden", pages[EWS_HTTP_PAGE_403], rh, rs, method);
+                return MODULE_RETURN_OK;
+            case 500:
+                ews_verbose(LOG_LEVEL_ERROR, "page autoindex not found");
+                http_error_page(500, "Internal Server Error", pages[EWS_HTTP_PAGE_500], rh, rs, method);
                 return MODULE_RETURN_OK;
             default:
                 ews_verbose(LOG_LEVEL_INFO, "sending autoindex page");
@@ -292,6 +302,9 @@ int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
     bzero(page, PAGE_SIZE);
 
     if (strcmp(autoindex, "on") == 0) {
+        if (autoindex_header == NULL || autoindex_entry == NULL || autoindex_footer == NULL) {
+            return 500;
+        }
         sprintf(dir, "%s/%s", path, rh->uri + (strlen(hl->base_uri)));
         if (strncmp(path, dir, strlen(path)) != 0) { // 403 Forbidden
             return 403;
@@ -435,8 +448,10 @@ Description: show stats for incoming requests and outgoing type responses.\n", h
                 fread(pages[i], PAGE_SIZE, 1, f);
                 fclose(f);
             } else {
-                ews_verbose(LOG_LEVEL_WARN, "page %s can't open to load", filename);
+                ews_verbose(LOG_LEVEL_WARN, "page [%s] can't open to load", filename);
             }
+        } else {
+            ews_verbose(LOG_LEVEL_WARN, "page [%s] can't found in config file", page_names[i]);
         }
     }
 }
