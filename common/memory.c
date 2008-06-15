@@ -124,7 +124,7 @@ void ews_memory_stats( void ) {
 }
 
 int ews_memory_cli_stats( int pipe, char *params ) {
-    char buffer[512], line[100];
+    char buffer[512];
     pthread_mutex_lock(&memory_allocation);
 
     if (params != NULL) {
