@@ -54,6 +54,10 @@ AC_ARG_WITH(mime,
     AC_HELP_STRING([--without-mime], [doesn't compile mime module]),,
     MODULES="libmime.so ${MODULES}")
 
+AC_ARG_WITH(access,
+    AC_HELP_STRING([--without-access], [doesn't compile access module]),,
+    MODULES="libaccess.so ${MODULES}")
+
 AC_PROG_CC
 AC_PROG_CC_STDC
 
