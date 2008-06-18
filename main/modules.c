@@ -132,7 +132,7 @@ void ews_modules_free( moduleTAD *modules ) {
 
     ews_verbose(LOG_LEVEL_INFO, "module free [%s].", modules->name);
 
-    // Los detalles se liberan con los bloques
+    // details will be freed in free blocks
     modules->details = NULL;
 
     dlclose(modules->handle);
