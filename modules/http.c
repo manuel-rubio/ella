@@ -58,6 +58,41 @@ int http_find_file( char *buffer, requestHTTP *rh, hostLocation *hl );
 int http_cli_info( int pipe, char *params );
 void http_init( moduleTAD *module, cliCommand **cc );
 
+static int http_send_error_page( int code, requestHTTP *rh, responseHTTP *rs, int method ) {
+    char buffer[BUFFER_SIZE] = { 0 };
+    switch (code) {
+        case 404:
+            ews_verbose(LOG_LEVEL_ERROR, "(404) file %s not found.", buffer);
+            http_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
+            break;
+        case 403:
+            ews_verbose(LOG_LEVEL_ERROR, "(403) can't acces to %s.", buffer);
+            http_error_page(403, "Forbidden", pages[EWS_HTTP_PAGE_403], rh, rs, method);
+            break;
+        case 500:
+            ews_verbose(LOG_LEVEL_ERROR, "(500) internal server error!");
+            http_error_page(500, "Internal Server Error", pages[EWS_HTTP_PAGE_500], rh, rs, method);
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
+
+static void http_add_page_count( int code ) {
+    pthread_mutex_lock(&http_pages_mutex);
+    switch (code) {
+        case 200: http_pages_200++; break;
+        case 304: http_pages_304++; break;
+        case 403: http_pages_403++; break;
+        case 404: http_pages_404++; break;
+        case 500: http_pages_500++; break;
+        case 501: http_pages_501++; break;
+        default:
+            ews_verbose(LOG_LEVEL_ERROR, "unknown code! %d", code);
+    }
+    pthread_mutex_unlock(&http_pages_mutex);
+}
 
 void http_get_status( char *s ) {
     pthread_mutex_lock(&http_pages_mutex);
@@ -166,16 +201,7 @@ void http_error_page( int code, char *message, char *page, requestHTTP *rh, resp
     if (method != METHOD_HEAD) {
         ews_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
     }
-    pthread_mutex_lock(&http_pages_mutex);
-    switch (code) {
-        case 403: http_pages_403++; break;
-        case 404: http_pages_404++; break;
-        case 500: http_pages_500++; break;
-        case 501: http_pages_501++; break;
-        default:
-            ews_verbose(LOG_LEVEL_ERROR, "unknown code! %d", code);
-    }
-    pthread_mutex_unlock(&http_pages_mutex);
+    http_add_page_count(code);
 }
 
 int http_run( struct Bind_Request *br, responseHTTP *rs ) {
@@ -188,6 +214,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     char buffer[BUFFER_SIZE] = { 0 }, date[80] = { 0 };
     int method = 0;
     char page[PAGE_SIZE] = { 0 };
+    int code;
 
     if (strcmp(br->request->request, "GET") == 0) {
         method = METHOD_GET;
@@ -199,6 +226,14 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
         ews_verbose(LOG_LEVEL_ERROR, "method %s not implemented.", br->request->request);
         http_error_page(501, "Not implemented", pages[EWS_HTTP_PAGE_501], rh, rs, METHOD_GET);
         return MODULE_RETURN_OK;
+    }
+
+    if (rs->code > 200 && rs->code < 700) {
+        /* some module send us a error code to show'em */
+        if (http_send_error_page(rs->code, rh, rs, method) == 0) {
+            return MODULE_RETURN_OK;
+        }
+        ews_verbose(LOG_LEVEL_INFO, "unknown code %d in previous code page, ignoring...", rs->code);
     }
 
     if (host_name != NULL) {
@@ -216,23 +251,12 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
     if (!http_find_file(buffer, rh, hl)) { // 404 - Not found
         // Try autoindex
-        switch (http_autoindex(page, rh, hl)) {
-            case 404:
-                ews_verbose(LOG_LEVEL_ERROR, "file %s not found.", buffer);
-                http_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
-                return MODULE_RETURN_OK;
-            case 403:
-                ews_verbose(LOG_LEVEL_ERROR, "can't acces to %s.", buffer);
-                http_error_page(403, "Forbidden", pages[EWS_HTTP_PAGE_403], rh, rs, method);
-                return MODULE_RETURN_OK;
-            case 500:
-                ews_verbose(LOG_LEVEL_ERROR, "page autoindex not found");
-                http_error_page(500, "Internal Server Error", pages[EWS_HTTP_PAGE_500], rh, rs, method);
-                return MODULE_RETURN_OK;
-            default:
-                ews_verbose(LOG_LEVEL_INFO, "sending autoindex page");
-                modified = NULL; // doesn't use cache in autoindex
+        code = http_autoindex(page, rh, hl);
+        if (http_send_error_page(code, rh, rs, method) == 0) {
+            return MODULE_RETURN_OK;
         }
+        ews_verbose(LOG_LEVEL_INFO, "unknown code %d in autoindex generation, ignoring...", code);
+        modified = NULL;
     } else {
         ews_verbose(LOG_LEVEL_INFO, "sending file [%s]", buffer);
     }
@@ -257,15 +281,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     } else if (method != METHOD_HEAD && rs->code == 200) {
         ews_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
     }
-
-    pthread_mutex_lock(&http_pages_mutex);
-    switch (rs->code) {
-        case 200: http_pages_200++; break;
-        case 304: http_pages_304++; break;
-        default:
-            ews_verbose(LOG_LEVEL_ERROR, "unknown code! %d", rs->code);
-    }
-    pthread_mutex_unlock(&http_pages_mutex);
+    http_add_page_count(rs->code);
 
     return MODULE_RETURN_PROC_STOP;
 }
