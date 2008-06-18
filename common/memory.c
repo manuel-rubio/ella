@@ -125,6 +125,7 @@ void ews_memory_stats( void ) {
 
 int ews_memory_cli_stats( int pipe, char *params ) {
     char buffer[512];
+    int i;
     pthread_mutex_lock(&memory_allocation);
 
     if (params != NULL) {
@@ -132,6 +133,9 @@ int ews_memory_cli_stats( int pipe, char *params ) {
             ews_memory_allocated -= ews_memory_freed;
             ews_memory_freed = 0;
             ews_max_simult_allocs = 0;
+            for (i=0; i<MAX_MEM_ALLOCS; i++)
+                if (ews_memory_data[i][0] != NULL)
+                    ews_max_simult_allocs ++;
             ews_max_memory_in_use = ews_memory;
             ews_verbose_to(pipe, LOG_LEVEL_INFO, "memory reset complete.");
         }
