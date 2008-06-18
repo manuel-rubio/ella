@@ -88,32 +88,34 @@ moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
 }
 
 moduleTAD* ews_modules_sort( moduleTAD *mt ) {
-    moduleTAD *pmt = NULL, // pointer to moduleTAD
-              *tmt = NULL, // temp moduleTAD
-              *rmt = NULL; // result moduleTAD
+    moduleTAD *sort_mt[512] = { 0 };
+    moduleTAD *pmt = NULL;
+    int tam = 0, i, j, k;
 
-    for (; mt!=NULL; mt=tmt) {
-        tmt = mt->next;
-        mt->next = NULL;
-        if (rmt == NULL) {
-            rmt = mt;
-        } else {
-            pmt = rmt;
-            while ((pmt->type > mt->type || (pmt->type == mt->type && pmt->priority > mt->priority)) && pmt->next != NULL) {
-                pmt = pmt->next;
-            }
-            if ((pmt->type < mt->type || (pmt->type == mt->type && pmt->priority < mt->priority)) && pmt->next == NULL) {
-                pmt->next = mt;
-            } else {
-                mt->next = pmt;
-                pmt = mt;
-                if (pmt->next == rmt) {
-                    rmt = pmt;
-                }
+    for (pmt=mt; pmt!=NULL; pmt=pmt->next) {
+        sort_mt[tam++] = pmt;
+    }
+
+    for (i=0; i<(tam-1); i++) {
+        k = i;
+        for (j=i+1; j<tam; j++) {
+            if (sort_mt[k]->type > sort_mt[j]->type || (sort_mt[k]->type == sort_mt[j]->type && sort_mt[k]->priority >= sort_mt[j]->priority)) {
+                k = j;
             }
         }
+        if (k != i) {
+            pmt = sort_mt[k];
+            sort_mt[k] = sort_mt[i];
+            sort_mt[i] = pmt;
+        }
     }
-    return rmt;
+
+    for (i=0; i<(tam-1); i++) {
+        sort_mt[i]->next = sort_mt[i+1];
+    }
+    sort_mt[tam-1]->next = NULL;
+    mt = sort_mt[0];
+    return mt;
 }
 
 void ews_modules_free( moduleTAD *modules ) {
