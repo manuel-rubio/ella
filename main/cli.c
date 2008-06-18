@@ -50,7 +50,7 @@ Description: exists from ews console.\n", NULL);
 Sintaxis: exit\n\
 Description: same as quit. Exists from ews console.\n", NULL);
     ews_cli_add_command(commands, "help", "use help with another topic to see more information.", "\n\
-Sintaxis: help\n\
+Sintaxis: help [module]\n\
 Description: show all help commands available.\n", ews_cli_help);
     ews_cli_add_command(commands, "shutdown", "shutdown ews", "\n\
 Sintaxis: shutdown\n\
