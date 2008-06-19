@@ -134,7 +134,7 @@ int ews_memory_cli_stats( int pipe, char *params ) {
             ews_memory_freed = 0;
             ews_max_simult_allocs = 0;
             for (i=0; i<MAX_MEM_ALLOCS; i++)
-                if (ews_memory_data[i][0] != NULL)
+                if (ews_memory_data[i][0] != 0)
                     ews_max_simult_allocs ++;
             ews_max_memory_in_use = ews_memory;
             ews_verbose_to(pipe, LOG_LEVEL_INFO, "memory reset complete.");
