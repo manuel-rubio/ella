@@ -2,6 +2,44 @@
 
 #include "../include/ella.h"
 
+static moduleTAD *modules = NULL;
+
+int ews_modules_cli_info( int pipe, char *params ) {
+    moduleTAD *pmt = NULL;
+    char buffer[1024];
+    char *aux, *tmp;
+    int i;
+
+    if (params != NULL) {
+        for (pmt=modules; pmt!=NULL; pmt=pmt->next) {
+            if (strcmp(pmt->name, params) == 0) {
+                if (pmt->get_status != NULL) {
+                    pmt->get_status(buffer);
+                    aux = buffer;
+                    tmp = buffer;
+                    for (i=0; aux[i]!='\0'; i++) {
+                        if (aux[i] == '\n') {
+                            aux[i] = '\0';
+                            ews_verbose_to(pipe, LOG_LEVEL_INFO, tmp);
+                            tmp = aux + i + 1;
+                        }
+                    }
+                    ews_verbose_to(pipe, LOG_LEVEL_INFO, tmp);
+                    break;
+                } else {
+                    ews_verbose_to(pipe, LOG_LEVEL_INFO, "this module hasn't status command");
+                }
+            }
+        }
+        if (pmt == NULL) {
+            ews_verbose_to(pipe, LOG_LEVEL_INFO, "module not found");
+        }
+    } else {
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "Sintaxis: info <module>");
+    }
+    return 1;
+}
+
 moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
     int  indexes, i;
     char *module = NULL,
@@ -84,6 +122,12 @@ moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
     if (mt != NULL) {
         mt = ews_modules_sort(mt);
     }
+
+    ews_cli_add_command(cc, "info", "use info with a module name for see information about module.", "\n\
+Sintaxis: info <module>\n\
+Description: show module status.\n", ews_modules_cli_info);
+
+    modules = mt;
     return mt;
 }
 
@@ -118,23 +162,23 @@ moduleTAD* ews_modules_sort( moduleTAD *mt ) {
     return mt;
 }
 
-void ews_modules_free( moduleTAD *modules ) {
-    if (modules == NULL)
+void ews_modules_free( moduleTAD *mt ) {
+    if (mt == NULL)
         return;
 
-    if (modules->next != NULL) {
-        ews_modules_free(modules->next);
-        modules->next = NULL;
+    if (mt->next != NULL) {
+        ews_modules_free(mt->next);
+        mt->next = NULL;
     }
 
-    if (modules->unload != NULL)
-        modules->unload();
+    if (mt->unload != NULL)
+        mt->unload();
 
-    ews_verbose(LOG_LEVEL_INFO, "module free [%s].", modules->name);
+    ews_verbose(LOG_LEVEL_INFO, "module free [%s].", mt->name);
 
     // details will be freed in free blocks
-    modules->details = NULL;
+    mt->details = NULL;
 
-    dlclose(modules->handle);
-    ews_free(modules, "ews_modules_free");
+    dlclose(mt->handle);
+    ews_free(mt, "ews_modules_free");
 }

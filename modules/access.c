@@ -18,10 +18,10 @@ long
 
 void access_get_status( char *s ) {
     pthread_mutex_lock(&access_stats_mutex);
-    sprintf(s, "\nAccess\n\n\
+    sprintf(s, "Access\n\n\
 Total access: %6ld\n\
      granted: %6ld\n\
-      denied: %6ld\n",
+      denied: %6ld",
     access_granted + access_denied,
     access_granted,
     access_denied);

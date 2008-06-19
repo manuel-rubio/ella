@@ -96,14 +96,14 @@ static void http_add_page_count( int code ) {
 
 void http_get_status( char *s ) {
     pthread_mutex_lock(&http_pages_mutex);
-    sprintf(s, "\nHTTP 1.0 - RFC1945\n\n\
+    sprintf(s, "HTTP 1.0 - RFC1945\n\n\
 Pages sent: %6d\n\
        200: %6d\n\
        304: %6d\n\
        403: %6d\n\
        404: %6d\n\
        500: %6d\n\
-       501: %6d\n",
+       501: %6d",
     http_pages_200 + http_pages_304 + http_pages_403 + http_pages_404 + + http_pages_500 + http_pages_501,
     http_pages_200,
     http_pages_304,

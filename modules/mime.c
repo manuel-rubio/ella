@@ -132,13 +132,6 @@ void mime_error( char *s ) {
     strcpy(s, "Not loaded, you should configure [mime] and types detail.");
 }
 
-int mime_cli_info( int pipe, char *params ) {
-    char buffer[80];
-    mime_get_status(buffer);
-    ews_verbose_to(pipe, LOG_LEVEL_INFO, buffer);
-    return 1;
-}
-
 void mime_init( moduleTAD *module, cliCommand **cc ) {
     char *types;
 
@@ -168,6 +161,4 @@ void mime_init( moduleTAD *module, cliCommand **cc ) {
     module->run = mime_run;
     module->get_status = mime_get_status;
     strcpy(mime_file, types);
-
-    ews_cli_add_command(cc, "mime-info", "info about MIME module", NULL, mime_cli_info);
 }
