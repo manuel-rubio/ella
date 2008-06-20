@@ -88,7 +88,7 @@ void* ews_connector_client_launch( void* ptr_br ) {
     bindRequest *br;
     responseHTTP *rs;
     moduleTAD *pmt;
-    char *buffer, bf[1024];
+    char *buffer, bf[BUFFER_SIZE];
     int res, f, bf_size, bucle = 1;
     int mod_proc = 1, mod_sec = 1, mod_head = 1;
 
@@ -151,6 +151,7 @@ void* ews_connector_client_launch( void* ptr_br ) {
                 ews_free(buffer, "ews_connector_client_launch");
                 switch (rs->content_type) {
                     case HEADER_CONTENT_STRING:
+                    case HEADER_CONTENT_RAW:
                         send(br->fd_client, rs->content, strlen(rs->content), 0);
                         break;
                     case HEADER_CONTENT_FILE:
@@ -158,7 +159,7 @@ void* ews_connector_client_launch( void* ptr_br ) {
                         if (f == -1) {
                             ews_verbose(LOG_LEVEL_ERROR, "can't open file (%d).", errno);
                         } else {
-                            while (bucle && (bf_size = read(f, bf, 1024))) {
+                            while (bucle && (bf_size = read(f, bf, BUFFER_SIZE))) {
                                 if (bf_size == -1) {
                                     ews_verbose(LOG_LEVEL_ERROR, "error while read file %s.", rs->content);
                                     bucle = 0;

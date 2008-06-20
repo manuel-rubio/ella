@@ -6,7 +6,7 @@ static moduleTAD *modules = NULL;
 
 int ews_modules_cli_info( int pipe, char *params ) {
     moduleTAD *pmt = NULL;
-    char buffer[1024];
+    char buffer[BUFFER_SIZE];
     char *aux, *tmp;
     int i;
 

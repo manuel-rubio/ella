@@ -58,6 +58,10 @@ AC_ARG_WITH(access,
     AC_HELP_STRING([--without-access], [doesn't compile access module]),,
     MODULES="libaccess.so ${MODULES}")
 
+AC_ARG_WITH(cgi,
+    AC_HELP_STRING([--without-cgi], [doesn't compile cgi module]),,
+    MODULES="libcgi.so ${MODULES}")
+
 AC_PROG_CC
 AC_PROG_CC_STDC
 

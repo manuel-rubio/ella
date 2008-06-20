@@ -46,7 +46,8 @@ typedef struct request requestHTTP;
 enum {
     HEADER_CONTENT_NONE,
     HEADER_CONTENT_STRING,
-    HEADER_CONTENT_FILE
+    HEADER_CONTENT_FILE,
+    HEADER_CONTENT_RAW
 };
 
 /**

@@ -17,7 +17,7 @@ configFuncs ews_get_initial_conf() {
 
 configBlock* ews_ini_read() {
     FILE *f;
-    char buffer[1024] = { 0 },
+    char buffer[BUFFER_SIZE] = { 0 },
          key[STRING_SIZE] = { 0 };
     int  i, j, index,
          name_flag = 0;

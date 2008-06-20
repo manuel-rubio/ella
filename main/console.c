@@ -3,7 +3,7 @@
 #include "../include/ella.h"
 
 #define EWS_MAX_CONNECTS 128
-#define EWS_STACKSIZE 240 * 1024
+#define EWS_STACKSIZE (240 * 1024)
 
 struct console {
     int fd;      /*!< File descriptor */

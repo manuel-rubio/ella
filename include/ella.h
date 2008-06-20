@@ -22,6 +22,10 @@
 #include "date.h"
 #include "logger.h"
 
+//!< definitions
+#define BUFFER_SIZE           1024
+#define PAGE_SIZE          2097152
+
 extern char bindThreadExit;  //!< switch to keep server running.
 
 /**

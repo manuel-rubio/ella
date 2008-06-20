@@ -45,6 +45,7 @@ void ews_set_response_content( responseHTTP *rs, int type, void *s ) {
             ews_verbose(LOG_LEVEL_INFO, "%s file has %d bytes", (char *)s, st.st_size);
         } else {
             // HEADER_CONTENT_STRING
+            // HEADER_CONTENT_RAW
             sprintf(size, "%d", strlen((char *)s));
         }
         rs->content = (char *)ews_malloc(strlen(s) + 1);
@@ -261,6 +262,8 @@ char* ews_gen_response( responseHTTP *rs ) {
         }
         strcat(s, buffer);
     }
-    strcat(s, "\r\n");
+    if (rs->content_type != HEADER_CONTENT_RAW) {
+        strcat(s, "\r\n");
+    }
     return s;
 }

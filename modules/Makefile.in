@@ -27,6 +27,12 @@ libaccess.so: access.o ../common/libews0.so $(INC)
 access.o: access.c
 	$(CC) $(CFLAGS) -c -fPIC -o access.o access.c
 
+libcgi.so: cgi.o ../common/libews0.so $(INC)
+	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libcgi.so -o libcgi.so cgi.o ../common/libews0.so -lc
+
+cgi.o: cgi.c
+	$(CC) $(CFLAGS) -c -fPIC -o cgi.o cgi.c
+
 install: $(MODULES)
 	[ -d @libdir@/ews/modules ] || mkdir -p @libdir@/ews/modules
 	cp $(MODULES) @libdir@/ews/modules

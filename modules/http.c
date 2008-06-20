@@ -8,9 +8,6 @@
 
 #include "../include/ella.h"
 
-#define BUFFER_SIZE 1024
-#define PAGE_SIZE   2097152
-
 #define METHOD_GET     1
 #define METHOD_POST    2
 #define METHOD_HEAD    3
@@ -200,6 +197,8 @@ void http_error_page( int code, char *message, char *page, requestHTTP *rh, resp
     http_page_set_var(buffer, var, 3);
     if (method != METHOD_HEAD) {
         ews_set_response_content(rs, HEADER_CONTENT_STRING, buffer);
+    } else {
+        ews_set_response_content(rs, HEADER_CONTENT_NONE, NULL);
     }
     http_add_page_count(code);
 }
@@ -228,12 +227,14 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
         return MODULE_RETURN_OK;
     }
 
-    if (rs->code > 200 && rs->code < 700) {
+    if (rs->code >= 400 && rs->code < 700) {
         /* some module send us a error code to show'em */
         if (http_send_error_page(rs->code, rh, rs, method) == 0) {
             return MODULE_RETURN_OK;
         }
         ews_verbose(LOG_LEVEL_INFO, "unknown code %d in previous code page, ignoring...", rs->code);
+    } else if (rs->code >= 200 && rs->code <= 299) {
+        return MODULE_RETURN_OK;
     }
 
     if (host_name != NULL) {
@@ -283,7 +284,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
     http_add_page_count(rs->code);
 
-    return MODULE_RETURN_PROC_STOP;
+    return MODULE_RETURN_OK;
 }
 
 int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
@@ -317,7 +318,7 @@ int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
 
     bzero(page, PAGE_SIZE);
 
-    if (strcmp(autoindex, "on") == 0) {
+    if (autoindex != NULL && strcmp(autoindex, "on") == 0) {
         if (autoindex_header == NULL || autoindex_entry == NULL || autoindex_footer == NULL) {
             return 500;
         }

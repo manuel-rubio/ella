@@ -2,8 +2,6 @@
 
 #include "../include/ella.h"
 
-#define BUFFER_SIZE 1024
-
 enum {
     MASK_TYPE_NUM,
     MASK_TYPE_NET
