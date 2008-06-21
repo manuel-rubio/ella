@@ -116,7 +116,6 @@ void* ews_connector_client_launch( void* ptr_br ) {
                 }
 
                 for (pmt = br->bc->modules; pmt!=NULL; pmt=pmt->next) {
-                    ews_verbose(LOG_LEVEL_INFO, "running %s module", pmt->name);
                     if (pmt->run != NULL) {
                         if (pmt->type == MODULE_TYPE_SEC && !mod_sec)
                             continue;
@@ -124,6 +123,7 @@ void* ews_connector_client_launch( void* ptr_br ) {
                             continue;
                         if (pmt->type == MODULE_TYPE_HEAD && !mod_head)
                             continue;
+                        ews_verbose(LOG_LEVEL_INFO, "running %s module", pmt->name);
                         res = pmt->run(br, rs);
                         switch (res) {
                             case MODULE_RETURN_FAIL:

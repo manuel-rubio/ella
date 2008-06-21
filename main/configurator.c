@@ -2,15 +2,31 @@
 
 #include "../include/ella.h"
 
-configFuncs ews_get_initial_conf() {
-    configFuncs cf;
+configBlock *config_block = NULL; //!< stores all config blocks.
+configFuncs config_funcs; //!< stores configuration function.
+
+int ews_reload_conf( int pipe, char *params ) {
+    int counter = 0;
+
+    if (config_funcs.read != NULL) {
+        config_funcs.read();
+        counter = ews_modules_reload(config_block);
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "reload %d modules.", counter);
+    } else {
+        ews_verbose_to(pipe, LOG_LEVEL_ERROR, "configuration functions isn't available!");
+    }
+    return 1;
+}
+
+
+configFuncs* ews_get_initial_conf() {
 #if defined EWS_CONFIG_STATIC
-    cf.name = "INI";
-    cf.read = ews_ini_read;
+    config_funcs.name = "INI";
+    config_funcs.read = ews_ini_read;
 #else
     // TODO: load system to dynamic configuration.
 #endif
-    return cf;
+    return &config_funcs;
 }
 
 /* INI Method */
@@ -108,5 +124,6 @@ configBlock* ews_ini_read() {
         } while(!feof(f));
         fclose(f);
     }
+    config_block = cb;
     return cb;
 }

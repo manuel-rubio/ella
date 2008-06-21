@@ -7,7 +7,7 @@ void stop_ews( int d ) {
 }
 
 int main() {
-    configFuncs cf;
+    configFuncs *cf;
     configBlock *cb = NULL;
     moduleTAD *modules = NULL;
     cliCommand *commands = NULL;
@@ -16,7 +16,7 @@ int main() {
 
     logger_init();
     cf = ews_get_initial_conf();
-    cb = cf.read();
+    cb = cf->read();
     logger_config(ews_get_block(cb, "logger", NULL));
 
     modules = ews_modules_load(cb, &commands);

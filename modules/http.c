@@ -29,14 +29,15 @@ static char *page_names[EWS_HTTP_PAGES] = {
 static char pages[EWS_HTTP_PAGES][PAGE_SIZE];
 
 
+pthread_mutex_t
+    http_pages_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static char autoindex_page[PAGE_SIZE];
 static char
     *autoindex_header,
     *autoindex_entry,
     *autoindex_footer;
 
-pthread_mutex_t
-    http_pages_mutex = PTHREAD_MUTEX_INITIALIZER;
 int
     http_pages_200 = 0,
     http_pages_304 = 0,
@@ -192,7 +193,7 @@ void http_error_page( int code, char *message, char *page, requestHTTP *rh, resp
     rs->code = code;
     strcpy(rs->message, message);
     strcpy(rs->version, "1.0");
-    rs->headers = ews_new_header("Server", "ews/0.1", 0);
+    ews_add_header(&rs->headers, "Server", "ews/0.1", 0);
     strcpy(buffer, page);
     http_page_set_var(buffer, var, 3);
     if (method != METHOD_HEAD) {
@@ -207,7 +208,6 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     requestHTTP *rh = br->request;
     virtualHost *vh = NULL;
     hostLocation *hl = NULL;
-    headerHTTP *hh = NULL;
     char *host_name = ews_get_header_value(rh, "Host", 0);
     char *modified = ews_get_header_value(rh, "If-Modified-Since", 0);
     char buffer[BUFFER_SIZE] = { 0 }, date[80] = { 0 };
@@ -263,19 +263,17 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
 
     strcpy(rs->version, "1.0");
-    rs->headers = ews_new_header("Server", "ews/0.1", 0);
-    hh = rs->headers;
+    ews_add_header(&rs->headers, "Server", "ews/0.1", 0);
     set_current_date(date);
-    hh->next = ews_new_header("Date", date, 0);
+    ews_add_header(&rs->headers, "Date", date, 0);
     set_file_date(date, buffer);
-    hh = hh->next;
     if (modified != NULL && compare_date(date, modified) >= 0) {
         rs->code = 304;
         strcpy(rs->message, "Not Modified");
     } else {
         rs->code = 200;
         strcpy(rs->message, "OK");
-        hh->next = ews_new_header("Last-Modified", date, 0);
+        ews_add_header(&rs->headers, "Last-Modified", date, 0);
     }
     if (page[0] != 0 && rs->code == 200) {
         ews_set_response_content(rs, HEADER_CONTENT_STRING, page);
@@ -437,10 +435,38 @@ int http_cli_info( int pipe, char *params ) {
     return 1;
 }
 
-void http_init( moduleTAD *module, cliCommand **cc ) {
-    FILE *f;
-    char *filename;
+void http_load( configDetail* details ) {
     int i;
+    char *filename;
+    FILE *f;
+
+    if (details != NULL) {
+        http_autoindex_prepare(ews_get_detail_value(details, "autoindex_page", 0));
+        for (i=0; i<EWS_HTTP_PAGES; i++) {
+            filename = ews_get_detail_value(details, page_names[i], 0);
+            if (filename != NULL) {
+                if ((f = fopen(filename, "r"))) {
+                    fread(pages[i], PAGE_SIZE, 1, f);
+                    fclose(f);
+                } else {
+                    ews_verbose(LOG_LEVEL_WARN, "page [%s] can't open to load", filename);
+                }
+            } else {
+                ews_verbose(LOG_LEVEL_WARN, "page [%s] can't found in config file", page_names[i]);
+            }
+        }
+    }
+}
+
+void http_reload( configBlock *cb ) {
+    configBlock *module = ews_get_block(cb, "http", NULL);
+
+    if (module != NULL) {
+        http_load(module->details);
+    }
+}
+
+void http_init( moduleTAD *module, cliCommand **cc ) {
 
     strcpy(module->name, "http");
     module->type = MODULE_TYPE_PROC;
@@ -448,7 +474,7 @@ void http_init( moduleTAD *module, cliCommand **cc ) {
 
     module->load = NULL;
     module->unload = NULL;
-    module->reload = NULL;
+    module->reload = http_reload;
     module->get_status = http_get_status;
     module->run = http_run;
 
@@ -456,19 +482,7 @@ void http_init( moduleTAD *module, cliCommand **cc ) {
 Sintaxis: http-info [reset]\n\
 Description: show stats for incoming requests and outgoing type responses.\n", http_cli_info);
 
-    http_autoindex_prepare(ews_get_detail_value(module->details, "autoindex_page", 0));
-
-    for (i=0; i<EWS_HTTP_PAGES; i++) {
-        filename = ews_get_detail_value(module->details, page_names[i], 0);
-        if (filename != NULL) {
-            if ((f = fopen(filename, "r"))) {
-                fread(pages[i], PAGE_SIZE, 1, f);
-                fclose(f);
-            } else {
-                ews_verbose(LOG_LEVEL_WARN, "page [%s] can't open to load", filename);
-            }
-        } else {
-            ews_verbose(LOG_LEVEL_WARN, "page [%s] can't found in config file", page_names[i]);
-        }
+    if (module != NULL) {
+        http_load(module->details);
     }
 }

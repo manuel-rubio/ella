@@ -63,7 +63,7 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
                 rs->code = 200;
                 strcpy(rs->message, "OK");
                 strcpy(rs->version, "1.0");
-                rs->headers = ews_new_header("Server", "ews/0.1", 0);
+                ews_add_header(&rs->headers, "Server", "ews/0.1", 0);
             }
         }
     }

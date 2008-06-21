@@ -19,7 +19,7 @@ struct Mime_Types *mime_types = NULL;
 
 
 void mime_get_status( char *s ) {
-    sprintf(s, "MIME 0.1 module - %d types loaded from %s", mime_types_loaded, mime_file);
+    sprintf(s, "MIME module - %d types loaded from %s", mime_types_loaded, mime_file);
 }
 
 char* mime_find_type( char *file ) {
@@ -43,22 +43,23 @@ char* mime_find_type( char *file ) {
 }
 
 int mime_run( struct Bind_Request *br, responseHTTP *rs ) {
-    headerHTTP *hh;
     char *type;
 
-    for (hh=rs->headers; hh->next!=NULL; hh=hh->next)
-        ;
+    if (rs->headers == NULL) {
+        ews_verbose(LOG_LEVEL_ERROR, "headers not found!");
+        return MODULE_RETURN_FAIL;
+    }
 
     switch (rs->content_type) {
         case HEADER_CONTENT_STRING:
-            hh->next = ews_new_header("Content-Type", "text/html", 0);
+            ews_add_header(&rs->headers, "Content-Type", "text/html", 0);
             break;
         case HEADER_CONTENT_FILE:
             type = mime_find_type(rs->content);
             if (type != NULL) {
-                hh->next = ews_new_header("Content-Type", type, 0);
+                ews_add_header(&rs->headers, "Content-Type", type, 0);
             } else {
-                hh->next = ews_new_header("Content-Type", "text/plain", 0);
+                ews_add_header(&rs->headers, "Content-Type", "text/plain", 0);
             }
             break;
     }
@@ -122,6 +123,7 @@ void mime_free_types( struct Mime_Types *mt ) {
         mime_free_types(mt->next);
 
     ews_free(mt, "mime_free_types");
+    mime_types_loaded--;
 }
 
 void mime_unload( void ) {
@@ -132,6 +134,26 @@ void mime_error( char *s ) {
     strcpy(s, "Not loaded, you should configure [mime] and types detail.");
 }
 
+void mime_reload( configBlock *cb ) {
+    configBlock *mime = ews_get_block(cb, "mime", NULL);
+    char *types;
+
+    if (mime == NULL) {
+        ews_verbose(LOG_LEVEL_ERROR, "mime module not loaded, you should configure [mime] block.");
+        return;
+    }
+
+    types = ews_get_detail_value(mime->details, "types", 0);
+    if (types == NULL) {
+        ews_verbose(LOG_LEVEL_ERROR, "mime.types file not defined.");
+        return;
+    }
+    strcpy(mime_file, types);
+
+    mime_unload();
+    mime_load();
+}
+
 void mime_init( moduleTAD *module, cliCommand **cc ) {
     char *types;
 
@@ -140,13 +162,13 @@ void mime_init( moduleTAD *module, cliCommand **cc ) {
     module->priority = 10;
 
     module->load = NULL;
-    module->unload = NULL;
-    module->reload = NULL;
+    module->unload = mime_unload;
+    module->reload = mime_reload;
     module->run = NULL;
     module->get_status = mime_error;
 
     if (!module->details) {
-        ews_verbose(LOG_LEVEL_ERROR, "mime module not loaded, you should configure [mime].");
+        ews_verbose(LOG_LEVEL_ERROR, "mime module not loaded, you should configure [mime] block.");
         return;
     }
 

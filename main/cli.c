@@ -43,6 +43,9 @@ void ews_cli_init( cliCommand **cc ) {
 Sintaxis: memory-stats [reset]\n\
 Description: see memory stats about use of memory. You can use 'reset' option\n\
              for reset counters.\n", ews_memory_cli_stats);
+    ews_cli_add_command(commands, "reload", "reload configuration from file", "\n\
+Sintaxis: reload\n\
+Description: reload configuration from file.\n", ews_reload_conf);
     ews_cli_add_command(commands, "quit", "close console session.", "\n\
 Sintaxis: quit\n\
 Description: exists from ews console.\n", NULL);

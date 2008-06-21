@@ -162,6 +162,20 @@ moduleTAD* ews_modules_sort( moduleTAD *mt ) {
     return mt;
 }
 
+int ews_modules_reload( configBlock *cb ) {
+    moduleTAD *pmt = NULL;
+    int counter = 0;
+
+    for (pmt = modules; pmt!=NULL; pmt=pmt->next) {
+        if (pmt->reload != NULL) {
+            ews_verbose(LOG_LEVEL_INFO, "reloading %s module", pmt->name);
+            counter ++;
+            pmt->reload(cb);
+        }
+    }
+    return counter;
+}
+
 void ews_modules_free( moduleTAD *mt ) {
     if (mt == NULL)
         return;

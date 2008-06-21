@@ -46,7 +46,7 @@ struct Module {
 
     void (*load)();   //!< run in module load.
     void (*unload)(); //!< run in module unload.
-    void (*reload)(); //!< run in module reload.
+    void (*reload)( configBlock * ); //!< run in module reload.
     void (*get_status)( char * ); //!< return module status.
     int (*run)( struct Bind_Request *, responseHTTP * ); //!< run the module.
 

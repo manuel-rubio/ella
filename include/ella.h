@@ -34,7 +34,7 @@ extern char bindThreadExit;  //!< switch to keep server running.
  *  This function loads essential functions to procced with
  *  server config values load.
  */
-configFuncs ews_get_initial_conf();
+configFuncs* ews_get_initial_conf();
 
 /**
  *  Gets config from a INI file.
@@ -99,5 +99,18 @@ void ews_cli_init( struct cli_command **cc );
  *  @return zero if command fails, negative value if command not found and positive value in success.
  */
 int ews_cli_command( int pipe, char *request );
+
+/**
+ *  CLI command to reload all modules.
+ */
+int ews_reload_conf( int pipe, char *params );
+
+/**
+ *  Run reload function in all modules.
+ *
+ *  @param cb new config blocks.
+ *  @return number of reloaded modules.
+ */
+int ews_modules_reload( configBlock *cb );
 
 #endif

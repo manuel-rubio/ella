@@ -142,7 +142,7 @@ int access_run( struct Bind_Request *br, responseHTTP *rs ) {
         access_denied++;
         ews_verbose(LOG_LEVEL_INFO, "access denied for %s to %s", host, host_name);
     } else {
-        rs->code = 200;
+        // code value shouldn't be modified in this case (200)
         access_granted++;
         ews_verbose(LOG_LEVEL_INFO, "access granted for %s to %s", host, host_name);
     }

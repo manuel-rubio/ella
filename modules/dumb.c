@@ -31,15 +31,11 @@ int dumb_run( struct Bind_Request *br, responseHTTP *rs ) {
     rs->code = 200;
     strcpy(rs->message, "OK");
     strcpy(rs->version, "1.0");
-    rs->headers = ews_new_header("Date", "Sun, 16 Mar 2008 19:55:06 GMT", 0);
-    hh = rs->headers;
-    hh->next = ews_new_header("Server", "ews/0.1", 0);
-    hh = hh->next;
-    hh->next = ews_new_header("Last-Modified", "Thu, 03 Jan 2008 11:30:47 GMT", 0);
-    hh = hh->next;
-    hh->next = ews_new_header("Accept-Ranges", "bytes", 0);
-    hh = hh->next;
-    hh->next = ews_new_header("Content-Type", "text/html", 0);
+    ews_add_header(&rs->headers, "Date", "Sun, 16 Mar 2008 19:55:06 GMT", 0);
+    ews_add_header(&rs->headers, "Server", "ews/0.1", 0);
+    ews_add_header(&rs->headers, "Last-Modified", "Thu, 03 Jan 2008 11:30:47 GMT", 0);
+    ews_add_header(&rs->headers, "Accept-Ranges", "bytes", 0);
+    ews_add_header(&rs->headers, "Content-Type", "text/html", 0);
     ews_set_response_content(rs, HEADER_CONTENT_STRING, (void *)pagina);
     return MODULE_RETURN_STOP;
 }
