@@ -98,6 +98,16 @@ responseHTTP* ews_new_response( int code, char *message, char *version );
 headerHTTP* ews_new_header( char *key, char *value, int index );
 
 /**
+ *  Add a new structure header to header list.
+ *
+ *  @param hh header pointer to headerHTTP.
+ *  @param key header key.
+ *  @param value header value.
+ *  @param index in multivaluated case, index for value.
+ */
+void ews_add_header( headerHTTP** hh, char *key, char *value, int index );
+
+/**
  *  Configure content in request.
  *
  *  @param rs HTTP request structure.

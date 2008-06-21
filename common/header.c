@@ -32,6 +32,18 @@ headerHTTP* ews_new_header( char *key, char *value, int index ) {
     return h;
 }
 
+void ews_add_header( headerHTTP** hh, char *key, char *value, int index ) {
+    headerHTTP *thh = NULL;
+
+    if (*hh == NULL) {
+        *hh = ews_new_header(key, value, index);
+    } else {
+        for (thh = *hh; thh->next!=NULL; thh=thh->next)
+            ;
+        thh->next = ews_new_header(key, value, index);
+    }
+}
+
 void ews_set_response_content( responseHTTP *rs, int type, void *s ) {
     char size[9];
     headerHTTP* ph;
