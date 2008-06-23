@@ -186,7 +186,7 @@ void ews_rewrite_uri( char *uri_orig ) {
 }
 
 requestHTTP* ews_parse_request( char *s ) {
-    int i, j, capture;
+    int i, j, count, content_length = 0, capture;
     requestHTTP *rh = NULL;
     headerHTTP *h = NULL;
 
@@ -213,12 +213,16 @@ requestHTTP* ews_parse_request( char *s ) {
     }
     rh->version[j] = '\0';
 
-    //getting headers
-    for (i=0; s[i]!='\0'; i++) {
+    // getting headers
+    for (i=i+1; s[i]!='\0'; i++) {
         // skip \r and \n
-        while ((s[i] == '\r' || s[i] == '\n') && s[i]!='\0')
+        count = 0;
+        while ((s[i] == '\r' || s[i] == '\n') && s[i]!='\0') {
+            if (s[i] == '\n')
+                count++;
             i++;
-        if (s[i]=='\0')
+        }
+        if (s[i]=='\0' || count >= 2)
             break;
         // get header
         if (rh->headers == NULL) {
@@ -240,6 +244,7 @@ requestHTTP* ews_parse_request( char *s ) {
             if (s[i] == ',') { // new index
                 h->value[j] = '\0';
                 ews_trim(h->value);
+                ews_verbose(LOG_LEVEL_DEBUG, "header: %s ; value : %s ; index: %d", h->key, h->value, h->index);
                 h->next = (headerHTTP *)ews_malloc(sizeof(headerHTTP));
                 strcpy(h->next->key, h->key);
                 h->next->index = h->index + 1;
@@ -252,6 +257,17 @@ requestHTTP* ews_parse_request( char *s ) {
         }
         h->value[j] = '\0';
         ews_trim(h->value);
+        if (content_length == 0 && strcmp(h->key, "Content-Length") == 0) {
+            content_length = atoi(h->value);
+        }
+        ews_verbose(LOG_LEVEL_DEBUG, "header: %s ; value : %s ; index: %d", h->key, h->value, h->index);
+    }
+
+    // rest is content
+    if (content_length > 0) {
+        rh->content = (char *)ews_malloc(content_length);
+        bcopy(s + i, rh->content, content_length);
+        ews_verbose(LOG_LEVEL_DEBUG, "content is setted to: %s", rh->content);
     }
     return rh;
 }
