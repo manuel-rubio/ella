@@ -29,7 +29,7 @@ static char *page_names[EWS_HTTP_PAGES] = {
 static char pages[EWS_HTTP_PAGES][PAGE_SIZE];
 
 
-pthread_mutex_t
+static pthread_mutex_t
     http_pages_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static char autoindex_page[PAGE_SIZE];
@@ -38,7 +38,7 @@ static char
     *autoindex_entry,
     *autoindex_footer;
 
-int
+static int
     http_pages_200 = 0,
     http_pages_304 = 0,
     http_pages_403 = 0,
@@ -47,7 +47,7 @@ int
     http_pages_501 = 0;
 
 void http_get_status( char *s );
-int http_page_set_var( char *page, char *var[][10], int size );
+int http_page_set_var( char *page, char *var[][100], int size );
 int http_autoindex_prepare( char *autoindex );
 void http_error_page( int code, char *message, char *page, requestHTTP *rh, responseHTTP *rs, int method );
 int http_run( struct Bind_Request *br, responseHTTP *rs );
@@ -56,7 +56,7 @@ int http_find_file( char *buffer, requestHTTP *rh, hostLocation *hl );
 int http_cli_info( int pipe, char *params );
 void http_init( moduleTAD *module, cliCommand **cc );
 
-static int http_send_error_page( int code, requestHTTP *rh, responseHTTP *rs, int method ) {
+int http_send_error_page( int code, requestHTTP *rh, responseHTTP *rs, int method ) {
     char buffer[BUFFER_SIZE] = { 0 };
     switch (code) {
         case 404:
@@ -77,7 +77,7 @@ static int http_send_error_page( int code, requestHTTP *rh, responseHTTP *rs, in
     return 0;
 }
 
-static void http_add_page_count( int code ) {
+void http_add_page_count( int code ) {
     pthread_mutex_lock(&http_pages_mutex);
     switch (code) {
         case 200: http_pages_200++; break;
@@ -112,13 +112,14 @@ Pages sent: %6d\n\
     pthread_mutex_unlock(&http_pages_mutex);
 }
 
-int http_page_set_var( char *page, char *var[][10], int size ) {
-    char temp[PAGE_SIZE] = { 0 };
+int http_page_set_var( char *page, char *var[][100], int size ) {
+    char *temp;
     char varname[80];
-    int i, j, k, x, y, z;
+    register int i, j, k, x, y;
     int begin;
 
-    strcpy(temp, page);
+    temp = (char *)ews_malloc(PAGE_SIZE);
+    bcopy(page, temp, PAGE_SIZE);
     for (i=0, k=0; temp[i]!='\0'; i++, k++) {
         if (temp[i] == '<' && temp[i+1] == '!') {
             begin = i;
@@ -134,9 +135,9 @@ int http_page_set_var( char *page, char *var[][10], int size ) {
             }
             // search varname
             for (x=0; x<size; x++) {
-                for (z=0; var[x][0][z]==varname[z] && (varname[z] || var[x][0][z]); z++)
+                for (y=0; var[x][0][y]==varname[y] && var[x][0][y]!='\0' && varname[y]!='\0'; y++)
                     ;
-                if (!varname[z] && !var[x][0][z]) {
+                if (!varname[y] && !var[x][0][y]) {
                     for (y=0; var[x][1][y]!='\0'; y++)
                         page[k+y] = var[x][1][y];
                     k += (y - 1);
@@ -148,6 +149,7 @@ int http_page_set_var( char *page, char *var[][10], int size ) {
         }
     }
     page[k]='\0';
+    ews_free(temp, "http_page_set_var");
     return 0;
 }
 
@@ -185,15 +187,17 @@ int http_autoindex_prepare( char *autoindex ) {
 }
 
 void http_error_page( int code, char *message, char *page, requestHTTP *rh, responseHTTP *rs, int method ) {
-    char buffer[BUFFER_SIZE];
-    char *var[][10] = { { "URI", rh->uri }, { "METHOD", rh->request }, { "SERVER", "ews/0.1" } };
+    char *buffer;
+    char *var[][100] = { { "URI", rh->uri }, { "METHOD", rh->request }, { "SERVER", PACKAGE_NAME "/" PACKAGE_VERSION } };
 
-    bzero(buffer, BUFFER_SIZE);
+    buffer = (char *)ews_malloc(PAGE_SIZE);
+    bzero(buffer, PAGE_SIZE);
 
+    ews_verbose(LOG_LEVEL_DEBUG, "sending error page for code %d: %s", code, message);
     rs->code = code;
     strcpy(rs->message, message);
     strcpy(rs->version, "1.0");
-    ews_add_header(&rs->headers, "Server", "ews/0.1", 0);
+    ews_add_header(&rs->headers, "Server", PACKAGE_NAME "/" PACKAGE_VERSION, 0);
     strcpy(buffer, page);
     http_page_set_var(buffer, var, 3);
     if (method != METHOD_HEAD) {
@@ -201,7 +205,8 @@ void http_error_page( int code, char *message, char *page, requestHTTP *rh, resp
     } else {
         ews_set_response_content(rs, HEADER_CONTENT_NONE, NULL);
     }
-    http_add_page_count(code);
+    http_add_page_count(rs->code);
+    ews_free(buffer, "http_error_page");
 }
 
 int http_run( struct Bind_Request *br, responseHTTP *rs ) {
@@ -212,7 +217,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     char *modified = ews_get_header_value(rh, "If-Modified-Since", 0);
     char buffer[BUFFER_SIZE] = { 0 }, date[80] = { 0 };
     int method = 0;
-    char page[PAGE_SIZE] = { 0 };
+    char *page = NULL;
     int code;
 
     if (strcmp(br->request->request, "GET") == 0) {
@@ -252,8 +257,11 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
     if (!http_find_file(buffer, rh, hl)) { // 404 - Not found
         // Try autoindex
+        page = (char *)ews_malloc(PAGE_SIZE);
+        bzero(page, PAGE_SIZE);
         code = http_autoindex(page, rh, hl);
         if (http_send_error_page(code, rh, rs, method) == 0) {
+            ews_free(page, "http_run");
             return MODULE_RETURN_OK;
         }
         ews_verbose(LOG_LEVEL_INFO, "unknown code %d in autoindex generation, ignoring...", code);
@@ -263,7 +271,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
 
     strcpy(rs->version, "1.0");
-    ews_add_header(&rs->headers, "Server", "ews/0.1", 0);
+    ews_add_header(&rs->headers, "Server", PACKAGE_NAME "/" PACKAGE_VERSION, 0);
     set_current_date(date);
     ews_add_header(&rs->headers, "Date", date, 0);
     set_file_date(date, buffer);
@@ -275,13 +283,16 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
         strcpy(rs->message, "OK");
         ews_add_header(&rs->headers, "Last-Modified", date, 0);
     }
-    if (page[0] != 0 && rs->code == 200) {
+    if (page != NULL && rs->code == 200) {
         ews_set_response_content(rs, HEADER_CONTENT_STRING, page);
     } else if (method != METHOD_HEAD && rs->code == 200) {
         ews_set_response_content(rs, HEADER_CONTENT_FILE, buffer);
     }
     http_add_page_count(rs->code);
 
+    if (page != NULL) {
+        ews_free(page, "http_run");
+    }
     return MODULE_RETURN_OK;
 }
 
@@ -299,19 +310,19 @@ int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
     char date[50] = { 0 };
     char size[32] = { 0 };
     char parent_dir[128] = { 0 };
-    char *var_header[][10] = {
+    char *var_header[][100] = {
         { "URI", NULL },
         { "PARENT_DIR", NULL }
     };
-    char *var_entry[][10] = {
+    char *var_entry[][100] = {
         { "ICON", NULL },
         { "LINK", NULL },
         { "FILE", NULL },
         { "DATE", NULL },
         { "SIZE", NULL }
     };
-    char *var_footer[][10] = {
-        { "SERVER", "ews/0.1" }
+    char *var_footer[][100] = {
+        { "SERVER", PACKAGE_NAME "/" PACKAGE_VERSION}
     };
 
     bzero(page, PAGE_SIZE);
