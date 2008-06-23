@@ -197,6 +197,7 @@ int ews_modules_cli_list( int pipe, char *params ) {
             ews_verbose_to(pipe, LOG_LEVEL_INFO, "%-20s", pmt->name);
         }
     }
+    return 1;
 }
 
 void ews_modules_free( moduleTAD *mt ) {
