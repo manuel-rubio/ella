@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/ella.h"
+#include "../include/main.h"
 
 #define EWS_MAX_CONNECTS 128
 #define EWS_STACKSIZE (240 * 1024)

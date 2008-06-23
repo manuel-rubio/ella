@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/ella.h"
+#include "../include/main.h"
 
 static cliCommand **commands = NULL;
 
@@ -43,8 +43,11 @@ void ews_cli_init( cliCommand **cc ) {
 Sintaxis: memory-stats [reset]\n\
 Description: see memory stats about use of memory. You can use 'reset' option\n\
              for reset counters.\n", ews_memory_cli_stats);
+    ews_cli_add_command(commands, "modules", "show all loaded modules", "\n\
+Sintaxis: modules\n\
+Description: show all loaded modules.\n", ews_modules_cli_list);
     ews_cli_add_command(commands, "reload", "reload configuration from file", "\n\
-Sintaxis: reload\n\
+Sintaxis: reload <module>\n\
 Description: reload configuration from file.\n", ews_reload_conf);
     ews_cli_add_command(commands, "quit", "close console session.", "\n\
 Sintaxis: quit\n\

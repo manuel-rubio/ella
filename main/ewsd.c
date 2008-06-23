@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/ella.h"
+#include "../include/main.h"
 
 void stop_ews( int d ) {
     bindThreadExit = 1;

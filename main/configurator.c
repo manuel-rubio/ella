@@ -1,17 +1,14 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/ella.h"
+#include "../include/main.h"
 
 configBlock *config_block = NULL; //!< stores all config blocks.
 configFuncs config_funcs; //!< stores configuration function.
 
 int ews_reload_conf( int pipe, char *params ) {
-    int counter = 0;
-
     if (config_funcs.read != NULL) {
         config_funcs.read();
-        counter = ews_modules_reload(config_block);
-        ews_verbose_to(pipe, LOG_LEVEL_INFO, "reload %d modules.", counter);
+        ews_modules_reload(config_block, pipe, params);
     } else {
         ews_verbose_to(pipe, LOG_LEVEL_ERROR, "configuration functions isn't available!");
     }

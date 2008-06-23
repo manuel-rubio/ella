@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/ella.h"
+#include "../include/main.h"
 
 static moduleTAD *modules = NULL;
 
@@ -162,18 +162,41 @@ moduleTAD* ews_modules_sort( moduleTAD *mt ) {
     return mt;
 }
 
-int ews_modules_reload( configBlock *cb ) {
+int ews_modules_reload( configBlock *cb, int pipe, char *name ) {
     moduleTAD *pmt = NULL;
-    int counter = 0;
 
-    for (pmt = modules; pmt!=NULL; pmt=pmt->next) {
+    if (name != NULL) {
+        for (pmt=modules; pmt!=NULL; pmt=pmt->next) {
+            if (strcmp(pmt->name, name) == 0) {
+                if (pmt->reload != NULL) {
+                    ews_verbose(LOG_LEVEL_INFO, "reloading %s module", pmt->name);
+                    pmt->reload(cb);
+                    break;
+                } else {
+                    ews_verbose_to(pipe, LOG_LEVEL_INFO, "this modules hasn't reload function");
+                }
+            }
+        }
+        if (pmt == NULL) {
+            // TODO: special reload parts.
+            ews_verbose_to(pipe, LOG_LEVEL_INFO, "module not found");
+        }
+    } else {
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "Sintax: reload <module>");
+    }
+    return 1;
+}
+
+int ews_modules_cli_list( int pipe, char *params ) {
+    moduleTAD *pmt = NULL;
+
+    ews_verbose_to(pipe, LOG_LEVEL_INFO, "%-20s", "Module Available");
+    ews_verbose_to(pipe, LOG_LEVEL_INFO, "--------------------");
+    for (pmt=modules; pmt!=NULL; pmt=pmt->next) {
         if (pmt->reload != NULL) {
-            ews_verbose(LOG_LEVEL_INFO, "reloading %s module", pmt->name);
-            counter ++;
-            pmt->reload(cb);
+            ews_verbose_to(pipe, LOG_LEVEL_INFO, "%-20s", pmt->name);
         }
     }
-    return counter;
 }
 
 void ews_modules_free( moduleTAD *mt ) {
