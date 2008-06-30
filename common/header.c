@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/header.h"
+#include "../include/ella.h"
 
 requestHTTP* ews_new_request( char *request, char *uri, char *version ) {
     requestHTTP *rh = (requestHTTP *)ews_malloc(sizeof(requestHTTP));
@@ -117,8 +117,25 @@ void ews_free_header( headerHTTP *h ) {
 
 char* ews_get_header_value( requestHTTP *rh, char *key, int index ) {
     headerHTTP *h;
+    char *value = NULL;
+
     if (rh == NULL || rh->headers == NULL)
         return NULL;
+    if (index == -1) {
+        for (h = rh->headers; h != NULL; h = h->next) {
+            if (strcmp(h->key, key) == 0) {
+                if (value == NULL) {
+                    value = (char *)ews_malloc(BUFFER_SIZE);
+                    bzero(value, BUFFER_SIZE);
+                    strcpy(value, h->value);
+                } else {
+                    strcat(value, ",");
+                    strcat(value, h->value);
+                }
+            }
+        }
+        return value;
+    }
     for (h = rh->headers; h != NULL; h = h->next)
         if (strcmp(h->key, key) == 0 && h->index == index)
             return h->value;
