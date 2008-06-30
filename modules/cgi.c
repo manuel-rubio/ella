@@ -5,7 +5,7 @@
 #define GATEWAY_VER "CGI/1.1"
 
 void cgi_get_status( char *s ) {
-    sprintf(s, "CGI 1.1 - RFC 3875");
+    sprintf(s, GATEWAY_VER " - RFC 3875");
 }
 
 int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
@@ -21,8 +21,9 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
     char buffer[BUFFER_SIZE] = { 0 };
     char tmp_exec[BUFFER_SIZE] = { 0 };
     char uri[BUFFER_SIZE] = { 0 };
+    char http_version[10] = { 0 };
     char *content = NULL, *aux = NULL, *get = NULL;
-    char *admin = NULL;
+    char *admin = NULL, *http_accept = NULL, *content_length = NULL;
     FILE *cmd = NULL;
     int size = 0, len = 0, ptr = 0, f, i;
     struct stat st;
@@ -48,6 +49,10 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
     cgi = ews_get_detail_value(hl->details, "cgi", 0);
     path = ews_get_detail_value(hl->details, "path", 0);
     admin = ews_get_detail_value(hl->details, "admin", 0);
+    http_accept = ews_get_header_value(rh, "Accept", EWS_HEADER_GET_ALL);
+    strcpy(http_version, "HTTP/");
+    strcat(http_version, rh->version);
+    content_length = ews_get_header_value(rh, "Content-Length", 0);
 
     if (cgi != NULL && strcmp(cgi, "on") == 0) {
         sprintf(buffer, "%s/%s", path, rh->uri + (strlen(hl->base_uri)) + 1);
@@ -80,8 +85,7 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
             setenv("SCRIPT_FILENAME", buffer, 1);
             setenv("DOCUMENT_ROOT", path, 1);
             setenv("GATEWAY_INTEFACE", GATEWAY_VER, 1);
-            // FIXME: Accept must be all values concatenated (some value, -1, to get all?)
-            setenv("HTTP_ACCEPT", ews_get_header_value(rh, "Accept", 0), 1);
+            setenv("HTTP_ACCEPT", http_accept, 1);
             setenv("HTTP_HOST", host, 1);
             setenv("HTTP_USER_AGENT", ews_get_header_value(rh, "User-Agent", 0), 1);
             setenv("REMOTE_ADDR", inet_ntoa((br->client).sin_addr), 1);
@@ -93,15 +97,21 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
             setenv("SERVER_ADMIN", (admin == NULL) ? "webmaster@localhost" : admin, 1);
             setenv("SERVER_NAME", host_name, 1);
             setenv("SERVER_PORT", port, 1);
-            setenv("SERVER_PROTOCOL", rh->version, 1);
+            setenv("SERVER_PROTOCOL", http_version, 1);
             setenv("SERVER_SIGNATURE", PACKAGE_NAME "/" PACKAGE_VERSION, 1);
             setenv("SERVER_SOFTWARE", PACKAGE_NAME "/" PACKAGE_VERSION, 1);
             setenv("QUERY_STRING", (get == NULL) ? "" : get, 1);
+            if (content_length != NULL) {
+                setenv("CONTENT_LENGTH", content_length, 1);
+            }
 
+            if (http_accept != NULL) {
+                ews_free(http_accept, "cgi_run");
+            }
             if (rh->content != NULL) {
                 // FIXME: doesn't work, try to another thing to send POST data to CGI
-                sprintf(tmp_exec, "echo '%s' | %s", rh->content, buffer);
-                ews_verbose(LOG_LEVEL_DEBUG, "send to exec: %s", tmp_exec);
+                sprintf(tmp_exec, "echo '%s ' | %s", rh->content, buffer);
+                ews_verbose(LOG_LEVEL_DEBUG, "send to exec: %s (%s)", tmp_exec, content_length);
             } else {
                 strcpy(tmp_exec, buffer);
             }
