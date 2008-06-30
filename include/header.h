@@ -15,6 +15,8 @@
 #include "memory.h"
 #include "logger.h"
 
+#define EWS_HEADER_GET_ALL -1
+
 /**
  *  Header structure.
  */
