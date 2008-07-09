@@ -4,6 +4,64 @@
 
 #define GATEWAY_VER "CGI/1.1"
 
+pid_t popen2(const char *shell_cmd, int *p_fd_in, int *p_fd_out) {
+    int fds_processInput[2];  //pipe for process input
+    int fds_processOutput[2]; //pipe for process output
+
+    if (pipe(fds_processInput) != 0) { //create process input pipe
+        ews_verbose(LOG_LEVEL_ERROR, "pipe (process input) failed");
+        return 0;
+    }
+
+    if (pipe(fds_processOutput) != 0) { //create process output pipe
+        ews_verbose(LOG_LEVEL_ERROR, "pipe (process output) failed");
+        close(fds_processInput[0]);
+        close(fds_processInput[1]);
+        return 0;
+    }
+
+    pid_t pid;
+    if ((pid = fork()) < 0) {
+        ews_verbose(LOG_LEVEL_ERROR, "fork failed");
+        close(fds_processInput[0]);
+        close(fds_processInput[1]);
+        close(fds_processOutput[0]);
+        close(fds_processOutput[1]);
+        return 0;
+    }
+
+    if (pid == 0) {  //child process
+        //for process input pipe:
+        close(fds_processInput[1]);   //close output
+        dup2(fds_processInput[0], 0); //close fd 0, fd 0 = fds_processInput[0]
+
+        //for process output pipe:
+        close(fds_processOutput[0]);   //close input
+        dup2(fds_processOutput[1], 1); //close fd 1, fd 1 = fds_processOutput[1]
+
+        execl("/bin/sh", "sh", "-c", shell_cmd, 0 );
+        ews_verbose(LOG_LEVEL_ERROR, "failed to run shell_cmd");
+    } else { //parent process
+        //for process input pipe:
+        close(fds_processInput[0]);   //close input
+
+        //for process output pipe:
+        close(fds_processOutput[1]);   //close output
+
+        if(p_fd_in == 0)
+            close(fds_processInput[1]);
+        else
+            *p_fd_in = fds_processInput[1];
+
+        if(p_fd_out == 0)
+            close(fds_processOutput[0]);
+        else
+            *p_fd_out = fds_processOutput[0];
+    }
+    return pid;
+}
+
+
 void cgi_get_status( char *s ) {
     sprintf(s, GATEWAY_VER " - RFC 3875");
 }
@@ -19,13 +77,14 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
     char *path = NULL;
     char *cgi = NULL;
     char buffer[BUFFER_SIZE] = { 0 };
-    char tmp_exec[BUFFER_SIZE] = { 0 };
     char uri[BUFFER_SIZE] = { 0 };
     char http_version[10] = { 0 };
     char *content = NULL, *aux = NULL, *get = NULL;
     char *admin = NULL, *http_accept = NULL, *content_length = NULL;
-    FILE *cmd = NULL;
+    pid_t cmd = 0;
+    int fd_in = 0, fd_out = 0;
     int size = 0, len = 0, ptr = 0, f, i;
+    int content_length_int = 0;
     struct stat st;
 
     if (host != NULL) {
@@ -53,6 +112,9 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
     strcpy(http_version, "HTTP/");
     strcat(http_version, rh->version);
     content_length = ews_get_header_value(rh, "Content-Length", 0);
+    if (content_length != NULL) {
+        content_length_int = atoi(content_length);
+    }
 
     if (cgi != NULL && strcmp(cgi, "on") == 0) {
         sprintf(buffer, "%s/%s", path, rh->uri + (strlen(hl->base_uri)) + 1);
@@ -79,7 +141,7 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
             rs->code = 500;
         } else {
             sprintf(remote_port, "%d", (br->client).sin_port);
-            // TODO: set environment vars
+            // TODO: set all environment vars
             setenv("TERM", "dumb", 1);
             setenv("SCRIPT_NAME", uri, 1);
             setenv("SCRIPT_FILENAME", buffer, 1);
@@ -103,24 +165,22 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
             setenv("QUERY_STRING", (get == NULL) ? "" : get, 1);
             if (content_length != NULL) {
                 setenv("CONTENT_LENGTH", content_length, 1);
+                // FIXME: configure content-type to set in dynamic fashion
+                setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1);
             }
 
             if (http_accept != NULL) {
                 ews_free(http_accept, "cgi_run");
             }
-            if (rh->content != NULL) {
-                // FIXME: doesn't work, try to another thing to send POST data to CGI
-                sprintf(tmp_exec, "echo '%s ' | %s", rh->content, buffer);
-                ews_verbose(LOG_LEVEL_DEBUG, "send to exec: %s (%s)", tmp_exec, content_length);
-            } else {
-                strcpy(tmp_exec, buffer);
-            }
-            cmd = popen(buffer, "r");
+            cmd = popen2(buffer, &fd_in, &fd_out);
             if (cmd) {
+                if (content_length_int > 0) {
+                    write(fd_in, rh->content, content_length_int);
+                }
+                close(fd_in); // end of input
                 content = (char *)ews_malloc(BUFFER_SIZE);
                 size = BUFFER_SIZE;
-                while (!feof(cmd)) {
-                    len = fread(buffer, 1, BUFFER_SIZE, cmd);
+                while ((len = read(fd_out, buffer, BUFFER_SIZE)) > 0) {
                     if (ptr + len > size) {
                         size += BUFFER_SIZE;
                         aux = (char *)ews_malloc(size);
@@ -132,7 +192,7 @@ int cgi_run( struct Bind_Request *br, responseHTTP *rs ) {
                     ptr += len;
                 }
                 content[ptr] = '\0';
-                pclose(cmd);
+                close(fd_out); // end of output
                 if (ptr == 0) {
                     ews_free(content, "cgi_run");
                     rs->code = 500;
