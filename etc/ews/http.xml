@@ -1,0 +1,46 @@
+<?xml version="1.0" charset="utf-8"?>
+<config>
+    <mime types="/etc/mime.types" />
+    <logger loglevel="DEBUG">
+        <dateformat>%d/%m/%Y %H:%M:%S</dateformat>
+    </logger>
+    <http>
+        <error403>/usr/local/share/ews/html/page403.html</error403>
+        <error404>/usr/local/share/ews/html/page404.html</error404>
+        <error501>/usr/local/share/ews/html/page501.html</error501>
+        <error500>/usr/local/share/ews/html/page500.html</error500>
+        <autoindex_page>/usr/local/share/ews/html/autoindex.html</autoindex_page>
+    </http>
+    <modules>
+        <load>http</load>
+        <load>mime</load>
+        <load>access</load>
+        <load>cgi</load>
+    </modules>
+    <aliases>
+        <alias name="www.bosqueviejo.net" domain="bosqueviejo.net" />
+        <alias name="tornasauce.bosqueviejo.net" domain="bosqueviejo.net" />
+    </aliases>
+    <virtualhost name="bosqueviejo.net">
+        <location uri="/" path="/home/bombadil/public_html/bosqueviejo.com">
+            <bind host="0.0.0.0" port="8080" />
+            <indexes>
+                <index id="1" file="index.html" />
+            </indexes>
+            <options autoindex="off" />
+            <access policy="allow" />
+        </location>
+        <location uri="/doc" path="/usr/share/doc">
+            <bind host="0.0.0.0" port="8080" />
+            <options autoindex="on" />
+            <access policy="deny">
+                <allow host="127.0.0.1/32" />
+            </access>
+        </location>
+        <location uri="/cgi-bin" path="/usr/lib/cgi-bin">
+            <bind host="0.0.0.0" port="8080" />
+            <options autoindex="off" />
+            <access policy="allow" />
+        </location>
+    </virtualhost>
+</config>
