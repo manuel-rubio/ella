@@ -1,41 +1,55 @@
 all: $(MODULES) ../common/libews0.so
 
 clean:
-	$(RM) *.so *.o
+	$(ECHO_PREFIX) echo "   [RM] *.so *.o"
+	$(CMD_PREFIX) $(RM) *.so *.o
 
 libdumb.so: dumb.o ../common/libews0.so $(INC)
-	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libdumb.so -o libdumb.so dumb.o ../common/libews0.so -lc
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libdumb.so -o libdumb.so dumb.o ../common/libews0.so -lc
 
 dumb.o: dumb.c
-	$(CC) $(CFLAGS) -c -fPIC -o dumb.o dumb.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o dumb.o dumb.c
 
 libhttp.so: http.o ../common/libews0.so $(INC)
-	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libhttp.so -o libhttp.so http.o ../common/libews0.so -lc
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libhttp.so -o libhttp.so http.o ../common/libews0.so -lc
 
 http.o: http.c
-	$(CC) $(CFLAGS) -c -fPIC -o http.o http.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o http.o http.c
 
 libmime.so: mime.o ../common/libews0.so $(INC)
-	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libmime.so -o libmime.so mime.o ../common/libews0.so -lc
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libmime.so -o libmime.so mime.o ../common/libews0.so -lc
 
 mime.o: mime.c
-	$(CC) $(CFLAGS) -c -fPIC -o mime.o mime.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o mime.o mime.c
 
 libaccess.so: access.o ../common/libews0.so $(INC)
-	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libaccess.so -o libaccess.so access.o ../common/libews0.so -lc
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libaccess.so -o libaccess.so access.o ../common/libews0.so -lc
 
 access.o: access.c
-	$(CC) $(CFLAGS) -c -fPIC -o access.o access.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o access.o access.c
 
 libcgi.so: cgi.o ../common/libews0.so $(INC)
-	$(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libcgi.so -o libcgi.so cgi.o ../common/libews0.so -lc
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libcgi.so -o libcgi.so cgi.o ../common/libews0.so -lc
 
 cgi.o: cgi.c
-	$(CC) $(CFLAGS) -c -fPIC -o cgi.o cgi.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o cgi.o cgi.c
 
 install: $(MODULES)
-	[ -d @libdir@/ews/modules ] || mkdir -p @libdir@/ews/modules
-	cp $(MODULES) @libdir@/ews/modules
+	$(ECHO_PREFIX) [ -d @libdir@/ews/modules ] || echo "   [MKDIR]" @libdir@/ews/modules
+	$(CMD_PREFIX) [ -d @libdir@/ews/modules ] || mkdir -p @libdir@/ews/modules
+	$(ECHO_PREFIX) echo "   [CP]" $(MODULES) "->" @libdir@/ews/modules
+	$(CMD_PREFIX) cp $(MODULES) @libdir@/ews/modules
 
 uninstall:
-	[ -d @libdir@/ews/modules ] && $(RM) -r @libdir@/ews
+	$(ECHO_PREFIX) [ -d @libdir@/ews/modules ] && echo "   [RM]" @libdir@/ews
+	$(CMD_PREFIX) [ -d @libdir@/ews/modules ] && $(RM) -r @libdir@/ews

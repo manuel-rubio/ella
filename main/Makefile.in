@@ -1,39 +1,53 @@
 all: ewsd ewsc
 
 clean:
-	$(RM) ewsd ewsc *.o
+	$(ECHO_PREFIX) echo "   [RM] ewsd ewsc *.o"
+	$(CMD_PREFIX) $(RM) ewsd ewsc *.o
 
 configurator.o: configurator.c $(INC)
-	$(CC) $(CFLAGS) -c -o configurator.o configurator.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o configurator.o configurator.c
 
 connector.o: connector.c $(INC)
-	$(CC) $(CFLAGS) -c -o connector.o connector.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o connector.o connector.c
 
 console.o: console.c $(INC)
-	$(CC) $(CFLAGS) -c -o console.o console.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o console.o console.c
 
 cli.o: cli.c $(INC)
-	$(CC) $(CFLAGS) -c -o cli.o cli.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o cli.o cli.c
 
 modules.o: modules.c $(INC)
-	$(CC) $(CFLAGS) -c -o modules.o modules.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o modules.o modules.c
 
 ewsd.o: ewsd.c $(INC)
-	$(CC) $(CFLAGS) -c -o ewsd.o ewsd.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o ewsd.o ewsd.c
 
 ewsc.o: ewsc.c $(INC)
-	$(CC) $(CFLAGS) -c -o ewsc.o ewsc.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o ewsc.o ewsc.c
 
 ewsc: ewsc.o
-	$(CC) $(CFLAGS) $(LIBS_CONSOLE) -o ewsc ewsc.o
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_CONSOLE) -o ewsc ewsc.o
 
 ewsd: configurator.o connector.o modules.o ewsd.o console.o cli.o ../common/libews0.so
-	$(CC) $(CFLAGS) $(LIBS_SERVER) -o ewsd ../common/libews0.so configurator.o connector.o modules.o ewsd.o console.o cli.o
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_SERVER) -o ewsd ../common/libews0.so configurator.o connector.o modules.o ewsd.o console.o cli.o
 
 install: all
-	cp ewsd @sbindir@
-	cp ewsc @sbindir@
+	$(ECHO_PREFIX) echo "   [CP] ewsd ->" @sbindir@
+	$(CMD_PREFIX) cp ewsd @sbindir@
+	$(ECHO_PREFIX) echo "   [CP] ewsc ->" @sbindir@
+	$(CMD_PREFIX) cp ewsc @sbindir@
 
 uninstall:
-	$(RM) @sbindir@/ewsd
-	$(RM) @sbindir@/ewsc
+	$(ECHO_PREFIX) echo "   [RM]" @sbindir@/ewsd
+	$(CMD_PREFIX) $(RM) @sbindir@/ewsd
+	$(ECHO_PREFIX) echo "   [RM]" @sbindir@/ewsc
+	$(CMD_PREFIX) $(RM) @sbindir@/ewsc

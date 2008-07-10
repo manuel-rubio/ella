@@ -1,37 +1,49 @@
 all: libews0.so
 
 clean:
-	$(RM) libews0.so *.o
+	$(ECHO_PREFIX) echo "   [RM] *.o libews0.so"
+	$(CMD_PREFIX) $(RM) libews0.so *.o
 
 configurator.o: configurator.c $(INC)
-	$(CC) $(CFLAGS) -c -o configurator.o configurator.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o configurator.o configurator.c
 
 connector.o: connector.c $(INC)
-	$(CC) $(CFLAGS) -c -o connector.o connector.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o connector.o connector.c
 
 header.o: header.c $(INC)
-	$(CC) $(CFLAGS) -c -o header.o header.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o header.o header.c
 
 logger.o: logger.c $(INC)
-	$(CC) $(CFLAGS) -c -o logger.o logger.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o logger.o logger.c
 
 memory.o: memory.c $(INC)
-	$(CC) $(CFLAGS) -c -o memory.o memory.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o memory.o memory.c
 
 string.o: string.c $(INC)
-	$(CC) $(CFLAGS) -c -o string.o string.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o string.o string.c
 
 date.o: date.c $(INC)
-	$(CC) $(CFLAGS) -c -o date.o date.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o date.o date.c
 
 cli.o: cli.c $(INC)
-	$(CC) $(CFLAGS) -c -o cli.o cli.c
+	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o cli.o cli.c
 
 libews0.so: configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o
-	$(CC) $(CFLAGS) $(LIBS_COMMON) -shared -Wl,-soname,libews0.so -o libews0.so configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o -lc
+	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_COMMON) -shared -Wl,-soname,libews0.so -o libews0.so configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o -lc
 
 install: all
-	cp libews0.so @libdir@
+	$(ECHO_PREFIX) echo "   [CP] libews0.so ->" @libdir@
+	$(CMD_PREFIX) cp libews0.so @libdir@
 
 uninstall:
-	$(RM) @libdir@/libews0.so
+	$(ECHO_PREFIX) echo "   [RM]" @libdir@/libews0.so
+	$(CMD_PREFIX) $(RM) @libdir@/libews0.so

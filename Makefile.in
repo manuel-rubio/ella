@@ -6,6 +6,8 @@ export CFLAGS
 export LIBS_CONSOLE
 export LIBS_SERVER
 export LIBS_COMMON
+export ECHO_PREFIX
+export CMD_PREFIX
 
 CC = @CC@
 CFLAGS = @CFLAGS@ @dependencias_CFLAGS@ -Wall
@@ -16,6 +18,17 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 
 MODULES = @MODULES@
+
+#Uncomment this to see all build commands instead of 'quiet' output
+#NOISY_BUILD=yes
+
+ifeq ($(NOISY_BUILD),)
+   ECHO_PREFIX=@
+   CMD_PREFIX=@
+else
+   ECHO_PREFIX=@\#
+   CMD_PREFIX=
+endif
 
 INC = ../include/configurator.h \
       ../include/config.h \
@@ -28,49 +41,63 @@ INC = ../include/configurator.h \
 all: ewsd
 
 ewsd: common main modules main/ewsd.c
-	$(MAKE) -C common
-	$(MAKE) -C main
-	$(MAKE) -C modules
+	$(CMD_PREFIX) $(MAKE) -C common
+	$(CMD_PREFIX) $(MAKE) -C main
+	$(CMD_PREFIX) $(MAKE) -C modules
 
 ews: common main modules main/ews.c
-	$(MAKE) -C common
-	$(MAKE) -C main
-	$(MAKE) -C modules
+	$(CMD_PREFIX) $(MAKE) -C common
+	$(CMD_PREFIX) $(MAKE) -C main
+	$(CMD_PREFIX) $(MAKE) -C modules
 
 clean:
-	$(MAKE) -C common clean
-	$(MAKE) -C main clean
-	$(MAKE) -C modules clean
+	$(CMD_PREFIX) $(MAKE) -C common clean
+	$(CMD_PREFIX) $(MAKE) -C main clean
+	$(CMD_PREFIX) $(MAKE) -C modules clean
 
 distclean: clean
-	rm -f config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h include/config.in include/*~
+	$(ECHO_PREFIX) echo "   [RM] config.* Makefile"
+	$(RM) config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h include/config.in include/*~
 
 maintainer-clean: develclean
 
 develclean: distclean
-	rm -rf aclocal* autom4* configure
+	$(ECHO_PREFIX) echo "   [RM] aclocal* autom4* configure"
+	$(CMD_PREFIX) rm -rf aclocal* autom4* configure
 
 dist: clean
-	svn2cl -i --group-by-day
+	$(ECHO_PREFIX) echo "   [SVN] svn2cl -> ChangeLog"
+	$(CMD_PREFIX) svn2cl -i --group-by-day
+	$(ECHO_PREFIX) echo "   [TAR] " @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz
 	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz ella-src/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README}
-	$(RM) ChangeLog
+	$(CMD_PREFIX) $(RM) ChangeLog
 
 install: all
-	$(MAKE) -C common install
-	$(MAKE) -C main install
-	$(MAKE) -C modules install
-	[ -d @sysconfdir@/ews ] || mkdir -p @sysconfdir@/ews
-	[ -f @sysconfdir@/ews/http.ini ] || cp etc/ews/http.ini @sysconfdir@/ews
-	[ -d @localstatedir@/run/ews ] || mkdir -p @localstatedir@/run/ews
-	[ -d @datadir@/ews/html ] || mkdir -p @datadir@/ews/html
-	cp share/* @datadir@/ews/html
-	[ -f /etc/debian_version ] && cp debian/ewsd /etc/init.d
+	$(CMD_PREFIX) $(MAKE) -C common install
+	$(CMD_PREFIX) $(MAKE) -C main install
+	$(CMD_PREFIX) $(MAKE) -C modules install
+	$(ECHO_PREFIX) [ -d @sysconfdir@/ews ] || echo "   [MKDIR]" @sysconfdir@/ews
+	$(CMD_PREFIX) [ -d @sysconfdir@/ews ] || mkdir -p @sysconfdir@/ews
+	$(ECHO_PREFIX) [ -f @sysconfdir@/ews/http.ini ] || echo "   [CP]  etc/ews/http.ini ->" @sysconfdir@/ews
+	$(CMD_PREFIX) [ -f @sysconfdir@/ews/http.ini ] || cp etc/ews/http.ini @sysconfdir@/ews
+	$(ECHO_PREFIX) [ -d @localstatedir@/run/ews ] ||echo "   [MKDIR]" @localstatedir@/run/ews
+	$(CMD_PREFIX) [ -d @localstatedir@/run/ews ] || mkdir -p @localstatedir@/run/ews
+	$(ECHO_PREFIX) [ -d @datadir@/ews/html ] || echo "   [MKDIR]" @datadir@/ews/html
+	$(CMD_PREFIX) [ -d @datadir@/ews/html ] || mkdir -p @datadir@/ews/html
+	$(ECHO_PREFIX) echo "   [CP] share/* ->" @datadir@/ews/html
+	$(CMD_PREFIX) cp share/* @datadir@/ews/html
+	$(ECHO_PREFIX) [ -f /etc/debian_version ] && echo "   [CP] debian/ewsd -> /etc/init.d"
+	$(CMD_PREFIX) [ -f /etc/debian_version ] && cp debian/ewsd /etc/init.d
 
 uninstall:
-	$(MAKE) -C common uninstall
-	$(MAKE) -C main uninstall
-	$(MAKE) -C modules uninstall
-	[ -d @sysconfdir@/ews ] && $(RM) -r @sysconfdir@/ews
-	[ -d @localstatedir@/run/ews ] && $(RM) -r @localstatedir@/run/ews
-	[ -d @datadir@/ews/html ] && $(RM) -r @datadir@/ews
-	[ -f /etc/debian_version ] && $(RM) /etc/init.d/ewsd
+	$(CMD_PREFIX) $(MAKE) -C common uninstall
+	$(CMD_PREFIX) $(MAKE) -C main uninstall
+	$(CMD_PREFIX) $(MAKE) -C modules uninstall
+	$(ECHO_PREFIX) [ -d @sysconfdir@/ews ] && echo "   [RM]" @sysconfdir@/ews
+	$(CMD_PREFIX) [ -d @sysconfdir@/ews ] && $(RM) -r @sysconfdir@/ews
+	$(ECHO_PREFIX) [ -d @localstatedir@/run/ews ] && echo "   [RM]" @localstatedir@/run/ews
+	$(CMD_PREFIX) [ -d @localstatedir@/run/ews ] && $(RM) -r @localstatedir@/run/ews
+	$(ECHO_PREFIX) [ -d @datadir@/ews ] && echo "   [RM]" @datadir@/ews
+	$(CMD_PREFIX) [ -d @datadir@/ews ] && $(RM) -r @datadir@/ews
+	$(ECHO_PREFIX) [ -f /etc/debian_version ] && echo "   [RM] /etc/init.d/ewsd"
+	$(CMD_PREFIX) [ -f /etc/debian_version ] && $(RM) /etc/init.d/ewsd
