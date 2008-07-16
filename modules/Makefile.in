@@ -47,7 +47,7 @@ cgi.o: cgi.c
 install: $(MODULES)
 	$(ECHO_PREFIX) [ -d @libdir@/ews/modules ] || echo "   [MKDIR]" @libdir@/ews/modules
 	$(CMD_PREFIX) [ -d @libdir@/ews/modules ] || mkdir -p @libdir@/ews/modules
-	$(ECHO_PREFIX) echo "   [CP]" $(MODULES) "->" @libdir@/ews/modules
+	$(ECHO_PREFIX) for i in $(MODULES); do echo "   [CP] $$i ->" @libdir@/ews/modules; done
 	$(CMD_PREFIX) cp $(MODULES) @libdir@/ews/modules
 
 uninstall:
