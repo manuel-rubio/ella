@@ -32,7 +32,7 @@ static char pages[EWS_HTTP_PAGES][PAGE_SIZE];
 static pthread_mutex_t
     http_pages_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static char autoindex_page[PAGE_SIZE];
+static char autoindex_page[PAGE_SIZE] = { 0 };
 static char
     *autoindex_header,
     *autoindex_entry,
@@ -113,18 +113,19 @@ Pages sent: %6d\n\
 }
 
 int http_page_set_var( char *page, char *var[][100], int size ) {
-    char *temp;
-    char varname[80];
-    register int i, j, k, x, y;
-    int begin;
+    char *temp = NULL;
+    register int i = 0, j = 0, k = 0, x = 0, y = 0;
+    char varname[80] = { 0 };
+    int begin = 0;
 
     temp = (char *)ews_malloc(PAGE_SIZE);
-    bcopy(page, temp, PAGE_SIZE);
+    for (i=0; i<PAGE_SIZE && page[i]!='\0'; i++)
+        temp[i] = page[i];
     for (i=0, k=0; temp[i]!='\0'; i++, k++) {
         if (temp[i] == '<' && temp[i+1] == '!') {
             begin = i;
             i += 2;
-            for (j=0; (temp[i]>='A' && temp[i]<='Z') || temp[i] == '_'; j++, i++) {
+            for (j=0; ((temp[i]>='A' && temp[i]<='Z') || temp[i] == '_') && (j - 1) < 80; j++, i++) {
                 varname[j] = temp[i];
             }
             varname[j] = '\0';

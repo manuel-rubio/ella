@@ -3,7 +3,7 @@
 #include "../include/string.h"
 
 char* ews_chomp( char *s ) {
-    int c;
+    int c = 0;
     for (c=0; s[c]!='\0'; c++)
         ;
     while (s[c-1] == '\r' || s[c-1] == '\n')
