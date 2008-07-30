@@ -39,7 +39,7 @@ pid_t popen2(const char *shell_cmd, int *p_fd_in, int *p_fd_out) {
         close(fds_processOutput[0]);   //close input
         dup2(fds_processOutput[1], 1); //close fd 1, fd 1 = fds_processOutput[1]
 
-        execl("/bin/sh", "sh", "-c", shell_cmd, 0 );
+        execl("/bin/sh", "sh", "-c", shell_cmd, NULL );
         ews_verbose(LOG_LEVEL_ERROR, "failed to run shell_cmd");
     } else { //parent process
         //for process input pipe:
