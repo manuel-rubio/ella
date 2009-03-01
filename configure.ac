@@ -76,16 +76,20 @@ AC_CHECK_LIB(readline, readline,
     $LIBS_CONSOLE
 )
 
+OSNAME=$(uname -s)
+
 AC_SUBST(LIBS_CONSOLE)
 AC_SUBST(LIBS_COMMON)
 AC_SUBST(LIBS_SERVER)
 AC_SUBST(dependencias_CFLAGS)
 AC_SUBST(dependencias_LIBS)
 AC_SUBST(MODULES)
+AC_SUBST(OSNAME)
 
 AC_OUTPUT(Makefile common/Makefile main/Makefile modules/Makefile)
 
 echo "------------------------------------------------------------------------------------"
+echo "OSNAME                | ${OSNAME}"
 echo "EWS_CONFIG_DIR        | ${EWS_SYSCONF_DIR}/ews"
 echo "EWS_CONFIG_FILE       | ${EWS_SYSCONF_DIR}/ews/method.ini"
 echo "EWS_MODULES_DIR       | ${EWS_LIB_DIR}/ews/modules"

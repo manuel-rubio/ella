@@ -1,3 +1,9 @@
+ifneq ($(OSNAME),Darwin)
+SHARED = -shared
+else
+SHARED = -dynamiclib
+endif
+
 all: $(MODULES) ../common/libews0.so
 
 clean:
@@ -6,7 +12,7 @@ clean:
 
 libdumb.so: dumb.o ../common/libews0.so $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libdumb.so -o libdumb.so dumb.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libdumb.so -o libdumb.so dumb.o ../common/libews0.so -lc
 
 dumb.o: dumb.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
@@ -14,7 +20,7 @@ dumb.o: dumb.c
 
 libhttp.so: http.o ../common/libews0.so $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libhttp.so -o libhttp.so http.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libhttp.so -o libhttp.so http.o ../common/libews0.so -lc
 
 http.o: http.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
@@ -22,7 +28,7 @@ http.o: http.c
 
 libmime.so: mime.o ../common/libews0.so $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libmime.so -o libmime.so mime.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libmime.so -o libmime.so mime.o ../common/libews0.so -lc
 
 mime.o: mime.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
@@ -30,7 +36,7 @@ mime.o: mime.c
 
 libaccess.so: access.o ../common/libews0.so $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libaccess.so -o libaccess.so access.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libaccess.so -o libaccess.so access.o ../common/libews0.so -lc
 
 access.o: access.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
@@ -38,7 +44,7 @@ access.o: access.c
 
 libcgi.so: cgi.o ../common/libews0.so $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) -shared -Wl,-soname,libcgi.so -o libcgi.so cgi.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libcgi.so -o libcgi.so cgi.o ../common/libews0.so -lc
 
 cgi.o: cgi.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"

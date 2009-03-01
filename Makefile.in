@@ -8,6 +8,7 @@ export LIBS_SERVER
 export LIBS_COMMON
 export ECHO_PREFIX
 export CMD_PREFIX
+export OSNAME
 
 CC = @CC@
 CFLAGS = @CFLAGS@ @dependencias_CFLAGS@ -Wall
@@ -16,6 +17,8 @@ LIBS_SERVER = -ldl -pthread @LIBS_SERVER@ @dependencias_LIBS@
 LIBS_COMMON = @LIBS_COMMON@ @dependencias_LIBS@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+
+OSNAME=@OSNAME@
 
 MODULES = @MODULES@
 

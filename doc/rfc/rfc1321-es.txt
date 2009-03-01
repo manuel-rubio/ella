@@ -1,0 +1,1260 @@
+
+
+
+
+
+
+Network Working Group                                          R. Rivest
+Request for Comments: 1321           MIT Laboratory for Computer Science
+                                               y RSA Data Security, Inc.
+                                                              Abril 1992
+Traducción al castellano:                                   Octubre 2003
+Rubén Afonso Francos                                  <rujofa2@terra.es>
+
+
+
+                El Algoritmo de Resumen de Mensajes MD5
+
+
+Estado de este memorándum
+
+   Este memorándum proporciona información para la comunidad Internet,
+   no especifica ningún estándar de Internet, y su distribución es
+   ilimitada.
+
+Agradecimientos
+
+   Queremos dar las gracias a Don Coppersmith, Burt Kaliski, Ralph
+   Merkle, David Chaum, y Noam Nisan por su ayuda y sus numerosas
+   sugerencias.
+
+Tabla de Contenidos
+
+   1. Resumen Ejecutivo                                                1
+   2. Terminología y Notación                                          2
+   3. Descripción del Algoritmo MD5                                    3
+   4. Resumen                                                          5
+   5. Diferencias entre MD4 y MD5                                      6
+   Referencias                                                         6
+   APÉNDICE A - Implementación de Referencia                           6
+   Consideraciones de Seguridad                                       18
+   Dirección del Autor                                                18
+
+1. Resumen Ejecutivo
+
+   Este documento describe el algoritmo de resumen de mensajes MD5. El
+   algoritmo toma como entrada un mensaje de longitud arbitraria y
+   produce como salida una "huella" de 128 bits o "resumen del mensaje"
+   de entrada. Se conjetura que es computacionalmente inviable encontrar
+   dos mensajes que tengan el mismo resumen, u obtener un mensaje que
+   tenga un resumen de mensaje en concreto, establecido previamente como
+   objetivo. El algoritmo MD5 está pensado para ser aplicado en firmas
+   digitales, donde un archivo grande debe ser "comprimido" de forma
+   segura antes de ser cifrado con una llave privada (secreta) dentro de
+   un sistema de cifrado de llave pública, como RSA.  El algoritmo MD5
+
+
+
+Rivest                                                          [Pág. 1]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+   ha sido diseñado para ser bastante rápido en máquinas de 32 bits.
+   Además, no requiere de ninguna gran tabla de sustitución; puede ser
+   codificado de forma bastante compacta.
+
+   El algoritmo MD5 es una ampliación del algoritmo de resumen de
+   mensajes MD4 [1,2]. MD5 es ligeramente más lento que MD4, pero su
+   diseño es más "conservador". MD5 fue diseñado porque se consideraba
+   que tal vez MD4 estaba siendo adoptado más rápido de lo que sugerían
+   los análisis que se le habían realizado; MD4 fue diseñado para ser
+   excepcionalmente rápido, lo que hacía que estuviese "en el borde" en
+   lo que a riesgos de sufrir un ataque criptográfico satisfactorio se
+   refiere. MD5 retrocede un poco, cediendo un poco de velocidad para
+   ganar más probabilidad de seguridad total. Incorpora algunas
+   sugerencias hechas por varios revisores, y optimizaciones
+   adicionales. El algoritmo MD5 se ha hecho de dominio público su
+   revisión y posible adopción como estándar.
+
+   Para las aplicaciones basadas en OSI, el identificador de objeto MD5
+   es
+
+   md5 OBJECT IDENTIFIER ::=
+   iso (1) member-body(2) US (840) rsadsi(113549) digestAlgorithm(2) 5}
+
+   En el tipo X.509 AlgorithmIdentifier [3], los parámetros de MD5
+   deberían ser de tipo NULL.
+
+2. Terminología y Notación
+
+   En este documento una "palabra" tiene un tamaño de 32 bits, y un
+   "byte" un tamaño de 8 bits. Una secuencia de bits puede interpretarse
+   de forma natural como una secuencia de bytes, donde cada grupo de
+   ocho bits consecutivos es interpretado como un byte, siendo el bit de
+   mayor orden (más significativo) de cada byte el situado en primer
+   lugar. De forma similar, una secuencia de bytes puede considerarse
+   como una secuencia de palabras de 32 bits, donde cada grupo de cuatro
+   bytes consecutivos se interpreta como una palabra con el byte de
+   menor orden (menos significativo) en primer lugar.
+
+   Consideremos que x_i denota "x sub i" ("x menos i"), Si consideramos
+   el guión bajo como una expresión, lo delimitaremos con llaves, como
+   en x_{i+1}. De forma similar, utilizamos ^ para guiones altos,
+   (exponenciación), de forma que x^i representa x elevado a la i-ésima
+   potencia.
+
+   Consideremos que el símbolo "+" denota la adición de palabras, (por
+   ejemplo, adición módulo-2^32). X << s representa el valor de 32 bits
+   obtenido por el desplazamiento circular (rotación) de s bits de X
+   hacia la izquierda. Asumiremos que not(X) representa el complemento
+
+
+
+Rivest                                                          [Pág. 2]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+   bit a bit de X, "X v Y" representa una operación OR de X e Y, y que
+   XY expresa una operación AND bit a bit de X e Y.
+
+3. Descripción del algoritmo MD5
+
+   Comenzamos suponiendo que tenemos un mensaje de entrada de b-bits, y
+   que deseamos obtener su resumen. b es un entero arbitrario no
+   negativo; b puede ser cero, no tiene por qué ser múltiplo de ocho, y
+   puede ser tan largo como se quiera. Podemos imaginar los bits del
+   mensaje de la siguiente manera:
+
+          m_0 m_1 ... m_{b-1}
+
+   Los cinco pasos siguientes han sido diseñados para calcular el
+   resumen del mensaje.
+
+3.1 Paso 1. Añadir Bits de Relleno
+
+   El mensaje se rellena (se amplía) para que su longitud (en bits) sea
+   congruente con 448, módulo 512. Es decir, el mensaje se rellena de
+   forma que su longitud sea justo 64 bits menor de ser un múltiplo de
+   512 bits. El relleno se realiza siempre, incluso si la longitud del
+   mensaje es de por sí congruente con 448, módulo 512.
+
+   El relleno se efectúa de la siguiente manera: se añade primero un
+   sólo bit "1" al mensaje, y entonces se añaden bits "0" hasta que la
+   longitud en bits del mensaje ampliado sea congruente con 448, módulo
+   512. Esto hace que el número de bits que se añade pueda ser como
+   mínimo uno y como máximo 512.
+
+3.2 Paso 2: Añadir la Longitud
+
+   La representación en 64 bits de b (recordar que b es la longitud del
+   mensaje antes de añadirle los bits de relleno) se añade al resultado
+   del paso anterior. En el improbable caso de que b sea mayor que 2^64,
+   sólo se utilizarán los 64 bits de menor orden de b. (Estos bits serán
+   añadidos como dos palabras de 32 bits, añadiendo primero la palabra
+   de menor orden, de acuerdo con las convenciones establecidas
+   anteriormente).
+
+   Llegados a este punto, la longitud del mensaje resultante (después de
+   haber rellenado con bits y añadido b) es múltiplo exacto de 512. De
+   forma equivalente, dicha longitud expresada en palabras (de 32 bits)
+   también es un múltiplo exacto de 16. Supongamos que M[0 ... N-1]
+   representa las palabras del mensaje resultante, donde N es un
+   múltiplo de 16.
+
+3.3 Paso 3. Inicialización del búfer MD
+
+
+
+Rivest                                                          [Pág. 3]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+   Se utiliza un búfer de cuatro palabras (A,B,C,D) para calcular el
+   resumen del mensaje. A,B,C y D son registros de 32 bits. Estos
+   registros se inicializan con los siguientes valores hexadecimales,
+   (los bytes de menor orden van primero):
+
+          palabra A: 01 23 45 67
+          palabra B: 89 ab cd ef
+          palabra C: fe dc ba 98
+          palabar D: 76 54 32 10
+
+3.4 Paso 4. Procesar el Mensaje en Bloques de 16 palabras
+
+   Para empezar definiremos cuatro funciones auxiliares. Cada una ellas
+   toma tres palabras de 32 bits como entrada y devuelven como salida
+   una palabra de 32 bits.
+
+          F(X,Y,Z) = XY v not(X) Z
+          G(X,Y,Z) = XZ v not(Z)
+          H(X,Y,Z) = X xor Y xor Z
+          I(X,Y,Z) = Y xor (X v not(Z))
+
+   La función F actúa como un condicional en la posición de cada bit: si
+   X entonces Y en otro caso Z. La función F podría haberse definido
+   utilizando + en lugar de v ya que XY y not(X)Z nunca tendrán bits a
+   uno en la misma posición. Es interesante resaltar que si los bits de
+   X, Y, y Z son independientes, los bits de F(X,Y,Z) también lo serán.
+
+   Las funciones G,H, e I son parecidas a la función F, ya que actúan de
+   forma independiente a nivel de bit al hallar la salida a partir de
+   los bits de X, Y, y Z, de forma que si los correspondientes bits de
+   X, Y y Z son independientes entre sí, cada uno de los bits de
+   G(X,Y,Z), H(X,Y,Z), e I(X,Y,Z) serán independientes entre sí también.
+   Nótese que la función H produce el xor a nivel de bit, o función de
+   igualdad, de su entrada.
+
+   Este paso utiliza una tabla de 64 elementos, T[1..64], construída a
+   partir de la función seno. Supongamos que T[i] es el elemento i-ésimo
+   de la tabla, que es igual a la parte entera del resultado de
+   multiplicar 4294967296 veces abs(sin(i)), estando i expresado en
+   radianes. Los elementos de la tabla se adjuntan en el apéndice.
+
+   Hacemos lo siguiente:
+
+   /* Procesamos cada bloque de 16 palabras */
+   For i = 0 to N/16-1 do
+
+     /* Copia el bloque i en X */
+     For j = 0 to 15 do
+
+
+
+Rivest                                                          [Pág. 4]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+     Almacenar M[i*16+j] en X[j]
+     fin /* del bucle en j */
+
+     /* Guardar A como AA, B como BB, C como CC, y D como DD. */
+     AA = A
+     BB = B
+     CC = C
+     DD = D
+
+     /* Vuelta 1. */
+     /* Suponiendo que [abcd k s i] representa la operación
+          a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s). */
+     /* Realizamos las 16 operaciones siguientes. */
+     [ABCD  0  7  1]  [DABC  1 12  2]  [CDAB  2 17  3]  [BCDA  3 22  4]
+     [ABCD  4  7  5]  [DABC  5 12  6]  [CDAB  6 17  7]  [BCDA  7 22  8]
+     [ABCD  8  7  9]  [DABC  9 12 10]  [CDAB 10 17 11]  [BCDA 11 22 12]
+     [ABCD 12  7 13]  [DABC 13 12 14]  [CDAB 14 17 15]  [BCDA 15 22 16]
+
+     /* Vuelta 2 */
+     /* Suponiendo que [abcd k s i] representa la operación
+          a = b + ((a + G(b,c,d) + X[k] + T[i]) <<< s). */
+     /* Realizamos las 16 operaciones siguientes. */
+
+     [ABCD  1  5 17]  [DABC  6  9 18]  [CDAB 11 14 19]  [BCDA  0 20 20]
+     [ABCD  5  5 21]  [DABC 10  9 22]  [CDAB 15 14 23]  [BCDA  4 20 24]
+     [ABCD  9  5 25]  [DABC 14  9 26]  [CDAB  3 14 27]  [BCDA  8 20 28]
+     [ABCD 13  5 29]  [DABC  2  9 30]  [CDAB  7 14 31]  [BCDA 12 20 32]
+
+     /* Vuelta 3. */
+     /* Supongamos que [abcd k s t] representa la operación
+          a = b + ((a + H(b,c,d) + X[k] + T[i]) <<< s). */
+     /* Realizamos las 16 operaciones siguientes. */
+     [ABCD  5  4 33]  [DABC  8 11 34]  [CDAB 11 16 35]  [BCDA 14 23 36]
+     [ABCD  1  4 37]  [DABC  4 11 38]  [CDAB  7 16 39]  [BCDA 10 23 40]
+     [ABCD 13  4 41]  [DABC  0 11 42]  [CDAB  3 16 43]  [BCDA  6 23 44]
+     [ABCD  9  4 45]  [DABC 12 11 46]  [CDAB 15 16 47]  [BCDA  2 23 48]
+
+     /* Vuelta 4. */
+     /* Supongamos que [abcd k s t] representa la operación
+          a = b + ((a + I(b,c,d) + X[k] + T[i]) <<< s). */
+     /* Realizamos las 16 operaciones siguientes. */
+     [ABCD  0  6 49]  [DABC  7 10 50]  [CDAB 14 15 51]  [BCDA  5 21 52]
+     [ABCD 12  6 53]  [DABC  3 10 54]  [CDAB 10 15 55]  [BCDA  1 21 56]
+     [ABCD  8  6 57]  [DABC 15 10 58]  [CDAB  6 15 59]  [BCDA 13 21 60]
+     [ABCD  4  6 61]  [DABC 11 10 62]  [CDAB  2 15 63]  [BCDA  9 21 64]
+
+     /* Añadimos a cada uno de los cuatro registros el
+     valor que tenían antes de que fuesen inicializados. */
+
+
+
+Rivest                                                          [Pág. 5]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+     A = A + AA
+     B = B + BB
+     C = C + CC
+     D = D + DD
+
+   fin /* del bucle en i */
+
+3.5 Paso 5. Salida
+
+   El resumen de mensaje resultante está en A, B, C, D, empezando por el
+   byte de menor orden de A, y terminando con el byte de mayor orden de
+   D.
+
+   Esto finaliza la descripción del MD5. En el apéndice se adjunta, a
+   modo de referencia, una implementación en C.
+
+4. Resumen
+
+   El algoritmo de resumen de mensaejs MD5 es fácil de implementar, y
+   proporciona una "huella", o resumen, de un mensaje de longitud
+   arbitraria. Se conjetura que la dificultad de encontrar dos mensajes
+   que tengan el mismo resumen es del orden de 2^64 operaciones, y que
+   la dificultad de hallar cualquier mensaje conociendo su resumen es
+   del orden de 2^128 operaciones. El algoritmo MD5 ha sido
+   cuidadosamente estudiado para buscar posibles debilidades. Sin
+   embargo es un algoritmo relativamente nuevo y el análisis de su
+   seguridad para dicho propósito está ampliamente justificado.
+
+5. Diferencias entre MD4 y MD5
+
+     Las diferencias entre MD4 y MD5 son las siguientes:
+
+       1.  Se ha añadido una cuarta vuelta.
+
+       2.  Ahora cada paso tiene una sola constante aditiva.
+
+       3.  La función g en la vuelta 2 ha pasado de ser (XY v XZ v YZ) a
+       ser (XZ v Y not(Z)) para que g sea menos simétrica.
+
+       4.  Cada paso ahora se añade al resultado del paso anterior. Esto
+       provoca un "efecto avalancha" más rápido.
+
+       5.  El orden en el que se accede a las palabras de entrada en la
+       ronda 2 y 3 se ha cambiado, para que estos patrones sean más
+       diferentes entre sí.
+
+       6.  El número de desplazamientos en cada vuelta han sido casi
+       totalmente optimizados para permitir un "efecto avalancha" más
+
+
+
+Rivest                                                          [Pág. 6]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+       rápido. Los desplazamientos en cada vuelta son diferentes.
+
+
+
+Referencias
+
+   [1] Rivest, R., "El Algoritmo de Resumen de Mensajes MD4", RFC 1320,
+       MIT y RSA Data Security, Inc., Abril 1992.
+
+   [2] Rivest, R., "El Algoritmo de Resumen de Mensajes MD4", en A.J.
+       Menezes y S.A. Vanstone, editores, Avances en Criptografía -
+       Actas de CRYPTO`90, páginas 303-311, Springer-Verlag, 1991.
+
+   [3] Recomendaciones CCITT X.509 (1988), "El Directorio - Marco de
+       Autenticación"
+
+APÉNDICE A - Implementación de Referencia
+
+   Este apéndice contiene los siguientes archivos, extraídos de RASREF:
+   Un Kit Criptográfico para preservar la privacidad en el correo
+   electrónico:
+
+     global.h -- archivo cabecera global
+
+     md5.h -- archivo cabecera para MD5
+
+     md5c.c -- código fuente para MD5
+
+   Para más información sobre RSAREF, envíe un correo electrónico a
+   <rsaref@rsa.com>.
+
+   El apéndice también incluye el siguiente archivo:
+
+     mddriver.c -- programa de prueba para MD2, MD4 y MD5
+
+   El programa de prueba compila para MD5 por defecto pero puede
+   compilar para MD2 y MD4 si se define el símbolo MD como 2 o 4 a
+   través de la línea de comandos del compilador de C.
+
+   La implementación es portable y debería funcionar en diferentes
+   plataformas. Sin embargo, no es difícil optimizar la implementación
+   en determinadas plataformas, un ejercicio que se deja al lector. Por
+   ejemplo, en plataformas "little-endian" donde el byte con menor
+   dirección en una palabra de 32 bits es el menos significativo y no
+   existen restricciones de alineación, la llamada a Decode en la
+   función MD5Transform puede ser reemplazada con un typecast.
+
+
+
+
+
+Rivest                                                          [Pág. 7]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+A.1 global.h
+
+/* GLOBAL.H - Tipos y constantes de RSAREF
+ */
+
+/* PROTOTYPES debería tomar el valor 1 si y sólo si el compilador
+soporta prototipos en los argumentos de las funciones.  Lo siguiente
+hace que por defecto PROTOTYPES sea igual a 0 si no ha sido definido
+mediante los parámetros del compilador de C.
+ */ #ifndef PROTOTYPES #define PROTOTYPES 0 #endif
+
+/* POINTER define un tipo puntero genérico */ typedef unsigned char
+*POINTER;
+
+/* UINT2 define una palabra de dos bytes */ typedef unsigned short int
+UINT2;
+
+/* UINT4 define una palabra de cuatro bytes */ typedef unsigned long int
+UINT4;
+
+/* La definición de PROTO_LIST depende de como se haya definido
+PROTOTYPES arriba.  Si se utiliza PROTOTYPES, PROTO_LIST devuelve la
+lista, si no devuelve una lista vacía.
+ /* #if PROTOTYPES #define PROTO_LIST (list) list #else #define
+PROTO_LIST(list) () #endif
+
+A.2 md5.h
+
+/* MD5.h - archivo cabecera para MD5C.C
+ */
+
+/* Copyright (C) 1991-2, RSA Data Security, Inc. Creada en 1991. Todos
+los derechos reservados.
+
+La licencia para copiar y usar este programa está permitida siempre y
+cuando éste se identifique como el "Algoritmo de Resumen de Mensajes MD5
+de RSA Data Security, Inc." en todo el material que mencione o haga
+referencia a este programa o a su función  .
+
+También se concede licencia para crear y utilizar productos derivados
+siempre y cuando éstos sean identificados como "derivados del Algoritmo
+de Resumen de mensajes MD5, de RSA Data Security, Inc." en el material
+que mencione o haga referencia a dicho producto.
+
+RSA Data Security, Inc. no se hace responsable de la mercantibilidad de
+este producto o de la validez de este producto para algun propósito en
+particular. Se proporciona "tal cual" sin garantía expresa o implícita
+de ningún tipo.
+
+
+
+Rivest                                                          [Pág. 8]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+Estas notas deben mantenerse en cualquier copia que se haga de cualquier
+parte de esta documentación y/o de este programa.
+ */
+
+/* contexto MD5. */
+typedef struct {
+  UINT4 state[4];                                   /* estado (ABCD) */
+  UINT4 count[2];        /* número de bits, módulo 2^64 (el byte menos
+                                     significativo va primero (lsb)) */
+  unsigned char buffer[64];                      /* búfer de entrada */
+} MD5_CTX;
+
+void MD5Init PROTO_LIST ((MD5_CTX *));
+void MD5Update PROTO_LIST
+  ((MD5_CTX *, unsigned char *, unsigned int));
+void MD5Final PROTO_LIST ((unsigned char [16], MD5_CTX *));
+
+A.3 md5c.c
+
+/* MD5C.C - RSA Data Security, Inc. Algoritmo de resumen de mensajes MD5
+ */
+
+/* Copyright (C) 1991-2, RSA Data Security, Inc. Creada en 1991. Todos
+los derechos reservados.
+
+La licencia para copiar y usar este programa está permitida siempre y
+cuando éste se identifique como el "Algoritmo de Resumen de Mensajes MD5
+de RSA Data Security, Inc." en todo el material que mencione o haga
+referencia a este programa o a su función  .
+
+También se concede licencia para producir y utilizar productos derivados
+siempre y cuando éstos sean identificados como "derivados del Algoritmo
+de Resumen de mensajes MD5, de RSA Data Security, Inc." en el material
+que mencione o haga referencia a dicho producto.
+
+RSA Data Security, Inc. no se hace responsable de la mercantibilidad de
+este producto o de la validez de este producto para algun propósito en
+particular. Se proporciona "tal cual" sin garantía expresa o implícita
+de ningún tipo.
+
+Estas notas deben ser mantenidas en cualquier copia que se haga de
+cualquier parte de esta documentación y/o de este programa.
+ */
+
+#include "global.h" #include "md5.h"
+
+/* Constantes para la subrutina MD5Transform.
+ */
+
+
+
+Rivest                                                          [Pág. 9]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+#define S11 7
+#define S12 12
+#define S13 17
+#define S14 22
+#define S21 5
+#define S22 9
+#define S23 14
+#define S24 20
+#define S31 4
+#define S32 11
+#define S33 16
+#define S34 23
+#define S41 6
+#define S42 10
+#define S43 15
+#define S44 21
+
+static void MD5Transform PROTO_LIST ((UINT4 [4], unsigned char [64]));
+static void Encode PROTO_LIST
+  ((unsigned char *, UINT4 *, unsigned int));
+static void Decode PROTO_LIST
+  ((UINT4 *, unsigned char *, unsigned int));
+static void MD5_memcpy PROTO_LIST ((POINTER, POINTER, unsigned int));
+static void MD5_memset PROTO_LIST ((POINTER, int, unsigned int));
+
+static unsigned char PADDING[64] = {
+  0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+/* F, G, H, e I son funciones básicas de MD5
+ */
+#define F(x, y, z) (((x) & (y)) | ((~x) & (z)))
+#define G(x, y, z) (((x) & (z)) | ((y) & (~z)))
+#define H(x, y, z) ((x) ^ (y) ^ (z))
+#define I(x, y, z) ((y) ^ ((x) | (~z)))
+
+/* ROTATE_LEFT rota n bits de x hacia la izquierda.
+ */
+#define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
+
+/* Las transformaciones FF, GG, HH, e II para las vueltas 1, 2, 3, y 4.
+La rotación está separada de la adición para evitar cálculos
+redundantes.
+ */
+
+
+
+
+
+Rivest                                                         [Pág. 10]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+#define FF(a, b, c, d, x, s, ac) {
+ (a) += F ((b), (c), (d)) + (x) + (UINT4)(ac);
+ (a) = ROTATE_LEFT ((a), (s));
+ (a) += (b);
+  }
+#define GG(a, b, c, d, x, s, ac) {
+ (a) += G ((b), (c), (d)) + (x) + (UINT4)(ac);
+ (a) = ROTATE_LEFT ((a), (s));
+ (a) += (b);
+  }
+#define HH(a, b, c, d, x, s, ac) {
+ (a) += H ((b), (c), (d)) + (x) + (UINT4)(ac);
+ (a) = ROTATE_LEFT ((a), (s));
+ (a) += (b);
+  }
+#define II(a, b, c, d, x, s, ac) {
+ (a) += I ((b), (c), (d)) + (x) + (UINT4)(ac);
+ (a) = ROTATE_LEFT ((a), (s));
+ (a) += (b);
+  }
+
+/* Inicialización del MD5. Comienza una operación MD5, escribiendo un
+   contexto nuevo.
+ */
+void MD5Init (context)
+MD5_CTX *context;                          /* contexto */
+{
+  context->count[0] = context->count[1] = 0;
+  /* Carga las constantes mágicas de inicialización
+*/
+  context->state[0] = 0x67452301;
+  context->state[1] = 0xefcdab89;
+  context->state[2] = 0x98badcfe;
+  context->state[3] = 0x10325476;
+}
+
+/* Actualización del bloque MD5. Es posterior a una operación MD5, procesa
+   el siguiente bloque del mensaje y actualiza el contexto.
+ */
+void MD5Update (context, input, inputLen)
+MD5_CTX *context;                                /* contexto */
+unsigned char *input;                           /* bloque de entrada */
+unsigned int inputLen;             /* longitud del bloque de entrada */
+{
+  unsigned int i, index, partLen;
+
+  /* Calcula número de bytes mod 64 */
+  index = (unsigned int)((context->count[0] >> 3) & 0x3F);
+
+
+
+Rivest                                                         [Pág. 11]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+  /* Actualiza el número de bits */
+  if ((context->count[0] += ((UINT4)inputLen << 3))
+   < ((UINT4)inputLen << 3))
+ context->count[1]++;
+  context->count[1] += ((UINT4)inputLen >> 29);
+
+  partLen = 64 - index;
+
+   /* Transforma tantas veces como sea posible.
+*/
+  if (inputLen >= partLen) {
+ MD5_memcpy
+   ((POINTER)&context->buffer[index], (POINTER)input, partLen);
+ MD5Transform (context->state, context->buffer);
+
+ for (i = partLen; i + 63 < inputLen; i += 64)
+   MD5Transform (context->state, &input[i]);
+
+ index = 0;
+  }
+  else
+ i = 0;
+
+  /* Entrada de lo que queda en el búfer */
+ MD5_memcpy
+ ((POINTER)&context->buffer[index], (POINTER)&input[i],
+  inputLen-i);
+}
+
+/* Finalización del MD5. Termina una operación MD5, escribiendo el
+   resumen del mensaje y poniendo a cero el contexto.
+ */
+void MD5Final (digest, context)
+unsigned char digest[16];                      /* resumen del mensaje */
+MD5_CTX *context;                                         /* contexto */
+{
+  unsigned char bits[8];
+  unsigned int index, padLen;
+
+  /* Guarda el número de bits */
+  Encode (bits, context->count, 8);
+
+  /* Rellena hasta 56 mod 64.
+*/
+  index = (unsigned int)((context->count[0] >> 3) & 0x3f);
+  padLen = (index < 56) ? (56 - index) : (120 - index);
+  MD5Update (context, PADDING, padLen);
+
+
+
+
+Rivest                                                         [Pág. 12]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+  /* Añade la longitud (después del relleno) */
+  MD5Update (context, bits, 8);
+
+  /* Almacena el estado en el resumen */
+  Encode (digest, context->state, 16)
+
+  /* Sobreescribe con ceros la información sensible.
+*/
+ MD5_memset ((POINTER)context, 0, sizeof (*context));
+}
+
+/* Transformación básica MD5.
+ */
+static void MD5Transform (state, block)
+UINT4 state[4];
+unsigned char block[64];
+{
+  UINT4 a = state[0], b = state[1], c = state[2], d = state[3], x[16];
+
+  Decode (x, block, 64);
+
+  /* Vuelta 1 */
+  FF (a, b, c, d, x[ 0], S11, 0xd76aa478); /* 1 */
+  FF (d, a, b, c, x[ 1], S12, 0xe8c7b756); /* 2 */
+  FF (c, d, a, b, x[ 2], S13, 0x242070db); /* 3 */
+  FF (b, c, d, a, x[ 3], S14, 0xc1bdceee); /* 4 */
+  FF (a, b, c, d, x[ 4], S11, 0xf57c0faf); /* 5 */
+  FF (d, a, b, c, x[ 5], S12, 0x4787c62a); /* 6 */
+  FF (c, d, a, b, x[ 6], S13, 0xa8304613); /* 7 */
+  FF (b, c, d, a, x[ 7], S14, 0xfd469501); /* 8 */
+  FF (a, b, c, d, x[ 8], S11, 0x698098d8); /* 9 */
+  FF (d, a, b, c, x[ 9], S12, 0x8b44f7af); /* 10 */
+  FF (c, d, a, b, x[10], S13, 0xffff5bb1); /* 11 */
+  FF (b, c, d, a, x[11], S14, 0x895cd7be); /* 12 */
+  FF (a, b, c, d, x[12], S11, 0x6b901122); /* 13 */
+  FF (d, a, b, c, x[13], S12, 0xfd987193); /* 14 */
+  FF (c, d, a, b, x[14], S13, 0xa679438e); /* 15 */
+  FF (b, c, d, a, x[15], S14, 0x49b40821); /* 16 */
+
+ /* Vuelta 2 */
+  GG (a, b, c, d, x[ 1], S21, 0xf61e2562); /* 17 */
+  GG (d, a, b, c, x[ 6], S22, 0xc040b340); /* 18 */
+  GG (c, d, a, b, x[11], S23, 0x265e5a51); /* 19 */
+  GG (b, c, d, a, x[ 0], S24, 0xe9b6c7aa); /* 20 */
+  GG (a, b, c, d, x[ 5], S21, 0xd62f105d); /* 21 */
+  GG (d, a, b, c, x[10], S22,  0x2441453); /* 22 */
+  GG (c, d, a, b, x[15], S23, 0xd8a1e681); /* 23 */
+  GG (b, c, d, a, x[ 4], S24, 0xe7d3fbc8); /* 24 */
+
+
+
+Rivest                                                         [Pág. 13]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+  GG (a, b, c, d, x[ 9], S21, 0x21e1cde6); /* 25 */
+  GG (d, a, b, c, x[14], S22, 0xc33707d6); /* 26 */
+  GG (c, d, a, b, x[ 3], S23, 0xf4d50d87); /* 27 */
+  GG (b, c, d, a, x[ 8], S24, 0x455a14ed); /* 28 */
+  GG (a, b, c, d, x[13], S21, 0xa9e3e905); /* 29 */
+  GG (d, a, b, c, x[ 2], S22, 0xfcefa3f8); /* 30 */
+  GG (c, d, a, b, x[ 7], S23, 0x676f02d9); /* 31 */
+  GG (b, c, d, a, x[12], S24, 0x8d2a4c8a); /* 32 */
+
+  /* Vuelta 3 */
+  HH (a, b, c, d, x[ 5], S31, 0xfffa3942); /* 33 */
+  HH (d, a, b, c, x[ 8], S32, 0x8771f681); /* 34 */
+  HH (c, d, a, b, x[11], S33, 0x6d9d6122); /* 35 */
+  HH (b, c, d, a, x[14], S34, 0xfde5380c); /* 36 */
+  HH (a, b, c, d, x[ 1], S31, 0xa4beea44); /* 37 */
+  HH (d, a, b, c, x[ 4], S32, 0x4bdecfa9); /* 38 */
+  HH (c, d, a, b, x[ 7], S33, 0xf6bb4b60); /* 39 */
+  HH (b, c, d, a, x[10], S34, 0xbebfbc70); /* 40 */
+  HH (a, b, c, d, x[13], S31, 0x289b7ec6); /* 41 */
+  HH (d, a, b, c, x[ 0], S32, 0xeaa127fa); /* 42 */
+  HH (c, d, a, b, x[ 3], S33, 0xd4ef3085); /* 43 */
+  HH (b, c, d, a, x[ 6], S34,  0x4881d05); /* 44 */
+  HH (a, b, c, d, x[ 9], S31, 0xd9d4d039); /* 45 */
+  HH (d, a, b, c, x[12], S32, 0xe6db99e5); /* 46 */
+  HH (c, d, a, b, x[15], S33, 0x1fa27cf8); /* 47 */
+  HH (b, c, d, a, x[ 2], S34, 0xc4ac5665); /* 48 */
+
+  /* Vuelta 4 */
+  II (a, b, c, d, x[ 0], S41, 0xf4292244); /* 49 */
+  II (d, a, b, c, x[ 7], S42, 0x432aff97); /* 50 */
+  II (c, d, a, b, x[14], S43, 0xab9423a7); /* 51 */
+  II (b, c, d, a, x[ 5], S44, 0xfc93a039); /* 52 */
+  II (a, b, c, d, x[12], S41, 0x655b59c3); /* 53 */
+  II (d, a, b, c, x[ 3], S42, 0x8f0ccc92); /* 54 */
+  II (c, d, a, b, x[10], S43, 0xffeff47d); /* 55 */
+  II (b, c, d, a, x[ 1], S44, 0x85845dd1); /* 56 */
+  II (a, b, c, d, x[ 8], S41, 0x6fa87e4f); /* 57 */
+  II (d, a, b, c, x[15], S42, 0xfe2ce6e0); /* 58 */
+  II (c, d, a, b, x[ 6], S43, 0xa3014314); /* 59 */
+  II (b, c, d, a, x[13], S44, 0x4e0811a1); /* 60 */
+  II (a, b, c, d, x[ 4], S41, 0xf7537e82); /* 61 */
+  II (d, a, b, c, x[11], S42, 0xbd3af235); /* 62 */
+  II (c, d, a, b, x[ 2], S43, 0x2ad7d2bb); /* 63 */
+  II (b, c, d, a, x[ 9], S44, 0xeb86d391); /* 64 */
+
+  state[0] += a;
+  state[1] += b;
+  state[2] += c;
+
+
+
+Rivest                                                         [Pág. 14]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+  state[3] += d;
+
+  /* Sobreescribe con ceros la información sensible.
+*/
+  MD5_memset ((POINTER)x, 0, sizeof (x));
+}
+
+/* Codifica la entrada (en UINT4) en salida (en unsigned char).
+   Asume que len es un múltiplo de 4.
+ */
+static void Encode (output, input, len)
+unsigned char *output;
+UINT4 *input;
+unsigned int len;
+{
+  unsigned int i, j;
+
+  for (i = 0, j = 0; j < len; i++, j += 4) {
+ output[j] = (unsigned char)(input[i] & 0xff);
+ output[j+1] = (unsigned char)((input[i] >> 8) & 0xff);
+ output[j+2] = (unsigned char)((input[i] >> 16) & 0xff);
+ output[j+3] = (unsigned char)((input[i] >> 24) & 0xff);
+  }
+}
+
+/* Decodifica la entrada (en unsigned char) en salida (en UINT4).
+   Asume que len es un múltiplo de 4.
+ */
+static void Decode (output, input, len)
+UINT4 *output;
+unsigned char *input;
+unsigned int len;
+{
+  unsigned int i, j;
+
+  for (i = 0, j = 0; j < len; i++, j += 4)
+ output[i] = ((UINT4)input[j]) | (((UINT4)input[j+1]) << 8) |
+   (((UINT4)input[j+2]) << 16) | (((UINT4)input[j+3]) << 24);
+}
+
+/* Nota: Si es posible, reemplazar el "bucle for" por la función
+   estándar memcpy.
+ */
+
+static void MD5_memcpy (output, input, len)
+POINTER output;
+POINTER input;
+unsigned int len;
+
+
+
+Rivest                                                         [Pág. 15]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+{
+  unsigned int i;
+
+  for (i = 0; i < len; i++)
+  output[i] = input[i];
+}
+
+/* Nota: si es posible, reemplazar el "bucle for" por la función
+   estándar memset.
+ */
+static void MD5_memset (output, value, len)
+POINTER output;
+int value;
+unsigned int len;
+{
+  unsigned int i;
+
+  for (i = 0; i < len; i++)
+ ((char *)output)[i] = (char)value;
+}
+
+A.4 mddriver.c
+
+/* MDDRIVER.C - programa de prueba para MD2, MD4 y MD5
+ */
+
+/* Copyright (C) 1991-2, RSA Data Security, Inc. Creada en 1991. Todos
+los derechos reservados.
+
+RSA Data Security, Inc. no se hace responsable de la mercantibilidad de
+este producto o de la validez de este producto para algun propósito en
+particular. Se proporciona "tal cual" sin garantía expresa o implícita
+de ningún tipo.
+
+Estas notas deben ser mantenidas en cualquier copia que se haga de
+cualquier parte de esta documentación y/o de este programa.
+ */
+
+/* Lo siguiente hace que por defecto MD sea igual a MD5 si no ha sido
+definido previamente mediante parámetros del compilador C.
+ */
+#ifndef MD
+#define MD MD5
+#endif
+
+#include <stdio.h>
+#include <time.h>
+#include <string.h>
+
+
+
+Rivest                                                         [Pág. 16]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+#include "global.h"
+#if MD == 2
+#include "md2.h"
+#endif
+#if MD == 4
+#include "md4.h"
+#endif
+#if MD == 5
+#include "md5.h"
+#endif
+
+/* Longitud del bloque de prueba, número de bloques de prueba.
+ */
+#define TEST_BLOCK_LEN 1000
+#define TEST_BLOCK_COUNT 1000
+
+static void MDString PROTO_LIST ((char *));
+static void MDTimeTrial PROTO_LIST ((void));
+static void MDTestSuite PROTO_LIST ((void));
+static void MDFile PROTO_LIST ((char *));
+static void MDFilter PROTO_LIST ((void));
+static void MDPrint PROTO_LIST ((unsigned char [16]));
+
+#if MD == 2
+#define MD_CTX MD2_CTX
+#define MDInit MD2Init
+#define MDUpdate MD2Update
+#define MDFinal MD2Final
+#endif
+#if MD == 4
+#define MD_CTX MD4_CTX
+#define MDInit MD4Init
+#define MDUpdate MD4Update
+#define MDFinal MD4Final
+#endif
+#if MD == 5
+#define MD_CTX MD5_CTX
+#define MDInit MD5Init
+#define MDUpdate MD5Update
+#define MDFinal MD5Final
+#endif
+
+
+
+
+
+
+
+
+
+
+Rivest                                                         [Pág. 17]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+/* Programa principal.
+
+Argumentos (en cualquier orden):
+  -scadena - resume la cadena
+  -t       - ejecuta una prueba de tiempo
+  -x       - ejecuta el programa de pruebas
+  archivo  - resume el archivo
+  (nada)   - resume lo que lee de la entrada estándar
+ */
+int main (argc, argv)
+int argc;
+char *argv [];
+{
+  int i;
+  if (argc > 1)
+ for (i = 1; i < argc; i++)
+   if (argv[i][0] == '-' && argv[i][1] == 's')
+     MDString (argv[i] + 2);
+   else if (strcmp (argv[i], "-t") == 0)
+     MDTimeTrial ();
+   else if (strcmp (argv[i], "-x") == 0)
+     MDTestSuite ();
+   else
+     MDFile (argv[i]);
+  else
+ MDFilter ();
+  return (0);
+}
+
+/* Resume una cadena de texto y muestra el resultado.
+ */
+static void MDString (string)
+char *string;
+{
+  MD_CTX context;
+  unsigned char digest[16];
+  unsigned int len = strlen (string);
+
+  MDInit (&context);
+  MDUpdate (&context, string, len);
+  MDFinal (digest, &context);
+
+  printf ("MD%d (
+  MDPrint (digest);
+  printf ("\n");
+}
+
+
+
+
+
+Rivest                                                         [Pág. 18]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+/* Mide el tiempo que tarda en digerir los bloques
+   TEST_BLOCK_COUNT TEST_BLOCK_LEN-byte.
+ */
+static void MDTimeTrial ()
+{
+  MD_CTX context;
+  time_t endTime, startTime;
+  unsigned char block[TEST_BLOCK_LEN], digest[16];
+  unsigned int i;
+  printf
+ ("MD%d time trial. Digesting %d %d-byte blocks ...", MD,
+  TEST_BLOCK_LEN, TEST_BLOCK_COUNT);
+
+  /* Inicializa el bloque */
+  for (i = 0; i < TEST_BLOCK_LEN; i++)
+ block[i] = (unsigned char)(i & 0xff);
+
+  /* Arranca el contador de tiempo */
+  time (&startTime);
+
+  /* Digiere los bloques */
+  MDInit (&context);
+  for (i = 0; i < TEST_BLOCK_COUNT; i++)
+ MDUpdate (&context, block, TEST_BLOCK_LEN);
+  MDFinal (digest, &context);
+
+  /* Detiene el contador de tiempo */
+  time (&endTime);
+
+  printf (" terminado\n");
+  printf ("Resumen = ");
+  MDPrint (digest);
+  printf ("\nTime = %ld segundos\n", (long)(endTime-startTime));
+  printf
+ ("Velocidad = %ld bytes/segundo\n",
+  (long)TEST_BLOCK_LEN * (long)TEST_BLOCK_COUNT/(endTime-startTime));
+}
+
+/* Resume un conjunto de cadenas de referencia y muestra el resultado.
+ */
+static void MDTestSuite ()
+{
+  printf ("MD%d conjunto de pruebas:\n", MD);
+  MDString ("");
+  MDString ("a");
+  MDString ("abc");
+  MDString ("message digest");
+  MDString ("abcdefghijklmnopqrstuvwxyz");
+
+
+
+Rivest                                                         [Pág. 19]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+  MDString
+ ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+  MDString
+ ("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
+}
+
+/* Resume un archivo y muestra el resultado.
+ */
+static void MDFile (filename)
+char *filename;
+{
+  FILE *file;
+  MD_CTX context;
+  int len;
+  unsigned char buffer[1024], digest[16];
+  if ((file = fopen (filename, "rb")) == NULL)
+ printf ("%s no se puede abrir\n", filename);
+  else {
+ MDInit (&context);
+ while (len = fread (buffer, 1, 1024, file))
+   MDUpdate (&context, buffer, len);
+ MDFinal (digest, &context);
+ fclose (file);
+ printf ("MD%d (%s) = ", MD, filename);
+ MDPrint (digest);
+ printf ("\n");
+  }
+}
+
+/* Lee datos de la entrada estándar, los resume y muestra el resultado.
+ */
+static void MDFilter ()
+{
+  MD_CTX context;
+  int len;
+  unsigned char buffer[16], digest[16];
+  MDInit (&context);
+  while (len = fread (buffer, 1, 16, stdin))
+ MDUpdate (&context, buffer, len);
+  MDFinal (digest, &context);
+  MDPrint (digest);
+  printf ("\n");
+}
+
+/* Imprime el resumen de un mensaje en formato hexadecimal.
+ */
+static void MDPrint (digest)
+unsigned char digest[16];
+
+
+
+Rivest                                                         [Pág. 20]
+
+
+
+
+
+RFC 1321         El Algoritmo de Resumen de Mensajes MD5      Abril 1992
+
+
+{
+  unsigned int i;
+  for (i = 0; i < 16; i++)
+ printf ("%02x", digest[i]);
+}
+
+A.5 Programa de prueba
+
+   El programa de prueba (opción del programa "-x") debería mostrar los
+   siguientes resultados:
+
+MD5 test suite:
+MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
+MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
+MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
+MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
+MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
+MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") =
+d174ab98d277d9f5a5611c2c9f419d9f
+MD5 ("123456789012345678901234567890123456789012345678901234567890123456
+78901234567890") = 57edf4a22be3c955ac49da2e2107b67a
+
+Cosideraciones de Seguridad
+
+   El nivel de seguridad supuesto en este memorándum se considera
+   suficiente para implementar esquemas de firmas digitales híbridas de
+   alta seguridad basadas en MD5 y criptosistemas de clave pública.
+
+Dirección del autor
+
+   Ronald L. Rivest
+   Massachusetts Institute of Technology
+   Laboratory for Computer Science
+   NE43-324
+   545 Technology Square
+   Cambridge, MA  02139-1986
+
+   Teléfono: (617) 253-5880
+   Correo electrónico: rivest@theory.lcs.mit.edu
+
+
+
+
+
+
+
+
+
+
+
+
+Rivest                                                         [Pág. 21]
+
+

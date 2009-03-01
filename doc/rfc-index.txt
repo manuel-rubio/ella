@@ -1,0 +1,28 @@
+HTTP
+
+RFC 1321 - The MD5 Message-Digest Algorithm
+RFC 1945 - Hypertext Transfer Protocol (HTTP/1.0)
+RFC 2145 - Use and Interpretation of HTTP Version Numbers
+RFC 2295 - Transparent Content Negotiation in HTTP
+RFC 2616 - Hypertext Transfer Protocol (HTTP/1.1)
+RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication
+RFC 2817 - Upgrading to TLS Within HTTP/1.1
+RFC 2818 - HTTP over TLS
+RFC 2936 - HTTP MIME Type Handler Detection
+RFC 2964 - Use of HTTP State Management
+RFC 2965 - HTTP State Management Mechanism
+RFC 3310 - Hypertext Transfer Protocol (HTTP) Digest Authentication Using Authentication and Key Agreement (AKA)
+RFC 3875 - The Common Gateway Interface (CGI) Version 1.1
+RFC 4918 - HTTP Extensions for Distributed Authoring -- WEBDAV
+
+SMTP
+
+RFC 1652 - SMTP Service Extension for 8bit-MIMEtransport
+RFC 1985 - SMTP Service Extension for Remote Message Queue Starting
+RFC 2034 - SMTP Service Extension for Returning Enhanced Error Codes
+RFC 2821 - Simple Mail Transfer Protocol
+RFC 2505 - Anti-Spam Recommendations for SMTP MTAs
+RFC 2554 - SMTP Service Extension for Authentication
+RFC 2920 - SMTP Service Extension for Command Pipelining
+RFC 3207 - SMTP Service Extension for Secure SMTP over Transport Layer Security
+RFC 3461 - Simple Mail Transfer Protocol (SMTP) Service Extension for Delivery Status Notifications (DSNs)
