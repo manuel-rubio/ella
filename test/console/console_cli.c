@@ -5,8 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-
-#define SOCK_PATH "echo_socket"
+#include "console.h"
 
 int main(void)
 {

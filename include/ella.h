@@ -23,6 +23,10 @@
 #include "date.h"
 #include "logger.h"
 
+#ifdef EWS_OS_INCLUDE
+#include EWS_OS_INCLUDE
+#endif
+
 //!< definitions
 #define BUFFER_SIZE           1024
 #define PAGE_SIZE          2097152

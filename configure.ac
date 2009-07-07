@@ -24,6 +24,8 @@ AC_DEFINE_UNQUOTED(EWS_CONFIG_DIR, "${EWS_SYSCONF_DIR}/ews", [config files place
 AC_DEFINE_UNQUOTED(EWS_CONFIG_FILE, "${EWS_SYSCONF_DIR}/ews/method.ini", [config method file])
 AC_DEFINE_UNQUOTED(EWS_MODULES_DIR, "${EWS_LIB_DIR}/ews/modules", [modules dir])
 AC_DEFINE_UNQUOTED(EWS_CONSOLE_SOCKET, "${EWS_LOCAL_STATE_DIR}/run/ews/ews.ctl", [socket file])
+AC_DEFINE_UNQUOTED(EWS_OSNAME, "$(uname -s)", [OS Name])
+AC_DEFINE_UNQUOTED(EWS_OS_INCLUDE, "$(uname -s)/config.h", [OS specific include])
 
 EWS_CONFIG_STATIC=yes
 EWS_VERBOSE_STDOUT=yes
@@ -44,23 +46,23 @@ MODULES=""
 
 AC_ARG_WITH(dumb,
     AC_HELP_STRING([--with-dumb], [compiles dumb module]),
-    MODULES="libdumb.so ${MODULES}")
+    MODULES="libdumb.\${SHARED_EXT} ${MODULES}")
 
 AC_ARG_WITH(http,
     AC_HELP_STRING([--without-http], [doesn't compile http module]),,
-    MODULES="libhttp.so ${MODULES}")
+    MODULES="libhttp.\${SHARED_EXT} ${MODULES}")
 
 AC_ARG_WITH(mime,
     AC_HELP_STRING([--without-mime], [doesn't compile mime module]),,
-    MODULES="libmime.so ${MODULES}")
+    MODULES="libmime.\${SHARED_EXT} ${MODULES}")
 
 AC_ARG_WITH(access,
     AC_HELP_STRING([--without-access], [doesn't compile access module]),,
-    MODULES="libaccess.so ${MODULES}")
+    MODULES="libaccess.\${SHARED_EXT} ${MODULES}")
 
 AC_ARG_WITH(cgi,
     AC_HELP_STRING([--without-cgi], [doesn't compile cgi module]),,
-    MODULES="libcgi.so ${MODULES}")
+    MODULES="libcgi.\${SHARED_EXT} ${MODULES}")
 
 AC_PROG_CC
 AC_PROG_CC_STDC

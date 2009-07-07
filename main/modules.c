@@ -61,7 +61,7 @@ moduleTAD* ews_modules_load( configBlock *cb, cliCommand **cc ) {
     indexes = ews_get_detail_indexes(cb_modules->details, "load");
     for (i=0; i<indexes; i++) {
         module = ews_get_detail_value(cb_modules->details, "load", i);
-        sprintf(lib, EWS_MODULES_DIR "/lib%s.so", module);
+        sprintf(lib, EWS_MODULES_DIR "/lib%s" EWS_DYN_EXT, module);
         ews_verbose(LOG_LEVEL_DEBUG, "try to load: %s.", lib);
         if (mt == NULL) {
             mt = (moduleTAD *)ews_malloc(sizeof(moduleTAD));

@@ -53,12 +53,12 @@ void ews_set_response_content( responseHTTP *rs, int type, void *s ) {
     if (type != HEADER_CONTENT_NONE) {
         if (type == HEADER_CONTENT_FILE) {
             stat((char *)s, &st);
-            sprintf(size, "%ld", st.st_size);
+            sprintf(size, "%ld", (long)st.st_size);
             ews_verbose(LOG_LEVEL_INFO, "%s file has %d bytes", (char *)s, st.st_size);
         } else {
             // HEADER_CONTENT_STRING
             // HEADER_CONTENT_RAW
-            sprintf(size, "%d", strlen((char *)s));
+            sprintf(size, "%d", (int)strlen((char *)s));
         }
         rs->content = (char *)ews_malloc(strlen(s) + 1);
         strcpy(rs->content, s);

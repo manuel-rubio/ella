@@ -8,8 +8,7 @@
 #include <sys/un.h>
 #include <poll.h>
 #include <rpc/rpc.h>
-
-#define SOCK_PATH "echo_socket"
+#include "console.h"
 
 static void* cli( void *socket ) {
     int s2 = (int)socket;

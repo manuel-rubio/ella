@@ -1,50 +1,44 @@
-ifneq ($(OSNAME),Darwin)
-SHARED = -shared
-else
-SHARED = -dynamiclib
-endif
-
-all: $(MODULES) ../common/libews0.so
+all: $(MODULES) ../common/libews0.$(SHARED_EXT)
 
 clean:
-	$(ECHO_PREFIX) echo "   [RM] *.so *.o"
-	$(CMD_PREFIX) $(RM) *.so *.o
+	$(ECHO_PREFIX) echo "   [RM] *."$(SHARED_EXT)" *.o"
+	$(CMD_PREFIX) $(RM) *.$(SHARED_EXT) *.o
 
-libdumb.so: dumb.o ../common/libews0.so $(INC)
+libdumb.$(SHARED_EXT): dumb.o ../common/libews0.$(SHARED_EXT) $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libdumb.so -o libdumb.so dumb.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -o libdumb.$(SHARED_EXT) dumb.o ../common/libews0.$(SHARED_EXT) -lc
 
 dumb.o: dumb.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
 	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o dumb.o dumb.c
 
-libhttp.so: http.o ../common/libews0.so $(INC)
+libhttp.$(SHARED_EXT): http.o ../common/libews0.$(SHARED_EXT) $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libhttp.so -o libhttp.so http.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -o libhttp.$(SHARED_EXT) http.o ../common/libews0.$(SHARED_EXT) -lc
 
 http.o: http.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
 	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o http.o http.c
 
-libmime.so: mime.o ../common/libews0.so $(INC)
+libmime.$(SHARED_EXT): mime.o ../common/libews0.$(SHARED_EXT) $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libmime.so -o libmime.so mime.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -o libmime.$(SHARED_EXT) mime.o ../common/libews0.$(SHARED_EXT) -lc
 
 mime.o: mime.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
 	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o mime.o mime.c
 
-libaccess.so: access.o ../common/libews0.so $(INC)
+libaccess.$(SHARED_EXT): access.o ../common/libews0.$(SHARED_EXT) $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libaccess.so -o libaccess.so access.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -o libaccess.$(SHARED_EXT) access.o ../common/libews0.$(SHARED_EXT) -lc
 
 access.o: access.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
 	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -fPIC -o access.o access.c
 
-libcgi.so: cgi.o ../common/libews0.so $(INC)
+libcgi.$(SHARED_EXT): cgi.o ../common/libews0.$(SHARED_EXT) $(INC)
 	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -Wl,-soname,libcgi.so -o libcgi.so cgi.o ../common/libews0.so -lc
+	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_MODULES) $(SHARED) -o libcgi.$(SHARED_EXT) cgi.o ../common/libews0.$(SHARED_EXT) -lc
 
 cgi.o: cgi.c
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
