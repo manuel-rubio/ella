@@ -193,9 +193,7 @@ int ews_modules_cli_list( int pipe, char *params ) {
     ews_verbose_to(pipe, LOG_LEVEL_INFO, "%-20s", "Module Available");
     ews_verbose_to(pipe, LOG_LEVEL_INFO, "--------------------");
     for (pmt=modules; pmt!=NULL; pmt=pmt->next) {
-        if (pmt->reload != NULL) {
-            ews_verbose_to(pipe, LOG_LEVEL_INFO, "%-20s", pmt->name);
-        }
+        ews_verbose_to(pipe, LOG_LEVEL_INFO, "%-20s", pmt->name);
     }
     return 1;
 }

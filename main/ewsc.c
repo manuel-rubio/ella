@@ -22,12 +22,12 @@ int main(void) {
     int flags;
     int size = 0;
 
-    if ((s = socket(AF_LOCAL, SOCK_STREAM, 0)) == -1) {
+    if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("socket");
         exit(1);
     }
 
-    remote.sun_family = AF_LOCAL;
+    remote.sun_family = AF_UNIX;
     strcpy(remote.sun_path, EWS_CONSOLE_SOCKET);
     len = strlen(remote.sun_path) + sizeof(remote.sun_family);
     if (connect(s, (struct sockaddr *)&remote, len) == -1) {
@@ -42,7 +42,7 @@ int main(void) {
         aux = str + i + 1;
         str[i] = '\0';
     }
-    printf("\nElla Web Server %s\nCopyright 2008, Bosque Viejo, S.L.\n\n", aux);
+    printf("\nElla Web Server %s\nCopyright 2008-2009, Bosque Viejo, S.L.\n\n", aux);
     printf("Server: %s\nConnected.\n\n", str);
     printf("CLI> ");
     fflush(stdout);

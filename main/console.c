@@ -60,16 +60,16 @@ static void *console(void *vconsole) {
                 break;
             }
             switch (ews_cli_command(con->p[1], request)) {
-                case -2: // press enter without command
+                case -2: // pressed enter without command
                     break;
                 case -1:
                     ews_verbose_to(con->p[1], LOG_LEVEL_ERROR, "while running %s", request);
                     break;
                 case 0:
-                    ews_verbose_to(con->p[1], LOG_LEVEL_WARN, "application exists incorrect");
+                    ews_verbose_to(con->p[1], LOG_LEVEL_WARN, "application exits incorrect");
                     break;
                 default:
-                    ews_verbose_to(con->p[1], LOG_LEVEL_DEBUG, "application exists successfully");
+                    ews_verbose_to(con->p[1], LOG_LEVEL_DEBUG, "application exits successfully");
             }
         }
         if (FD_ISSET(con->p[0], &rfds)) {
@@ -174,15 +174,15 @@ int console_make_socket( cliCommand **cc ) {
         consoles[x].fd = -1;
     ews_cli_init(cc);
     unlink(EWS_CONSOLE_SOCKET);
-    ews_socket = socket(PF_LOCAL, SOCK_STREAM, 0);
+    ews_socket = socket(PF_UNIX, SOCK_STREAM, 0);
     if (ews_socket < 0) {
         ews_verbose(LOG_LEVEL_WARN, "Unable to create control socket: %s", strerror(errno));
         return -1;
     }
     bzero(&sunaddr, sizeof(sunaddr));
-    sunaddr.sun_family = AF_LOCAL;
+    sunaddr.sun_family = AF_UNIX;
     strncpy(sunaddr.sun_path, EWS_CONSOLE_SOCKET, sizeof(sunaddr.sun_path));
-    res = bind(ews_socket, (struct sockaddr *)&sunaddr, sizeof(sunaddr));
+    res = bind(ews_socket, (struct sockaddr *)&sunaddr, strlen(sunaddr.sun_path) + sizeof(sunaddr.sun_family));
     if (res) {
         ews_verbose(LOG_LEVEL_WARN, "Unable to bind socket to %s: %s", EWS_CONSOLE_SOCKET, strerror(errno));
         close(ews_socket);
