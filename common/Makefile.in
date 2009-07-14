@@ -1,8 +1,8 @@
-all: libews0.$(SHARED_EXT)
+all: libews0.$(SHARED_EXT) libews0.a
 
 clean:
-	$(ECHO_PREFIX) echo "   [RM] *.o libews0."$(SHARED_EXT)
-	$(CMD_PREFIX) $(RM) libews0.$(SHARED_EXT) *.o
+	$(ECHO_PREFIX) echo "   [RM] *.o libews0.a libews0."$(SHARED_EXT)
+	$(CMD_PREFIX) $(RM) libews0.a libews0.$(SHARED_EXT) *.o
 
 configurator.o: configurator.c $(INC)
 	$(ECHO_PREFIX) echo "   [CC] $< -> $@"
@@ -37,9 +37,10 @@ cli.o: cli.c $(INC)
 	$(CMD_PREFIX) $(CC) $(CFLAGS) -c -o cli.o cli.c
 
 libews0.$(SHARED_EXT): configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o
-	$(ECHO_PREFIX) echo "   [LD] $< -> $@"
+	$(ECHO_PREFIX) echo "   [LD] $@"
 	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_COMMON) $(SHARED) -o libews0.$(SHARED_EXT) configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o -lc
-	$(CMD_PREFIX) $(CC) $(CFLAGS) $(LIBS_COMMON) $(STATIC) -o libews0.a configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o -lc
+	$(ECHO_PREFIX) echo "   [AR] libews0.a"
+	$(CMD_PREFIX) $(AR) rcs libews0.a configurator.o connector.o header.o memory.o string.o logger.o date.o cli.o
 
 install: all
 	$(ECHO_PREFIX) echo "   [CP] libews0."$(SHARED_EXT)" ->" @libdir@
