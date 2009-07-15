@@ -69,10 +69,10 @@ int in_network( const char *address, const char *network ) {
         return -1;
     addr_src.s_addr &= masknum;
     if (addr_src.s_addr == addr.s_addr) {
-        ews_verbose(LOG_LEVEL_DEBUG, "compare [%s] to [%s]: equals", address, network);
+        ews_verbose(LOG_LEVEL_DEBUG, "    compare [%s] to [%s]: equals", address, network);
         return 1;
     }
-    ews_verbose(LOG_LEVEL_DEBUG, "compare [%s] to [%s]: NOT equals!", address, network);
+    ews_verbose(LOG_LEVEL_DEBUG, "    compare [%s] to [%s]: NOT equals!", address, network);
     return 0;
 }
 
@@ -119,7 +119,7 @@ int access_run( struct Bind_Request *br, responseHTTP *rs ) {
         }
     } else if (strcmp(policy, "deny") == 0) {
         /* deny by default */
-        ews_verbose(LOG_LEVEL_DEBUG, "policy configure to [deny] with %d allow values and %d deny values");
+        ews_verbose(LOG_LEVEL_DEBUG, "    policy configure to [deny] with %d allow values and %d deny values");
         access = 0;
         for (i=0; i<deny_values; i++) {
             deny = ews_get_detail_value(hl->details, "deny", i);
@@ -134,17 +134,17 @@ int access_run( struct Bind_Request *br, responseHTTP *rs ) {
             }
         }
     } else {
-        ews_verbose(LOG_LEVEL_INFO, "policy value isn't valid (%s), it should be: allow or deny.", policy);
+        ews_verbose(LOG_LEVEL_INFO, "    policy value isn't valid (%s), it should be: allow or deny.", policy);
     }
     pthread_mutex_lock(&access_stats_mutex);
     if (!access) {
         rs->code = 403;
         access_denied++;
-        ews_verbose(LOG_LEVEL_INFO, "access denied for %s to %s", host, host_name);
+        ews_verbose(LOG_LEVEL_INFO, "    access denied for %s to %s", host, host_name);
     } else {
         // code value shouldn't be modified in this case (200)
         access_granted++;
-        ews_verbose(LOG_LEVEL_INFO, "access granted for %s to %s", host, host_name);
+        ews_verbose(LOG_LEVEL_INFO, "    access granted for %s to %s", host, host_name);
     }
     pthread_mutex_unlock(&access_stats_mutex);
     return MODULE_RETURN_OK;

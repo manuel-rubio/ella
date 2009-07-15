@@ -34,11 +34,11 @@ char* mime_find_type( char *file ) {
     i++;
     for (mt=mime_types; mt!=NULL; mt=mt->next) {
         if (strcmp(file+i, mt->extension) == 0) {
-            ews_verbose(LOG_LEVEL_INFO, "found [%s] for [%s]", mt->extension, file);
+            ews_verbose(LOG_LEVEL_INFO, "    found [%s] for [%s]", mt->extension, file);
             return mt->mime;
         }
     }
-    ews_verbose(LOG_LEVEL_INFO, "not found mime type for [%s]", file);
+    ews_verbose(LOG_LEVEL_INFO, "    not found mime type for [%s]", file);
     return NULL;
 }
 
@@ -46,7 +46,7 @@ int mime_run( struct Bind_Request *br, responseHTTP *rs ) {
     char *type;
 
     if (rs->headers == NULL) {
-        ews_verbose(LOG_LEVEL_ERROR, "headers not found!");
+        ews_verbose(LOG_LEVEL_ERROR, "    headers not found!");
         return MODULE_RETURN_FAIL;
     }
 
@@ -74,7 +74,7 @@ void mime_load( void ) {
 
     f = fopen(mime_file, "rt");
     if (!f) {
-        ews_verbose(LOG_LEVEL_ERROR, "types file %s not found or can't be opened.", mime_file);
+        ews_verbose(LOG_LEVEL_ERROR, "    types file %s not found or can't be opened.", mime_file);
         return;
     }
     while (fgets(buffer, sizeof(buffer), f)) {
@@ -139,13 +139,13 @@ void mime_reload( configBlock *cb ) {
     char *types;
 
     if (mime == NULL) {
-        ews_verbose(LOG_LEVEL_ERROR, "mime module not loaded, you should configure [mime] block.");
+        ews_verbose(LOG_LEVEL_ERROR, "    mime module not loaded, you should configure [mime] block.");
         return;
     }
 
     types = ews_get_detail_value(mime->details, "types", 0);
     if (types == NULL) {
-        ews_verbose(LOG_LEVEL_ERROR, "mime.types file not defined.");
+        ews_verbose(LOG_LEVEL_ERROR, "    mime.types file not defined.");
         return;
     }
     strcpy(mime_file, types);
@@ -168,13 +168,13 @@ void mime_init( moduleTAD *module, cliCommand **cc ) {
     module->get_status = mime_error;
 
     if (!module->details) {
-        ews_verbose(LOG_LEVEL_ERROR, "mime module not loaded, you should configure [mime] block.");
+        ews_verbose(LOG_LEVEL_ERROR, "    mime module not loaded, you should configure [mime] block.");
         return;
     }
 
     types = ews_get_detail_value(module->details, "types", 0);
     if (types == NULL) {
-        ews_verbose(LOG_LEVEL_ERROR, "mime.types file not defined.");
+        ews_verbose(LOG_LEVEL_ERROR, "    mime.types file not defined.");
         return;
     }
 

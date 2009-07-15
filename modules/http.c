@@ -87,7 +87,7 @@ void http_add_page_count( int code ) {
         case 500: http_pages_500++; break;
         case 501: http_pages_501++; break;
         default:
-            ews_verbose(LOG_LEVEL_ERROR, "unknown code! %d", code);
+            ews_verbose(LOG_LEVEL_ERROR, "    unknown code! %d", code);
     }
     pthread_mutex_unlock(&http_pages_mutex);
 }
@@ -162,7 +162,7 @@ int http_autoindex_prepare( char *autoindex ) {
             fread(autoindex_page, PAGE_SIZE, 1, f);
             fclose(f);
         } else {
-            ews_verbose(LOG_LEVEL_WARN, "page %s can't open to load", autoindex);
+            ews_verbose(LOG_LEVEL_WARN, "    page %s can't open to load", autoindex);
         }
     }
 
@@ -171,7 +171,7 @@ int http_autoindex_prepare( char *autoindex ) {
     // searching for entry
     autoindex_entry = strstr(autoindex_page, "<!>");
     if (autoindex_entry == NULL) {
-        ews_verbose(LOG_LEVEL_ERROR, "autoindex page is incorrect at entry");
+        ews_verbose(LOG_LEVEL_ERROR, "    autoindex page is incorrect at entry");
         return 0;
     }
     autoindex_entry[0] = '\0';
@@ -179,7 +179,7 @@ int http_autoindex_prepare( char *autoindex ) {
     // searching for footer
     autoindex_footer = strstr(autoindex_entry, "<!>");
     if (autoindex_footer == NULL) {
-        ews_verbose(LOG_LEVEL_ERROR, "autoindex page is incorrect at footer");
+        ews_verbose(LOG_LEVEL_ERROR, "    autoindex page is incorrect at footer");
         return 0;
     }
     autoindex_footer[0] = '\0';
@@ -194,7 +194,7 @@ void http_error_page( int code, char *message, char *page, requestHTTP *rh, resp
     buffer = (char *)ews_malloc(PAGE_SIZE);
     bzero(buffer, PAGE_SIZE);
 
-    ews_verbose(LOG_LEVEL_DEBUG, "sending error page for code %d: %s", code, message);
+    ews_verbose(LOG_LEVEL_DEBUG, "    sending error page for code %d: %s", code, message);
     rs->code = code;
     strcpy(rs->message, message);
     strcpy(rs->version, "1.0");
@@ -228,7 +228,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     } else if (strcmp(br->request->request, "HEAD") == 0) {
         method = METHOD_HEAD;
     } else {
-        ews_verbose(LOG_LEVEL_ERROR, "method %s not implemented.", br->request->request);
+        ews_verbose(LOG_LEVEL_ERROR, "    method %s not implemented.", br->request->request);
         http_error_page(501, "Not implemented", pages[EWS_HTTP_PAGE_501], rh, rs, METHOD_GET);
         return MODULE_RETURN_OK;
     }
@@ -238,7 +238,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
         if (http_send_error_page(rs->code, rh, rs, method) == 0) {
             return MODULE_RETURN_OK;
         }
-        ews_verbose(LOG_LEVEL_INFO, "unknown code %d in previous code page, ignoring...", rs->code);
+        ews_verbose(LOG_LEVEL_INFO, "    unknown code %d in previous code page, ignoring...", rs->code);
     } else if (rs->code >= 200 && rs->code <= 299) {
         return MODULE_RETURN_OK;
     }
@@ -252,7 +252,7 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
     }
     hl = ews_connector_find_location(vh->locations, rh->uri);
     if (hl == NULL) { // 404 - Not found
-        ews_verbose(LOG_LEVEL_ERROR, "location mismatch with configurations.");
+        ews_verbose(LOG_LEVEL_ERROR, "    location mismatch with configurations.");
         http_error_page(404, "Not found", pages[EWS_HTTP_PAGE_404], rh, rs, method);
         return MODULE_RETURN_OK;
     }
@@ -265,10 +265,10 @@ int http_run( struct Bind_Request *br, responseHTTP *rs ) {
             ews_free(page, "http_run");
             return MODULE_RETURN_OK;
         }
-        ews_verbose(LOG_LEVEL_INFO, "unknown code %d in autoindex generation, ignoring...", code);
+        ews_verbose(LOG_LEVEL_INFO, "    unknown code %d in autoindex generation, ignoring...", code);
         modified = NULL;
     } else {
-        ews_verbose(LOG_LEVEL_INFO, "sending file [%s]", buffer);
+        ews_verbose(LOG_LEVEL_INFO, "    sending file [%s]", buffer);
     }
 
     strcpy(rs->version, "1.0");
@@ -323,20 +323,23 @@ int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
         { "SIZE", NULL }
     };
     char *var_footer[][100] = {
-        { "SERVER", PACKAGE_NAME "/" PACKAGE_VERSION}
+        { "SERVER", PACKAGE_NAME "/" PACKAGE_VERSION }
     };
+    int root = !strcmp(rh->uri, "/");
 
     bzero(page, PAGE_SIZE);
 
     if (autoindex != NULL && strcmp(autoindex, "on") == 0) {
         if (autoindex_header == NULL || autoindex_entry == NULL || autoindex_footer == NULL) {
+            ews_verbose(LOG_LEVEL_ERROR, "    AutoIndex pages not found or we can't load'em!");
             return 500;
         }
         sprintf(dir, "%s/%s", path, rh->uri + (strlen(hl->base_uri)));
         if (strncmp(path, dir, strlen(path)) != 0) { // 403 Forbidden
+            ews_verbose(LOG_LEVEL_WARN, "    Access to '%s' denied!", path);
             return 403;
         }
-        ews_verbose(LOG_LEVEL_INFO, "Directory for autoindex: %s", dir);
+        ews_verbose(LOG_LEVEL_INFO, "    Directory for autoindex: %s", dir);
         d = opendir(dir);
         if (d == NULL)
             return 404;
@@ -352,7 +355,11 @@ int http_autoindex( char *page, requestHTTP *rh, hostLocation *hl ) {
                 // Nothing to do (parent dir)
             } else {
                 sprintf(file, "%s/%s", dir, dp->d_name);
-                sprintf(file_uri, "%s/%s", rh->uri, dp->d_name);
+                if (!root) {
+                    sprintf(file_uri, "%s/%s", rh->uri, dp->d_name);
+                } else {
+                    sprintf(file_uri, "/%s", dp->d_name);
+                }
                 stat(file, &st);
                 ft = gmtime(&st.st_mtime);
                 sprintf(date, "%02d/%02d/%02d %02d:%02d:%02d",
@@ -410,7 +417,7 @@ int http_find_file( char *buffer, requestHTTP *rh, hostLocation *hl ) {
                 buffer[j] = index[i];
         }
         buffer[j] = '\0';
-        ews_verbose(LOG_LEVEL_INFO, "ruta %s", buffer);
+        ews_verbose(LOG_LEVEL_INFO, "    ruta %s", buffer);
         f = stat(buffer, &st);
         if (f != -1 && S_ISREG(st.st_mode)) {
             return 1;
@@ -461,10 +468,10 @@ void http_load( configDetail* details ) {
                     fread(pages[i], PAGE_SIZE, 1, f);
                     fclose(f);
                 } else {
-                    ews_verbose(LOG_LEVEL_WARN, "page [%s] can't open to load", filename);
+                    ews_verbose(LOG_LEVEL_WARN, "    page [%s] can't open to load", filename);
                 }
             } else {
-                ews_verbose(LOG_LEVEL_WARN, "page [%s] can't found in config file", page_names[i]);
+                ews_verbose(LOG_LEVEL_WARN, "    page [%s] can't found in config file", page_names[i]);
             }
         }
     }
