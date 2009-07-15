@@ -5,7 +5,7 @@ if [ -z "$1" ]; then
 	exit
 fi
 
-DEST=../releases/ews-$1
+DEST=../tags/ews-$1
 
 cd $(dirname $0)/..
 
