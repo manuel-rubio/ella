@@ -77,7 +77,7 @@ dist: clean
 	$(ECHO_PREFIX) echo "   [SVN] svn2cl -> ChangeLog"
 	$(CMD_PREFIX) svn2cl -i --group-by-day
 	$(ECHO_PREFIX) echo "   [TAR] " @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz
-	cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz ella-src/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README}
+	(cd .. && tar cz --exclude=.svn -f @PACKAGE_NAME@-@PACKAGE_VERSION@-`date +%Y%m%d`.tar.gz trunk/{etc,main,common,modules,AUTHORS,ChangeLog,COPYING,include,INSTALL,configure,Makefile.in,README})
 	$(CMD_PREFIX) $(RM) ChangeLog
 
 install: all
