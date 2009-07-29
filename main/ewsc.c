@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../include/config.h"
+#include "../include/ella/config.h"
 
 int main(void) {
     int s, len, i;

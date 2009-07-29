@@ -1,7 +1,5 @@
 #include <string.h>
-#include "../include/modules.h"
-#include "../include/header.h"
-#include "../include/connector.h"
+#include "../include/ella.h"
 
 void dumb_get_status( char *s ) {
     strcpy(s, "OK");

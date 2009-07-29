@@ -3,7 +3,7 @@
 #if !defined __EWS_MAIN_H
 #define __EWS_MAIN_H
 
-#include "ella.h"
+#include "../ella.h"
 
 /**
  *  Init configs read system.

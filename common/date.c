@@ -1,4 +1,6 @@
-#include "../include/date.h"
+/* -*- mode:C; coding:utf-8 -*- */
+
+#include "../include/ella.h"
 
 void set_current_date( char *s ) {
     struct tm *ft;

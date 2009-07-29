@@ -38,13 +38,13 @@ else
    CMD_PREFIX=
 endif
 
-INC = ../include/configurator.h \
-      ../include/config.h \
-      ../include/connector.h \
-      ../include/header.h \
-      ../include/logger.h \
-      ../include/memory.h \
-      ../include/string.h
+INC = ../include/ella/configurator.h \
+      ../include/ella/config.h \
+      ../include/ella/connector.h \
+      ../include/ella/header.h \
+      ../include/ella/logger.h \
+      ../include/ella/memory.h \
+      ../include/ella/string.h
 
 all: ewsd
 
@@ -65,7 +65,7 @@ clean:
 
 distclean: clean
 	$(ECHO_PREFIX) echo "   [RM] config.* Makefile"
-	$(RM) config.* Makefile common/Makefile main/Makefile modules/Makefile include/config.h include/config.in include/*~
+	$(RM) config.* Makefile common/Makefile main/Makefile modules/Makefile include/ella/config.h include/ella/config.in include/*~
 
 maintainer-clean: develclean
 
@@ -98,6 +98,12 @@ install: all
 	$(CMD_PREFIX) cp share/mime.types @datadir@/ews
 	$(ECHO_PREFIX) [ -f /etc/debian_version ] && echo "   [CP] debian/ewsd -> /etc/init.d" || true
 	$(CMD_PREFIX) [ -f /etc/debian_version ] && cp debian/ewsd /etc/init.d || true
+	$(ECHO_PREFIX) [ -d @prefix@/include/ella ] || echo "   [MKDIR]" @prefix@/include/ella
+	$(CMD_PREFIX) [ -d @prefix@/include/ella ] || mkdir -p @prefix@/include/ella
+	$(ECHO_PREFIX) echo "   [CP] include/ella/*.h ->" @prefix@/include/ella
+	$(CMD_PREFIX) cp include/ella/*.h @prefix@/include/ella
+	$(ECHO_PREFIX) echo "   [CP] include/ella.h ->" @prefix@/include
+	$(CMD_PREFIX) cp include/ella.h @prefix@/include
 
 uninstall:
 	$(CMD_PREFIX) $(MAKE) -C common uninstall
@@ -111,3 +117,7 @@ uninstall:
 	$(CMD_PREFIX) [ -d @datadir@/ews ] && $(RM) -r @datadir@/ews
 	$(ECHO_PREFIX) [ -f /etc/debian_version ] && echo "   [RM] /etc/init.d/ewsd"
 	$(CMD_PREFIX) [ -f /etc/debian_version ] && $(RM) /etc/init.d/ewsd
+	$(ECHO_PREFIX) [ -d @prefix@/include/ella ] && echo "   [RM] @prefix@/include/ella/*.h"
+	$(CMD_PREFIX) [ -d @prefix@/include/ella ] && $(RM) -r @prefix@/include/ella
+	$(ECHO_PREFIX) [ -d @prefix@/include/ella.h ] && echo "   [RM] @prefix@/include/ella.h"
+	$(CMD_PREFIX) [ -d @prefix@/include/ella.h ] && $(RM) @prefix@/include/ella.h

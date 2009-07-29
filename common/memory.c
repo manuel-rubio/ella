@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/memory.h"
+#include "../include/ella.h"
 
 pthread_mutex_t memory_allocation = PTHREAD_MUTEX_INITIALIZER;
 long ews_memory_allocated = 0;

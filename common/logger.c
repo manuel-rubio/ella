@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/logger.h"
+#include "../include/ella.h"
 
 #define EWS_LOGGER_MAX_FDS 128
 

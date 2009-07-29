@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../include/memory.h"
-#include "../include/modules.h"
-#include "../include/header.h"
-#include "../include/connector.h"
-#include "../include/logger.h"
+#include "../include/ella.h"
 
 struct Mime_Types {
     char mime[80];

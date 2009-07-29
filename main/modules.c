@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/main.h"
+#include "../include/ella/main.h"
 
 static moduleTAD *modules = NULL;
 

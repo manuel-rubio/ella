@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/main.h"
+#include "../include/ella/main.h"
 
 // TODO: get this data from config file
 #define MAX_CLIENTS 10

@@ -12,16 +12,16 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
-#include "config.h"
-#include "configurator.h"
-#include "connector.h"
-#include "string.h"
-#include "header.h"
-#include "modules.h"
-#include "memory.h"
-#include "cli.h"
-#include "date.h"
-#include "logger.h"
+#include "ella/config.h"
+#include "ella/configurator.h"
+#include "ella/connector.h"
+#include "ella/string.h"
+#include "ella/header.h"
+#include "ella/modules.h"
+#include "ella/memory.h"
+#include "ella/cli.h"
+#include "ella/date.h"
+#include "ella/logger.h"
 
 #ifdef EWS_OS_INCLUDE
 #include EWS_OS_INCLUDE

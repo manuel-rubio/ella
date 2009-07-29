@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/main.h"
+#include "../include/ella/main.h"
 
 configBlock *config_block = NULL; //!< stores all config blocks.
 configFuncs config_funcs; //!< stores configuration function.

@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/connector.h"
+#include "../include/ella.h"
 
 bindConnect* ews_connector_parse_bind( configBlock *cb, moduleTAD* modules ) {
     bindConnect *bc = NULL,

@@ -1,6 +1,6 @@
 AC_INIT(ews, 0.1, bombadil@bosqueviejo.net)
 
-AC_CONFIG_HEADER(include/config.h:include/config.in)
+AC_CONFIG_HEADER(include/ella/config.h:include/ella/config.in)
 
 EWS_SYSCONF_DIR=$(eval eval eval eval "echo $sysconfdir")
 EWS_LIB_DIR=$(eval eval eval eval "echo $libdir")
@@ -25,7 +25,7 @@ AC_DEFINE_UNQUOTED(EWS_CONFIG_FILE, "${EWS_SYSCONF_DIR}/ews/method.ini", [config
 AC_DEFINE_UNQUOTED(EWS_MODULES_DIR, "${EWS_LIB_DIR}/ews/modules", [modules dir])
 AC_DEFINE_UNQUOTED(EWS_CONSOLE_SOCKET, "${EWS_LOCAL_STATE_DIR}/run/ews/ews.ctl", [socket file])
 AC_DEFINE_UNQUOTED(EWS_OSNAME, "$(uname -s)", [OS Name])
-AC_DEFINE_UNQUOTED(EWS_OS_INCLUDE, "$(uname -s)/config.h", [OS specific include])
+AC_DEFINE_UNQUOTED(EWS_OS_INCLUDE, "ella/$(uname -s)/config.h", [OS specific include])
 
 EWS_CONFIG_STATIC=yes
 EWS_VERBOSE_STDOUT=yes

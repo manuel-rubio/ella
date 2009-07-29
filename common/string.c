@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/string.h"
+#include "../include/ella.h"
 
 char* ews_chomp( char *s ) {
     int c = 0;

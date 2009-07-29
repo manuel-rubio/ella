@@ -1,6 +1,6 @@
 /* -*- mode:C; coding:utf-8 -*- */
 
-#include "../include/configurator.h"
+#include "../include/ella.h"
 
 configBlock* ews_new_block( char *name, char *lastname ) {
     configBlock* cb = (configBlock *)ews_malloc(sizeof(configBlock));
