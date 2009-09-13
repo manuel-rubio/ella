@@ -1,7 +1,15 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	echo "Uso: $(basename $0) VERSION"
+	echo "Use: $(basename $0) VERSION"
+	exit
+fi
+
+PWD=$(pwd)
+DIR=$(basename $PWD)
+
+if [ "$DIR" != "trunk" ]; then
+	echo "Should be runned from trunk directory."
 	exit
 fi
 
